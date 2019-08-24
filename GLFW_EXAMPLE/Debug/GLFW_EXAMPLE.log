@@ -1,0 +1,4 @@
+﻿  main.cpp
+main.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  GLFW_EXAMPLE.vcxproj -> C:\Users\y_sta\Documents\Uni\COMP3320\COMP3320_lab_w03_code_2019\GLFW_EXAMPLE\Debug\GLFW_EXAMPLE.exe

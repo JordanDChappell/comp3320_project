@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="GLFW_EXAMPLE">
+</Property><Property Name="Solution File" Value="C:\Users\Jake\OneDrive\Computer Graphics 2015\Jake 2015 Tutes\LabWeek2\LabW2_Code_2015\GLFW_EXAMPLE\GLFW_EXAMPLE.sln">
+</Property><Property Name="Date" Value="Monday, 3 August 2015">
+</Property><Property Name="Time" Value="9:28:43 AM">
+</Property></Properties><Event ErrorLevel="0" Project="SOIL" Source="GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj" Description="Converting project file 'C:\Users\Jake\OneDrive\Computer Graphics 2015\Jake 2015 Tutes\LabWeek2\LabW2_Code_2015\GLFW_EXAMPLE\GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj'.">
+</Event><Event ErrorLevel="1" Project="SOIL" Source="GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="SOIL" Source="GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="SOIL" Source="GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="SOIL" Source="GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="SOIL" Source="GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="0" Project="SOIL" Source="GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj" Description="Done converting to new project file 'C:\Users\Jake\OneDrive\Computer Graphics 2015\Jake 2015 Tutes\LabWeek2\LabW2_Code_2015\GLFW_EXAMPLE\GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="SOIL" Source="GLFW_EXAMPLE\soil\projects\VC9\SOIL.vcproj" Description="Converted">
+</Event></UpgradeLog>
