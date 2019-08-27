@@ -6,7 +6,7 @@
 
     #include <GL/glew.h>  
 
-	#include<iostream> //cout
+	#include <iostream> //cout
 	#include <fstream> //fstream
 
     //Include GLFW  
@@ -15,6 +15,10 @@
     //Include the standard C++ headers  
     #include <stdio.h>  
     #include <stdlib.h>  
+
+	#include "glm/glm.hpp"
+	#include "glm/gtc/matrix_transform.hpp"
+	#include "glm/gtc/type_ptr.hpp"
 
 
     //Define an error callback  
@@ -96,26 +100,34 @@
 
         //TODO: create Vertex array object
 		float vertices[] = {
-			0.0f,  0.5f, // Vertex 1 (X, Y)
-			0.5f, -0.5f, // Vertex 2 (X, Y)
-			-0.5f, -0.5f  // Vertex 3 (X, Y)
+			//  Position      Color             Texcoords
+				-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
+				 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
+				 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
+				-0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
 		};
-
 
         // Example: generate vertex buffers
         GLuint buffer;
         glGenBuffers(1, &buffer);
-
-		GLuint vao;
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
 
         //TODO: load vertices and bind vertex buffer
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         //TODO: create and bind element buffer
-       
+		
+
+		GLuint ebo;
+		glGenBuffers(1, &ebo);
+
+		GLuint elements[] = {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
         //Example:load shader source file
         std::ifstream in("shader.vert");
@@ -131,47 +143,106 @@
         //Example: check that the shader compiled and print any errors
         getShaderCompileStatus(vertexShader);
 
+        //TODO: load and compile fragment shader shader.frag
 		std::ifstream in1("shader.frag");
 		std::string contents1((std::istreambuf_iterator<char>(in1)),
 			std::istreambuf_iterator<char>());
-		const char* fragmentSource = contents1.c_str();
+		const char* fragSource = contents1.c_str();
 
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
+		glShaderSource(fragmentShader, 1, &fragSource, NULL);
 		glCompileShader(fragmentShader);
+		getShaderCompileStatus(fragmentShader);
 
-        //TODO: load and compile fragment shader shader.frag
+        //TODO: link shaders into a program and bind outColor variable
 		GLuint shaderProgram = glCreateProgram();
 		glAttachShader(shaderProgram, vertexShader);
 		glAttachShader(shaderProgram, fragmentShader);
 
-        //TODO: link shaders into a program and bind outColor variable
 		glBindFragDataLocation(shaderProgram, 0, "outColor");
+
 		glLinkProgram(shaderProgram);
+
 		glUseProgram(shaderProgram);
 
         //TODO: link vertex data (position, colour and texture coords) to shader
 		GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
-		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(posAttrib);
+		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
+			7 * sizeof(float), 0);
+		
+		GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
+		glEnableVertexAttribArray(colAttrib);
+		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
+			7 * sizeof(float), (void*)(2 * sizeof(float)));
 
+		GLint texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
+		glEnableVertexAttribArray(texAttrib);
+		glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
+			7 * sizeof(float), (void*)(5 * sizeof(float)));
+		
         //TODO: Create texture buffer:
-
+		GLuint tex[2];
+		glGenTextures(2, tex);
+		
         //TODO: Load image into texture buffer
+		//float pixels[] = {
+		//	0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
+		//	1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f
+		//};
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
         
+		int width, height;
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex[0]);
+
+		unsigned char* image =
+			SOIL_load_image("kitten.png", &width, &height, 0, SOIL_LOAD_RGB);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+			GL_UNSIGNED_BYTE, image);
+		SOIL_free_image_data(image);
+		glUniform1i(glGetUniformLocation(shaderProgram, "texKitten"), 0);
+
         //TODO: Set texture parameters with glTexParameteri(...)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glGenerateMipmap(GL_TEXTURE_2D);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, tex[1]);
+		image = SOIL_load_image("puppy.png", &width, &height, 0, SOIL_LOAD_RGB);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+			GL_UNSIGNED_BYTE, image);
+		SOIL_free_image_data(image);
+		glUniform1i(glGetUniformLocation(shaderProgram, "texPuppy"), 1);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+
+		//float color[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
 
         //Set a background color  
-        glClearColor(0.0f, 0.0f, 1.0f, 0.0f);  
-      
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);  
+
+		// GLint uniColor = glGetUniformLocation(shaderProgram, "triangleColor");
         //Main Loop  
         do  
         {  
+			// glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
+
             //Clear color buffer  
             glClear(GL_COLOR_BUFFER_BIT); 
-            
+
             //TODO: Draw the graphics
-			glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             
             //Swap buffers  
             glfwSwapBuffers(window);  
