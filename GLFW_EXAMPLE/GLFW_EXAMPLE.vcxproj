@@ -14,6 +14,7 @@
     <ProjectGuid>{88B73234-FB59-41F8-A923-1D5585876B08}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GLFW_EXAMPLE</RootNamespace>
+    <ProjectName>Farm-Life</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -88,8 +89,8 @@
     <Image Include="kitten.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader.frag" />
-    <None Include="shader.vert" />
+    <None Include="shaders\shader.frag" />
+    <None Include="shaders\shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
