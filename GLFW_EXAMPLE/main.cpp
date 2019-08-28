@@ -1,25 +1,26 @@
-    //Include GLEW  
-    //#define GLEW_STATIC
-	
-	//Library for loading textures (Simple OpenGL Image Library)
+    /* Add dependencies
+	* SOIL - Library for loading textures (Simple OpenGL Image Library)
+	* GLEW - OpenGL Extension Wrangler
+	* GLFW - Graphics Library Framework
+	* GLM - OpenGL Mathematics
+	*/
 	#include <SOIL.h>
 
     #include <GL/glew.h>  
 
-	#include <iostream> //cout
-	#include <fstream> //fstream
-
-    //Include GLFW  
-    #include <GLFW/glfw3.h>  
-      
-    //Include the standard C++ headers  
-    #include <stdio.h>  
-    #include <stdlib.h>  
+	#include <GLFW/glfw3.h>  
 
 	#include "glm/glm.hpp"
 	#include "glm/gtc/matrix_transform.hpp"
 	#include "glm/gtc/type_ptr.hpp"
 
+	// Include iostream for cout and fstream for file stream
+	#include <iostream> 
+	#include <fstream> 
+      
+    //Include the standard C++ headers  
+    #include <stdio.h>  
+    #include <stdlib.h>  
 
     //Define an error callback  
     static void error_callback(int error, const char* description)  
@@ -50,6 +51,46 @@
         }
     }
       
+	GLuint LoadShaders() {
+		//Example:load shader source file
+		std::ifstream in("shaders/shader.vert");
+		std::string contents((std::istreambuf_iterator<char>(in)),
+			std::istreambuf_iterator<char>());
+		const char* vertSource = contents.c_str();
+
+		//Example: compile a shader source file for vertex shading
+		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertexShader, 1, &vertSource, NULL);
+		glCompileShader(vertexShader);
+
+		//Example: check that the shader compiled and print any errors
+		getShaderCompileStatus(vertexShader);
+
+		//TODO: load and compile fragment shader shader.frag
+		std::ifstream in1("shaders/shader.frag");
+		std::string contents1((std::istreambuf_iterator<char>(in1)),
+			std::istreambuf_iterator<char>());
+		const char* fragSource = contents1.c_str();
+
+		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragmentShader, 1, &fragSource, NULL);
+		glCompileShader(fragmentShader);
+		getShaderCompileStatus(fragmentShader);
+
+		//TODO: link shaders into a program and bind outColor variable
+		GLuint shaderProgram = glCreateProgram();
+		glAttachShader(shaderProgram, vertexShader);
+		glAttachShader(shaderProgram, fragmentShader);
+
+		glBindFragDataLocation(shaderProgram, 0, "outColor");
+
+		glLinkProgram(shaderProgram);
+
+		glUseProgram(shaderProgram);
+
+		return shaderProgram;
+	}
+
     int main( void )  
     {  
         //Set the error callback  
@@ -62,16 +103,16 @@
         }  
       
         //Set the GLFW window creation hints - these are optional  
-        //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); //Request a specific OpenGL version  
-        //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2); //Request a specific OpenGL version  
-        //glfwWindowHint(GLFW_SAMPLES, 4); //Request 4x antialiasing  
-        //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); //Request a specific OpenGL version  
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2); //Request a specific OpenGL version  
+        glfwWindowHint(GLFW_SAMPLES, 4); //Request 4x antialiasing  
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  //modern opengl
       
         //Declare a window object  
         GLFWwindow* window;  
       
         //Create a window and create its OpenGL context  
-        window = glfwCreateWindow(640, 480, "Test Window", NULL, NULL);  
+        window = glfwCreateWindow(1024, 768, "Farm-Life: GOTY Edition", NULL, NULL);  
       
         //If the window couldn't be created  
         if (!window)  
@@ -129,41 +170,7 @@
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
-        //Example:load shader source file
-        std::ifstream in("shader.vert");
-        std::string contents((std::istreambuf_iterator<char>(in)), 
-                              std::istreambuf_iterator<char>());
-        const char* vertSource = contents.c_str();
-
-        //Example: compile a shader source file for vertex shading
-        GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vertSource, NULL);
-        glCompileShader(vertexShader);
-        
-        //Example: check that the shader compiled and print any errors
-        getShaderCompileStatus(vertexShader);
-
-        //TODO: load and compile fragment shader shader.frag
-		std::ifstream in1("shader.frag");
-		std::string contents1((std::istreambuf_iterator<char>(in1)),
-			std::istreambuf_iterator<char>());
-		const char* fragSource = contents1.c_str();
-
-		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragSource, NULL);
-		glCompileShader(fragmentShader);
-		getShaderCompileStatus(fragmentShader);
-
-        //TODO: link shaders into a program and bind outColor variable
-		GLuint shaderProgram = glCreateProgram();
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
-
-		glBindFragDataLocation(shaderProgram, 0, "outColor");
-
-		glLinkProgram(shaderProgram);
-
-		glUseProgram(shaderProgram);
+		GLuint shaderProgram = LoadShaders();
 
         //TODO: link vertex data (position, colour and texture coords) to shader
 		GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
@@ -225,21 +232,19 @@
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
-
-		//float color[] = { 1.0f, 0.0f, 0.0f, 1.0f };
-		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
-
         //Set a background color  
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);  
+        glClearColor(0.0f, 0.2f, 0.0f, 0.0f);  
 
-		// GLint uniColor = glGetUniformLocation(shaderProgram, "triangleColor");
-        //Main Loop  
+        // Main Loop  
         do  
         {  
-			// glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
+			//Clear color buffer  
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-            //Clear color buffer  
-            glClear(GL_COLOR_BUFFER_BIT); 
+			// Enable depth test
+			glEnable(GL_DEPTH_TEST);
+			// Accept fragment if it closer to the camera than the former one
+			glDepthFunc(GL_LESS);
 
             //TODO: Draw the graphics
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
