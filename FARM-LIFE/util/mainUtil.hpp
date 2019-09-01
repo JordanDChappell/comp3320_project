@@ -64,7 +64,5 @@
 
 		glLinkProgram(shaderProgram);
 
-		glUseProgram(shaderProgram);
-
 		return shaderProgram;
 	}
