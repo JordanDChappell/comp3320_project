@@ -163,10 +163,15 @@
 
         //Set a background color  
         glClearColor(0.0f, 0.0f, 0.6f, 0.0f);  
-
+		float delta_time = 0.0f;
+		float last_frame = glfwGetTime();
         // Main Loop  
         do  
         {  
+			float current_frame = glfwGetTime();
+			float delta_time = current_frame - last_frame;
+			float last_frame = current_frame;
+			process_input(window, delta_time, camera);
 			//Clear color buffer  
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
