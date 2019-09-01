@@ -5,147 +5,137 @@
 	* GLM - OpenGL Mathematics
 	*/
 	#include <SOIL.h>
-
     #include <GL/glew.h>  
-
 	#include <GLFW/glfw3.h>  
 
 	#include "glm/glm.hpp"
 	#include "glm/gtc/matrix_transform.hpp"
 	#include "glm/gtc/type_ptr.hpp"
 
-	// Include iostream for cout and fstream for file stream
+	// Include the standard C++ headers  
 	#include <iostream> 
 	#include <fstream> 
-      
-    //Include the standard C++ headers  
     #include <stdio.h>  
     #include <stdlib.h>  
 
-    //Define an error callback  
-    static void error_callback(int error, const char* description)  
-    {  
-        fputs(description, stderr);  
-        _fgetchar();  
-    }  
-      
-    //Define the key input callback  
-    static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)  
-    {  
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)  
-        glfwSetWindowShouldClose(window, GL_TRUE);  
-    } 
+	// Include project files
+	#include "util/mainUtil.hpp"
+	#include "util/camera.hpp"
 
-    bool getShaderCompileStatus(GLuint shader){
-        //Get status
-        GLint status;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-        if(status == GL_TRUE){
-            return true;
-        } else {
-            //Get log
-            char buffer[512];
-            glGetShaderInfoLog(shader, 512, NULL, buffer);
-            std::cout << buffer << std::endl;
-            return false;
-        }
-    }
-      
-	GLuint LoadShaders() {
-		//Example:load shader source file
-		std::ifstream in("shaders/shader.vert");
-		std::string contents((std::istreambuf_iterator<char>(in)),
-			std::istreambuf_iterator<char>());
-		const char* vertSource = contents.c_str();
+	// Initial width and height of the window
+	static constexpr int SCREEN_WIDTH = 800;
+	static constexpr int SCREEN_HEIGHT = 600;
 
-		//Example: compile a shader source file for vertex shading
-		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertSource, NULL);
-		glCompileShader(vertexShader);
+	// Distances to the near and the far plane. Used for the camera to clip space transform.
+	static constexpr float NEAR_PLANE = 0.1f;
+	static constexpr float FAR_PLANE = 1000.0f;
 
-		//Example: check that the shader compiled and print any errors
-		getShaderCompileStatus(vertexShader);
+	void process_input(GLFWwindow* window, const float& delta_time, utility::camera::Camera& camera) {
+		camera.set_movement_sensitivity(0.005f * delta_time);
 
-		//TODO: load and compile fragment shader shader.frag
-		std::ifstream in1("shaders/shader.frag");
-		std::string contents1((std::istreambuf_iterator<char>(in1)),
-			std::istreambuf_iterator<char>());
-		const char* fragSource = contents1.c_str();
-
-		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragSource, NULL);
-		glCompileShader(fragmentShader);
-		getShaderCompileStatus(fragmentShader);
-
-		//TODO: link shaders into a program and bind outColor variable
-		GLuint shaderProgram = glCreateProgram();
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
-
-		glBindFragDataLocation(shaderProgram, 0, "outColor");
-
-		glLinkProgram(shaderProgram);
-
-		glUseProgram(shaderProgram);
-
-		return shaderProgram;
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+			glfwSetWindowShouldClose(window, true);
+		}
+		else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			camera.move_forward();
+		}
+		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+			camera.move_backward();
+		}
+		else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			camera.move_left();
+		}
+		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+			camera.move_right();
+		}
 	}
 
     int main( void )  
     {  
-        //Set the error callback  
-        glfwSetErrorCallback(error_callback);  
-      
-        //Initialize GLFW  
-        if (!glfwInit())  
-        {  
-            exit(EXIT_FAILURE);  
-        }  
-      
-        //Set the GLFW window creation hints - these are optional  
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); //Request a specific OpenGL version  
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2); //Request a specific OpenGL version  
-        glfwWindowHint(GLFW_SAMPLES, 4); //Request 4x antialiasing  
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  //modern opengl
-      
-        //Declare a window object  
-        GLFWwindow* window;  
-      
-        //Create a window and create its OpenGL context  
-        window = glfwCreateWindow(1024, 768, "Farm-Life: GOTY Edition", NULL, NULL);  
-      
-        //If the window couldn't be created  
-        if (!window)  
-        {  
-            fprintf( stderr, "Failed to open GLFW window.\n" );  
-            glfwTerminate();  
-            exit(EXIT_FAILURE);  
-        }  
-      
-        //This function makes the context of the specified window current on the calling thread.   
-        glfwMakeContextCurrent(window);  
-      
-        //Sets the key callback  
-        glfwSetKeyCallback(window, key_callback);  
-      
-        //Initialize GLEW  
+		utility::camera::Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, NEAR_PLANE, FAR_PLANE);
+
+		//Set the error callback  
+		glfwSetErrorCallback(error_callback);
+
+
+		//Initialize GLFW  
+		if (!glfwInit())
+		{
+			exit(EXIT_FAILURE);
+		}
+
+		//Set the GLFW window creation hints - these are optional  
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); //Request a specific OpenGL version  
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2); //Request a specific OpenGL version  
+		glfwWindowHint(GLFW_SAMPLES, 4); //Request 4x antialiasing  
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  //modern opengl
+
+		//Declare a window object  
+		GLFWwindow* window;
+
+		//Create a window and create its OpenGL context  
+		window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", NULL, NULL);
+
+		if (window == NULL) {
+			std::cerr << "Failed to create GLFW window with dimension " << SCREEN_WIDTH << SCREEN_HEIGHT
+				<< std::endl;
+			glfwTerminate();
+			return -1;
+		}
+		glfwMakeContextCurrent(window);
+		glfwSetFramebufferSizeCallback(window,
+			CCallbackWrapper(GLFWframebuffersizefun, utility::camera::Camera)(
+				std::bind(&utility::camera::Camera::framebuffer_size_callback,
+					&camera,
+					std::placeholders::_1,
+					std::placeholders::_2,
+					std::placeholders::_3)));
+
+		// get glfw to capture and hide the mouse pointer
+		// ----------------------------------------------
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetCursorPosCallback(
+			window,
+			CCallbackWrapper(GLFWcursorposfun, utility::camera::Camera)(std::bind(&utility::camera::Camera::mouse_callback,
+				&camera,
+				std::placeholders::_1,
+				std::placeholders::_2,
+				std::placeholders::_3)));
+
+		// get glfw to capture mouse scrolling
+		// -----------------------------------
+		glfwSetScrollCallback(
+			window,
+			CCallbackWrapper(GLFWscrollfun, utility::camera::Camera)(std::bind(&utility::camera::Camera::scroll_callback,
+				&camera,
+				std::placeholders::_1,
+				std::placeholders::_2,
+				std::placeholders::_3)));
+
+		//Sets the key callback  
+		glfwSetKeyCallback(window, key_callback);
+
+		//Initialize GLEW  
 		glewExperimental = GL_TRUE;
-        GLenum err = glewInit();  
-      
-        //If GLEW hasn't initialized  
-        if (err != GLEW_OK)   
-        {  
-            fprintf(stderr, "Error: %s\n", glewGetErrorString(err));  
-            return -1;  
-        }
+		GLenum err = glewInit();
+
+		//If GLEW hasn't initialized  
+		if (err != GLEW_OK)
+		{
+			fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+			return -1;
+		}
+
+		GLuint vao;
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
 
         //TODO: create Vertex array object
 		float vertices[] = {
-			//  Position      Color             Texcoords
-				-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
-				 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
-				 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
-				-0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
+			//  Position      Color
+				-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // Top-left
+				 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // Top-right
+				 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // Bottom-right
 		};
 
         // Example: generate vertex buffers
@@ -158,82 +148,21 @@
 
         //TODO: create and bind element buffer
 		
-
-		GLuint ebo;
-		glGenBuffers(1, &ebo);
-
-		GLuint elements[] = {
-			0, 1, 2,
-			2, 3, 0
-		};
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-
-		GLuint shaderProgram = LoadShaders();
+		GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 
         //TODO: link vertex data (position, colour and texture coords) to shader
 		GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
 		glEnableVertexAttribArray(posAttrib);
 		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
-			7 * sizeof(float), 0);
+			5 * sizeof(float), 0);
 		
 		GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
 		glEnableVertexAttribArray(colAttrib);
 		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
-			7 * sizeof(float), (void*)(2 * sizeof(float)));
-
-		GLint texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
-		glEnableVertexAttribArray(texAttrib);
-		glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
-			7 * sizeof(float), (void*)(5 * sizeof(float)));
-		
-        //TODO: Create texture buffer:
-		GLuint tex[2];
-		glGenTextures(2, tex);
-		
-        //TODO: Load image into texture buffer
-		//float pixels[] = {
-		//	0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
-		//	1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f
-		//};
-		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
-        
-		int width, height;
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex[0]);
-
-		unsigned char* image =
-			SOIL_load_image("kitten.png", &width, &height, 0, SOIL_LOAD_RGB);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-			GL_UNSIGNED_BYTE, image);
-		SOIL_free_image_data(image);
-		glUniform1i(glGetUniformLocation(shaderProgram, "texKitten"), 0);
-
-        //TODO: Set texture parameters with glTexParameteri(...)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//glGenerateMipmap(GL_TEXTURE_2D);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, tex[1]);
-		image = SOIL_load_image("puppy.png", &width, &height, 0, SOIL_LOAD_RGB);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-			GL_UNSIGNED_BYTE, image);
-		SOIL_free_image_data(image);
-		glUniform1i(glGetUniformLocation(shaderProgram, "texPuppy"), 1);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+			5 * sizeof(float), (void*)(2 * sizeof(float)));
 
         //Set a background color  
-        glClearColor(0.0f, 0.2f, 0.0f, 0.0f);  
+        glClearColor(0.0f, 0.0f, 0.6f, 0.0f);  
 
         // Main Loop  
         do  
@@ -246,8 +175,15 @@
 			// Accept fragment if it closer to the camera than the former one
 			glDepthFunc(GL_LESS);
 
+			glm::mat4 Hvw = camera.get_view_transform();
+			glm::mat4 Hcv = camera.get_clip_transform();
+			glm::mat4 Hwm = glm::mat4(1.0f);
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
+
             //TODO: Draw the graphics
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
             
             //Swap buffers  
             glfwSwapBuffers(window);  

@@ -2,14 +2,16 @@
 
 in vec2 position;
 in vec3 color;
-in vec2 texcoord;
 
 out vec3 Color;
-out vec2 Texcoord;
+
+// Transformation matrix
+uniform mat4 Hwm;
+uniform mat4 Hvw;
+uniform mat4 Hcv;
 
 void main()
 {
-	Texcoord = texcoord;
 	Color = color;
-    gl_Position = vec4(position, 0.0, 1.0);
+    gl_Position = Hcv * Hvw * Hwm * vec4(position, 0.0, 1.0);
 }
