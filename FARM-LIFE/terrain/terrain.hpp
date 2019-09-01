@@ -2,26 +2,39 @@ struct terraObj {
 	GLuint terraShader;
 	GLuint vbo;
 	GLuint vao;
+	int resX;
+	int resZ;
 } ;
 
-terraObj createTerrain() {
+terraObj createTerrain(int resX, int resZ) {
 	terraObj terra;
-	
+	terra.resX = resX;
+	terra.resZ = resZ;
+
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
 	terra.vao = vao;
 
-	// Create flat plane of 4 vertices
-	float vertices[24] = {
-		//  Position		Color
-		-0.5f, 0.0f,  0.5f, 0.0f, 1.0f, 0.0f, // Top-left
-		 0.5f, 0.0f,  0.5f, 0.0f, 0.0f, 1.0f, // Top-right
-		 0.5f, 0.0f, -0.5f, 1.0f, 0.0f, 0.0f, // Bottom-right
-		-0.5f, 0.0f, -0.5f, 1.0f, 1.0f, 1.0f, // Bottom-left
-	};
+	float vertices[resX * resZ * 6];
 
+	bool flag = true;
+
+	for (int i = 0; i < resX; i++) {
+		for (int j = 0; j < resZ; j++) {
+			// Position
+			vertices[i * 6, j * 6] = i;		// X
+			vertices[i * 6, j * 6] = -1.0f;	// Y
+			vertices[i * 6, j * 6] = j;		// Z
+
+			// Colour
+			vertices[i * 6, j * 6] = 0.0f;
+			vertices[i * 6, j * 6] = flag ? 0.3f : 0.8f;	// alternate greens
+			flag = !flag;
+			vertices[i * 6, j * 6] = 0.0f;
+		}
+	}
 
 	//-----------------------------
 	//----CREATE BUFFERS-----------
@@ -69,5 +82,6 @@ void generateTerrain(terraObj terra, glm::mat4 Hvw, glm::mat4 Hcv) {
 	glUniformMatrix4fv(glGetUniformLocation(terra.terraShader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(terra.terraShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 	
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	
 }
