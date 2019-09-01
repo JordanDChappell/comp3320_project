@@ -126,45 +126,46 @@
 			return -1;
 		}
 
-		//GLuint vao;
-		//glGenVertexArrays(1, &vao);
-		//glBindVertexArray(vao);
+		GLuint vao;
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
 
-  //      //TODO: create Vertex array object
-		//float vertices[] = {
-		//	//  Position      Color
-		//		-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // Top-left
-		//		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // Top-right
-		//		 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // Bottom-right
-		//};
+        //TODO: create Vertex array object
+		float vertices[] = {
+			//  Position      Color
+				-0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // Top-left
+				 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // Top-right
+				 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // Bottom-right
+		};
 
-  //      // Example: generate vertex buffers
-  //      GLuint buffer;
-  //      glGenBuffers(1, &buffer);
+        // Example: generate vertex buffers
+        GLuint vbo;
+        glGenBuffers(1, &vbo);
 
-  //      //TODO: load vertices and bind vertex buffer
-		//glBindBuffer(GL_ARRAY_BUFFER, buffer);
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        //TODO: load vertices and bind vertex buffer
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  //      //TODO: create and bind element buffer
-		//
-		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
+        //TODO: create and bind element buffer
+		
+		GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 
-  //      //TODO: link vertex data (position, colour and texture coords) to shader
-		//GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
-		//glEnableVertexAttribArray(posAttrib);
-		//glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
-		//	5 * sizeof(float), 0);
-		//
-		//GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
-		//glEnableVertexAttribArray(colAttrib);
-		//glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
-		//	5 * sizeof(float), (void*)(2 * sizeof(float)));
+        //TODO: link vertex data (position, colour and texture coords) to shader
+		GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
+		glEnableVertexAttribArray(posAttrib);
+		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
+			5 * sizeof(float), 0);
+		
+		GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
+		glEnableVertexAttribArray(colAttrib);
+		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
+			5 * sizeof(float), (void*)(2 * sizeof(float)));
 
-		GLuint terraShader = createTerrain();
+		terraObj terra = createTerrain();
 
         //Set a background color  
-        glClearColor(0.0f, 0.0f, 0.6f, 0.0f);  
+        glClearColor(0.0f, 0.0f, 0.6f, 0.0f); 
+
 		float delta_time = 0.0f;
 		float last_frame = glfwGetTime();
         // Main Loop  
@@ -174,6 +175,8 @@
 			float delta_time = current_frame - last_frame;
 			float last_frame = current_frame;
 			process_input(window, delta_time, camera);
+
+			glClearDepth(1.0f);
 			//Clear color buffer  
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
@@ -182,21 +185,23 @@
 			// Accept fragment if it closer to the camera than the former one
 			glDepthFunc(GL_LESS);
 
-			//glUseProgram(shaderProgram);
-			
+			glUseProgram(shaderProgram);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBindVertexArray(vao);
+
 			glm::mat4 Hvw = camera.get_view_transform();
 			glm::mat4 Hcv = camera.get_clip_transform();
 			glm::mat4 Hwm = glm::mat4(1.0f);
-			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
-			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
-			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 			
 			
             
 			//TODO: Draw the graphics
-			//glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
             
-			generateTerrain(terraShader, Hvw, Hcv);
+			generateTerrain(terra, Hvw, Hcv);
 
             //Swap buffers  
             glfwSwapBuffers(window);  
