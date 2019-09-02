@@ -1,15 +1,17 @@
+#include <vector>
 struct terraObj {
 	GLuint terraShader;
 	GLuint vbo;
 	GLuint vao;
 	int resX;
 	int resZ;
+	int noVertices;
 } ;
 
-terraObj createTerrain(int resX, int resZ) {
+terraObj createTerrain() {
 	terraObj terra;
-	terra.resX = resX;
-	terra.resZ = resZ;
+	terra.resX = 128;
+	terra.resZ = 128;
 
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
@@ -17,24 +19,64 @@ terraObj createTerrain(int resX, int resZ) {
 
 	terra.vao = vao;
 
-	float vertices[resX * resZ * 6];
+	float vertices[128][128][6];
 
 	bool flag = true;
 
-	for (int i = 0; i < resX; i++) {
-		for (int j = 0; j < resZ; j++) {
+	for (int i = 0; i < 128; i++) {
+		for (int j = 0; j < 128; j++) {
 			// Position
-			vertices[i * 6, j * 6] = i;		// X
-			vertices[i * 6, j * 6] = -1.0f;	// Y
-			vertices[i * 6, j * 6] = j;		// Z
+			vertices[i][j][0] = (float)i;		// X
+			vertices[i][j][1] = -1.0f;			// Y
+			vertices[i][j][2] = (float)j;		// Z
 
 			// Colour
-			vertices[i * 6, j * 6] = 0.0f;
-			vertices[i * 6, j * 6] = flag ? 0.3f : 0.8f;	// alternate greens
+			vertices[i][j][3] = 0.0f;
+			vertices[i][j][4] = flag ? 0.3f : 0.8f;	// alternate greens
 			flag = !flag;
-			vertices[i * 6, j * 6] = 0.0f;
+			vertices[i][j][5] = 0.0f;
 		}
 	}
+
+	// Order triangles
+	std::vector<float> triangles;
+	int tri1[3][2];
+	int tri2[3][2];
+
+	for (int i = 0; i < 128 - 1; i++) {
+		for (int j = 0; j < 128 - 1; j++) {
+			// Assume a square
+			// Triangle 1 is bottom-left, top-left, top-right
+			tri1[0][0] = i;
+			tri1[0][1] = j + 1;
+			tri1[1][0] = i;
+			tri1[1][1] = j;
+			tri1[2][0] = i + 1;
+			tri1[2][1] = j;
+			
+			// Triangle 2 is top-right, bottom-right, bottom-left
+			tri2[0][0] = i + 1;
+			tri2[0][1] = j;
+			tri2[1][0] = i + 1;
+			tri2[1][1] = j + 1;
+			tri2[2][0] = i;
+			tri2[2][1] = j + 1;
+			for (int n = 0; n < 3; n++) {
+				for (int k = 0; k < 6; k++) {
+					triangles.push_back(vertices[ tri1[n][0] ][ tri1[n][1] ][ k ]);
+				}
+			}
+			for (int n = 0; n < 3; n++) {
+				for (int k = 0; k < 6; k++) {
+					triangles.push_back(vertices[ tri2[n][0] ][ tri2[n][1] ][ k ]);
+					
+				}
+			}
+
+			terra.noVertices = triangles.size() / 6;
+		}
+	}
+
 
 	//-----------------------------
 	//----CREATE BUFFERS-----------
@@ -44,7 +86,7 @@ terraObj createTerrain(int resX, int resZ) {
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &triangles.front(), GL_STATIC_DRAW);
 
 	terra.vbo = vbo;
 
@@ -82,6 +124,6 @@ void generateTerrain(terraObj terra, glm::mat4 Hvw, glm::mat4 Hcv) {
 	glUniformMatrix4fv(glGetUniformLocation(terra.terraShader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(terra.terraShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 	
-
+	glDrawArrays(GL_TRIANGLES, 0, terra.noVertices);
 	
 }
