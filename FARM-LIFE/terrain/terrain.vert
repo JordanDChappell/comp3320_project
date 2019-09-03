@@ -10,6 +10,9 @@ uniform mat4 Hwm;
 uniform mat4 Hvw;
 uniform mat4 Hcv;
 
+// Scale the terrain
+uniform float scale;
+
 void main()
 {
 	Color = color;

@@ -23,7 +23,7 @@
 	#include "terrain/terrain.hpp"
 
 	// Initial width and height of the window
-	static constexpr int SCREEN_WIDTH = 800;
+	static constexpr int SCREEN_WIDTH = 1200;
 	static constexpr int SCREEN_HEIGHT = 600;
 
 	// Distances to the near and the far plane. Used for the camera to clip space transform.
@@ -196,11 +196,12 @@
 			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 			
-			
-            
-			//TODO: Draw the graphics
+			// Draw a triangle			
 			glDrawArrays(GL_TRIANGLES, 0, 3);
             
+			//-------------
+			// DRAW TERRAIN 
+			//-------------
 			generateTerrain(terra, Hvw, Hcv);
 
             //Swap buffers  
