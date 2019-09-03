@@ -10,8 +10,8 @@ struct terraObj {
 
 terraObj createTerrain() {
 	terraObj terra;
-	terra.resX = 128;
-	terra.resZ = 128;
+	terra.resX = 500;
+	terra.resZ = 500;
 
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
@@ -19,22 +19,22 @@ terraObj createTerrain() {
 
 	terra.vao = vao;
 
-	float * vertices = new float[128 * 128 * 6];
+	float * vertices = new float[500 * 500 * 6];
 
 	bool flag = true;
 
 	for (int i = 0; i < terra.resX; i++) {
 		for (int j = 0; j < terra.resZ; j++) {
 			// Position
-			vertices[(i * terra.resX) + (j * terra.resZ) + 0] = (float)i;		// X
-			vertices[(i * terra.resX) + (j * terra.resZ) + 1] = -1.0f;			// Y
-			vertices[(i * terra.resX) + (j * terra.resZ) + 2] = (float)j;		// Z
+			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6 ) + 0] = (float)i;		// X
+			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6) + 1] = -1.0f;			// Y
+			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6) + 2] = (float)j;		// Z
 
 			// Colour
-			vertices[(i * terra.resX) + (j * terra.resZ) + 3] = 0.0f;
-			vertices[(i * terra.resX) + (j * terra.resZ) + 4] = flag ? 0.3f : 0.8f;	// alternate greens
+			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6) + 3] = 0.0f;
+			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6) + 4] = flag ? 0.3f : 0.8f;	// alternate greens
 			flag = !flag;
-			vertices[(i * terra.resX) + (j * terra.resZ) + 5] = 0.0f;
+			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6) + 5] = 0.0f;
 		}
 	}
 
@@ -63,12 +63,12 @@ terraObj createTerrain() {
 			tri2[2][1] = j + 1;
 			for (int n = 0; n < 3; n++) {
 				for (int k = 0; k < 6; k++) {
-					triangles->push_back(vertices[ ( tri1[n][0] * terra.resX ) + ( tri1[n][1] * terra.resZ ) + k ]);
+					triangles->push_back(vertices[ ( tri1[n][0] * (terra.resZ + terra.resZ * 5) ) + ( tri1[n][1] * 6 ) + k ]);
 				}
 			}
 			for (int n = 0; n < 3; n++) {
 				for (int k = 0; k < 6; k++) {
-					triangles->push_back(vertices[(tri2[n][0] * terra.resX) + (tri2[n][1] * terra.resZ) + k]);
+					triangles->push_back(vertices[ ( tri2[n][0] * ( terra.resZ + terra.resZ * 5 ) ) + ( tri2[n][1] * 6 ) + k ]);
 				}
 			}
 
@@ -86,7 +86,7 @@ terraObj createTerrain() {
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(*triangles), &triangles->front(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, triangles->size() * sizeof(float), &triangles->front(), GL_STATIC_DRAW);
 
 	std::vector<float>().swap(*triangles);
 

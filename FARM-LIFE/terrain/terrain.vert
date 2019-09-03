@@ -13,5 +13,6 @@ uniform mat4 Hcv;
 void main()
 {
 	Color = color;
-    gl_Position = Hcv * Hvw * Hwm * vec4(position, 1.0) * 0.1;
+    gl_Position = Hcv * Hvw * Hwm * vec4(position * 0.1, 1.0);
+
 }
