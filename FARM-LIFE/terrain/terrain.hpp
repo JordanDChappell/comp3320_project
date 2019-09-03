@@ -37,12 +37,15 @@ terraObj createTerrain() {
 
 	bool flag = true;	// for making the terrain diff colours
 
+	// Constants for adjusting f(x,z) for the height of the terrain
+	float c1 = 3, c2 = 1200, c3 = 1200;
+
 	// Loop over grid
 	for (int i = 0; i < terra.resX; i++) {
 		for (int j = 0; j < terra.resZ; j++) {
 			// Position
 			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6 ) + 0] = (float)i;	// X
-			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6) + 1] = -1.0f;		// Y
+			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6) + 1] = glm::abs(c1 * glm::cos(c2 * i) * glm::cos(c2 * j);		// Y
 			vertices[(i * (terra.resZ + terra.resZ * 5)) + (j * 6) + 2] = (float)j;		// Z
 
 			// Colour
