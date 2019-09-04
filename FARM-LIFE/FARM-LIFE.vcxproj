@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="kitten.png" />
+    <Image Include="terrain\grass.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag" />

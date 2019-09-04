@@ -2,8 +2,10 @@
 
 in vec3 position;
 in vec3 color;
+in vec2 texCoord;
 
 out vec3 Color;
+out vec2 TexCoord;
 
 // Transformation matrix
 uniform mat4 Hwm;
@@ -16,6 +18,7 @@ uniform float scale;
 void main()
 {
 	Color = color;
-    gl_Position = Hcv * Hvw * Hwm * vec4(position * 0.1, 1.0);
+	TexCoord = texCoord;
+    gl_Position = Hcv * Hvw * Hwm * vec4(position * scale, 1.0);
 
 }

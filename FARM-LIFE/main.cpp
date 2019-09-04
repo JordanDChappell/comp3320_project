@@ -52,6 +52,7 @@
 
     int main( void )  
     {  
+		std::srand(1);
 		utility::camera::Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, NEAR_PLANE, FAR_PLANE);
 
 		//Set the error callback  
