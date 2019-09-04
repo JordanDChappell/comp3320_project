@@ -191,12 +191,14 @@ void generateTerrain(terraObj terra, glm::mat4 Hvw, glm::mat4 Hcv) {
 	// SET CAMERA IN MIDDLE OF TERRAIN
 	//-----------------------------
 	glm::mat4 Hwm = glm::mat4(1.0f);
-	Hwm[3] = glm::vec4(-(terra.resX * terra.scale ) / 2, -1.0, -(terra.resZ * terra.scale )/ 2 , 1.0);
+	Hwm[3] = glm::vec4(-(terra.resX * terra.scale ) / 2, -20.0, -(terra.resZ * terra.scale )/ 2 , 1.0);
 
 	glUniformMatrix4fv(glGetUniformLocation(terra.terraShader, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(terra.terraShader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(terra.terraShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 	glUniform1f(glGetUniformLocation(terra.terraShader, "scale"), terra.scale);
+
+	std::cout << (Hcv * Hvw * Hwm)[3].length() << std::endl;
 
 	//-----------------------------
 	// DRAW TERRAIN
