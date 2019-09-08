@@ -7,7 +7,6 @@
 	#include <SOIL.h>
     #include <GL/glew.h>  
 	#include <GLFW/glfw3.h>  
-
 	#include "glm/glm.hpp"
 	#include "glm/gtc/matrix_transform.hpp"
 	#include "glm/gtc/type_ptr.hpp"
@@ -22,9 +21,10 @@
 	// Include project files
 	#include "util/mainUtil.hpp"
 	#include "util/camera.hpp"
+	#include "terrain/terrain.hpp"
 
 	// Initial width and height of the window
-	static constexpr int SCREEN_WIDTH = 800;
+	static constexpr int SCREEN_WIDTH = 1200;
 	static constexpr int SCREEN_HEIGHT = 600;
 
 	// Distances to the near and the far plane. Used for the camera to clip space transform.
@@ -53,6 +53,7 @@
 
     int main( void )  
     {  
+		std::srand(1);
 		utility::camera::Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, NEAR_PLANE, FAR_PLANE);
 
 		//Set the error callback  
@@ -231,6 +232,13 @@
 
 		// Init before the main loop
         float last_frame = glfwGetTime();
+
+		// Create terrain
+		terraObj terra = createTerrain();
+
+        //Set a background color  
+        glClearColor(0.0f, 0.0f, 0.6f, 0.0f); 
+
 		float delta_time = 0.0f;
 
         // Main Loop  
@@ -276,6 +284,12 @@
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
             
+			//-------------
+			// DRAW TERRAIN 
+			//-------------
+			Hvw = camera.get_view_transform();
+			generateTerrain(terra, Hvw, Hcv);
+
             //Swap buffers  
             glfwSwapBuffers(window);  
             //Get and organize events, like keyboard and mouse input, window resizing, etc...  

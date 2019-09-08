@@ -87,14 +87,18 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="kitten.png" />
+    <Image Include="terrain\grass.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
     <None Include="shaders\skybox.frag" />
     <None Include="shaders\skybox.vert" />
+    <None Include="terrain\terrain.frag" />
+    <None Include="terrain\terrain.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="terrain\terrain.hpp" />
     <ClInclude Include="util\camera.hpp" />
     <ClInclude Include="util\mainUtil.hpp" />
   </ItemGroup>
