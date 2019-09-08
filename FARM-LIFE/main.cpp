@@ -232,6 +232,8 @@
 
 		// Init before the main loop
         float last_frame = glfwGetTime();
+
+		// Create terrain
 		terraObj terra = createTerrain();
 
         //Set a background color  
@@ -285,6 +287,7 @@
 			//-------------
 			// DRAW TERRAIN 
 			//-------------
+			Hvw = camera.get_view_transform();
 			generateTerrain(terra, Hvw, Hcv);
 
             //Swap buffers  
