@@ -195,13 +195,11 @@
 		glGenBuffers(1, &vbo);		
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-
 		// link vertex data (position, colour and texture coords) to shader
 		GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
 		glEnableVertexAttribArray(posAttrib);
 		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
 			5 * sizeof(float), 0);
-
 		GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
 		glEnableVertexAttribArray(colAttrib);
 		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
@@ -217,10 +215,6 @@
 		glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		
-		// Use and link the shader data
-		glUseProgram(shaderProgram);
-		glUseProgram(skyboxShader);
 		glUniform1i(glGetUniformLocation(skyboxShader, "skybox"), 0);
 
 		// Load skybox textures
@@ -235,9 +229,8 @@
 		};
 		GLuint skyboxTexture = loadSkybox(faces);
 
-        // Set a background color  
-        glClearColor(0.0f, 0.0f, 0.6f, 0.0f);  
-		float last_frame = glfwGetTime();
+		// Init before the main loop
+        float last_frame = glfwGetTime();
 		float delta_time = 0.0f;
 
         // Main Loop  
@@ -254,6 +247,9 @@
 			// Clear color buffer  
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 			
+			// Draw any object before the skybox
+
+			// Draw the triangle
 			// Accept fragment if it closer to the camera than the former one
 			glDepthFunc(GL_LESS);
 			glUseProgram(shaderProgram);
@@ -268,7 +264,7 @@
 			glBindVertexArray(0);
 
 			// Draw the skybox last
-			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content, won't draw skybox behind objects (optimization)
 			glUseProgram(skyboxShader);
 			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix, this keeps the skybox centered on the camera
 			glUniformMatrix4fv(glGetUniformLocation(skyboxShader, "view"), 1, GL_FALSE, &Hvw[0][0]);

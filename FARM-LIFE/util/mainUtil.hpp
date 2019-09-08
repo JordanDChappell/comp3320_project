@@ -70,6 +70,8 @@
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
 
+		glUseProgram(shaderProgram);
+
 		return shaderProgram;
 	}
 
