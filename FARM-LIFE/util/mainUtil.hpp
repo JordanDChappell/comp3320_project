@@ -1,4 +1,9 @@
 #include <string>
+#include <Windows.h>
+
+// Undefine any colliding definitions from including Windows.h
+#undef max
+#undef min
 
 //Define an error callback  
     static void error_callback(int error, const char* description)  
@@ -103,4 +108,21 @@
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		return textureID;
+	}
+
+	///<summary>
+	///Set the screen width and height to the current desktop window size, only works on Windows machines
+	///</summary>
+	void setScreenSize(GLuint &winWidth, GLuint &winHeight)
+	{
+		HWND desktop = GetDesktopWindow();
+		RECT screenSize;
+
+		GetWindowRect(desktop, &screenSize);
+
+		winWidth = screenSize.right;
+		winHeight = screenSize.bottom;
+
+		std::cout << "Width: " << winWidth << std::endl;
+		std::cout << "Height: " << winHeight << std::endl;
 	}

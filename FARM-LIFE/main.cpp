@@ -24,8 +24,8 @@
 	#include "terrain/terrain.hpp"
 
 	// Initial width and height of the window
-	static constexpr int SCREEN_WIDTH = 1200;
-	static constexpr int SCREEN_HEIGHT = 600;
+	GLuint SCREEN_WIDTH = 1200;
+    GLuint SCREEN_HEIGHT = 600;
 
 	// Distances to the near and the far plane. Used for the camera to clip space transform.
 	static constexpr float NEAR_PLANE = 0.1f;
@@ -53,6 +53,9 @@
 
     int main( void )  
     {  
+		// Set the screen size by the current desktop height, width (for fullscreen)
+		setScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
 		std::srand(1);
 		utility::camera::Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, NEAR_PLANE, FAR_PLANE);
 
@@ -74,8 +77,8 @@
 		//Declare a window object  
 		GLFWwindow* window;
 
-		//Create a window and create its OpenGL context  
-		window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", NULL, NULL);
+		// Create a window and create its OpenGL context, creates a fullscreen window using glfwGetPrimaryMonitor(), requires a monitor for fullscreen
+		window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", glfwGetPrimaryMonitor(), NULL);
 
 		if (window == NULL) {
 			std::cerr << "Failed to create GLFW window with dimension " << SCREEN_WIDTH << SCREEN_HEIGHT
@@ -255,7 +258,7 @@
 			// Clear color buffer  
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 			
-			// Draw any object before the skybox
+			// Draw all other objects before the skybox
 
 			// Draw the triangle
 			// Accept fragment if it closer to the camera than the former one
@@ -271,6 +274,12 @@
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glBindVertexArray(0);
 
+			//-------------
+			// DRAW TERRAIN 
+			//-------------
+			Hvw = camera.get_view_transform();
+			generateTerrain(terra, Hvw, Hcv);
+
 			// Draw the skybox last
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content, won't draw skybox behind objects (optimization)
 			glUseProgram(skyboxShader);
@@ -283,12 +292,6 @@
 			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
-            
-			//-------------
-			// DRAW TERRAIN 
-			//-------------
-			Hvw = camera.get_view_transform();
-			generateTerrain(terra, Hvw, Hcv);
 
             //Swap buffers  
             glfwSwapBuffers(window);  
