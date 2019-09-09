@@ -22,6 +22,7 @@
 	#include "util/mainUtil.hpp"
 	#include "util/camera.hpp"
 	#include "terrain/terrain.hpp"
+	#include "models/model.hpp"
 
 	// Initial width and height of the window
 	GLuint SCREEN_WIDTH = 1920;

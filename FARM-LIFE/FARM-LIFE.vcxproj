@@ -98,6 +98,7 @@
     <None Include="terrain\terrain.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="models\model.hpp" />
     <ClInclude Include="terrain\terrain.hpp" />
     <ClInclude Include="util\camera.hpp" />
     <ClInclude Include="util\mainUtil.hpp" />
