@@ -23,6 +23,7 @@
 	#include "util/camera.hpp"
 	#include "terrain/terrain.hpp"
 	#include "models/model.hpp"
+	#include "skybox/skybox.hpp";
 
 	// Initial width and height of the window
 	GLuint SCREEN_WIDTH = 1920;
@@ -142,55 +143,8 @@
 				 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // Bottom-right
 		};
 
-		// Skybox vertices
-		float skyboxVertices[] = {
-			// positions          
-			-1.0f,  1.0f, -1.0f,
-			-1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f,
-			 1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-
-			-1.0f, -1.0f,  1.0f,
-			-1.0f, -1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f,  1.0f,
-			-1.0f, -1.0f,  1.0f,
-
-			 1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f,
-
-			-1.0f, -1.0f,  1.0f,
-			-1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f, -1.0f,  1.0f,
-			-1.0f, -1.0f,  1.0f,
-
-			-1.0f,  1.0f, -1.0f,
-			 1.0f,  1.0f, -1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			-1.0f,  1.0f,  1.0f,
-			-1.0f,  1.0f, -1.0f,
-
-			-1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f,
-			 1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f,
-			 1.0f, -1.0f,  1.0f
-		};
-
 		// Load the shaders to be used in the scene
 		GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
-		GLuint skyboxShader = LoadShaders("shaders/skybox.vert", "shaders/skybox.frag");
 
 		/* -------------------------- Draw the Triangle -------------------------- */
 		// Triangle VAO, VBO
@@ -210,29 +164,9 @@
 		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
 			5 * sizeof(float), (void*)(2 * sizeof(float)));
 
-		/* -------------------------- Draw the skybox -------------------------- */
-		// skybox VAO
-		GLuint skyboxVAO, skyboxVBO;
-		glGenVertexArrays(1, &skyboxVAO);
-		glGenBuffers(1, &skyboxVBO);
-		glBindVertexArray(skyboxVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glUniform1i(glGetUniformLocation(skyboxShader, "skybox"), 0);
-
-		// Load skybox textures
-		std::vector<std::string> faces
-		{
-			"textures/skybox/front.tga",
-			"textures/skybox/back.tga",
-			"textures/skybox/top.tga",
-			"textures/skybox/bottom.tga",
-			"textures/skybox/right.tga",
-			"textures/skybox/left.tga",
-		};
-		GLuint skyboxTexture = loadSkybox(faces);
+		// Create the skybox class instance
+		skybox::Skybox skybox = skybox::Skybox();
+		skybox.getInt();		
 
 		// Init before the main loop
         float last_frame = glfwGetTime();
@@ -248,18 +182,17 @@
         // Main Loop  
         do  
         {  
-			// Input
+			/* PROCESS INPUT */
 			float current_frame = glfwGetTime();
 			float delta_time = current_frame - last_frame;
 			float last_frame = current_frame;
 			process_input(window, delta_time, camera);
 
-			// Render
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			/* RENDER */
 			// Clear color buffer  
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 			
-			// Draw all other objects before the skybox
+			// NOTE: Draw all other objects before the skybox
 
 			// Draw the triangle
 			// Accept fragment if it closer to the camera than the former one
@@ -281,18 +214,11 @@
 			Hvw = camera.get_view_transform();
 			generateTerrain(terra, Hvw, Hcv);
 
-			// Draw the skybox last
-			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content, won't draw skybox behind objects (optimization)
-			glUseProgram(skyboxShader);
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix, this keeps the skybox centered on the camera
-			glUniformMatrix4fv(glGetUniformLocation(skyboxShader, "view"), 1, GL_FALSE, &Hvw[0][0]);
-			glUniformMatrix4fv(glGetUniformLocation(skyboxShader, "projection"), 1, GL_FALSE, &Hcv[0][0]);
-			// skybox cube
-			glBindVertexArray(skyboxVAO);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindVertexArray(0);
+			//--------------------------
+			// DRAW SKYBOX - always last
+			//--------------------------
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix.
+			skybox.render(Hvw, Hcv);
 
             //Swap buffers  
             glfwSwapBuffers(window);  

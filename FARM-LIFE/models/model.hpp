@@ -76,7 +76,8 @@ private:
 class Model {
 public:
 	// Public model data
-	Texture texture;
+	//Texture texture;
+	std::vector<Texture> textures;
 	std::vector<Mesh> meshes;
 
 	// Public functions

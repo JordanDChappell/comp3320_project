@@ -8,17 +8,50 @@
     <ClInclude Include="util\mainUtil.hpp" />
     <ClInclude Include="terrain\terrain.hpp" />
     <ClInclude Include="models\model.hpp" />
+    <ClInclude Include="skybox\skybox.hpp">
+      <Filter>skybox</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="kitten.png" />
     <Image Include="terrain\grass.jpg" />
+    <Image Include="skybox\textures\back.tga">
+      <Filter>skybox\textures</Filter>
+    </Image>
+    <Image Include="skybox\textures\bottom.tga">
+      <Filter>skybox\textures</Filter>
+    </Image>
+    <Image Include="skybox\textures\front.tga">
+      <Filter>skybox\textures</Filter>
+    </Image>
+    <Image Include="skybox\textures\left.tga">
+      <Filter>skybox\textures</Filter>
+    </Image>
+    <Image Include="skybox\textures\right.tga">
+      <Filter>skybox\textures</Filter>
+    </Image>
+    <Image Include="skybox\textures\top.tga">
+      <Filter>skybox\textures</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
-    <None Include="shaders\skybox.frag" />
-    <None Include="shaders\skybox.vert" />
     <None Include="terrain\terrain.frag" />
     <None Include="terrain\terrain.vert" />
+    <None Include="skybox\shaders\skybox.frag">
+      <Filter>skybox</Filter>
+    </None>
+    <None Include="skybox\shaders\skybox.vert">
+      <Filter>skybox</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="skybox">
+      <UniqueIdentifier>{42b6bedf-b804-40cf-a4e4-0b5c0c769b6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="skybox\textures">
+      <UniqueIdentifier>{cd95c1f0-b6f0-44e7-ac1b-10f6726cd011}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
