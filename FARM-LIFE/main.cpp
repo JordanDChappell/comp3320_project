@@ -24,8 +24,8 @@
 	#include "terrain/terrain.hpp"
 
 	// Initial width and height of the window
-	GLuint SCREEN_WIDTH = 1200;
-    GLuint SCREEN_HEIGHT = 600;
+	GLuint SCREEN_WIDTH = 1920;
+    GLuint SCREEN_HEIGHT = 1080;
 
 	// Distances to the near and the far plane. Used for the camera to clip space transform.
 	static constexpr float NEAR_PLANE = 0.1f;
@@ -54,7 +54,7 @@
     int main( void )  
     {  
 		// Set the screen size by the current desktop height, width (for fullscreen)
-		setScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+		//setScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 		std::srand(1);
 		utility::camera::Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, NEAR_PLANE, FAR_PLANE);
@@ -224,12 +224,12 @@
 		// Load skybox textures
 		std::vector<std::string> faces
 		{
-			"textures/skybox/right.tga",
-			"textures/skybox/left.tga",
-			"textures/skybox/top.tga",
-			"textures/skybox/bottom.tga",
 			"textures/skybox/front.tga",
 			"textures/skybox/back.tga",
+			"textures/skybox/top.tga",
+			"textures/skybox/bottom.tga",
+			"textures/skybox/right.tga",
+			"textures/skybox/left.tga",
 		};
 		GLuint skyboxTexture = loadSkybox(faces);
 
