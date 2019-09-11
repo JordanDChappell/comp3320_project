@@ -144,25 +144,29 @@
 		};
 
 		// Load the shaders to be used in the scene
-		GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
+		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
+		GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
 
 		/* -------------------------- Draw the Triangle -------------------------- */
 		// Triangle VAO, VBO
-		GLuint vao, vbo;
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
-		glGenBuffers(1, &vbo);		
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-		// link vertex data (position, colour and texture coords) to shader
-		GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
-		glEnableVertexAttribArray(posAttrib);
-		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
-			5 * sizeof(float), 0);
-		GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
-		glEnableVertexAttribArray(colAttrib);
-		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
-			5 * sizeof(float), (void*)(2 * sizeof(float)));
+		//GLuint vao, vbo;
+		//glGenVertexArrays(1, &vao);
+		//glBindVertexArray(vao);
+		//glGenBuffers(1, &vbo);		
+		//glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+		//// link vertex data (position, colour and texture coords) to shader
+		//GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
+		//glEnableVertexAttribArray(posAttrib);
+		//glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
+		//	5 * sizeof(float), 0);
+		//GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
+		//glEnableVertexAttribArray(colAttrib);
+		//glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
+		//	5 * sizeof(float), (void*)(2 * sizeof(float)));
+
+		// Load a model using model class
+		model::Model model1 = model::Model("models/giraffe/giraffe.obj");
 
 		// Create the skybox class instance
 		skybox::Skybox skybox = skybox::Skybox();
@@ -197,16 +201,19 @@
 			// Draw the triangle
 			// Accept fragment if it closer to the camera than the former one
 			glDepthFunc(GL_LESS);
-			glUseProgram(shaderProgram);
+			//glUseProgram(shaderProgram);
 			glm::mat4 Hvw = camera.get_view_transform();
 			glm::mat4 Hcv = camera.get_clip_transform();
 			glm::mat4 Hwm = glm::mat4(1.0f);
-			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
-			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
-			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
-			glBindVertexArray(vao);
-			glDrawArrays(GL_TRIANGLES, 0, 3);
-			glBindVertexArray(0);
+			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
+			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
+			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
+			//glBindVertexArray(vao);
+			//glDrawArrays(GL_TRIANGLES, 0, 3);
+			//glBindVertexArray(0);
+
+			// Draw the model
+			model1.Draw(modelShader);
 
 			//-------------
 			// DRAW TERRAIN 

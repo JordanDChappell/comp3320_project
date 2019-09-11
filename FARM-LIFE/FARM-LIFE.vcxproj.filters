@@ -7,10 +7,10 @@
     <ClInclude Include="util\camera.hpp" />
     <ClInclude Include="util\mainUtil.hpp" />
     <ClInclude Include="terrain\terrain.hpp" />
-    <ClInclude Include="models\model.hpp" />
     <ClInclude Include="skybox\skybox.hpp">
       <Filter>skybox</Filter>
     </ClInclude>
+    <ClInclude Include="models\model.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="kitten.png" />
