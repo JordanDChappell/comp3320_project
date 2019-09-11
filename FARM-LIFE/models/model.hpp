@@ -98,11 +98,6 @@ namespace model {
 			glBindVertexArray(VAO);
 			// load data into vertex buffers
 			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-			// no vertices here???
-			std::cout << "MESH" << std::endl;
-			std::cout << vertices.size() << std::endl;
-			std::cout << indices.size() << std::endl;
 			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
@@ -235,6 +230,8 @@ namespace model {
 				}
 				else
 					vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+
+				vertices.push_back(vertex);
 			}
 			// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
 			for (unsigned int i = 0; i < mesh->mNumFaces; i++)
@@ -246,12 +243,6 @@ namespace model {
 			}
 			// process materials
 			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-			// we assume a convention for sampler names in the shaders. Each diffuse texture should be named
-			// as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
-			// Same applies to other texture as the following list summarizes:
-			// diffuse: texture_diffuseN
-			// specular: texture_specularN
-			// normal: texture_normalN
 
 			// 1. diffuse maps
 			std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
