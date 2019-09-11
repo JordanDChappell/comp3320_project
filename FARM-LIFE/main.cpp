@@ -166,7 +166,7 @@
 		//	5 * sizeof(float), (void*)(2 * sizeof(float)));
 
 		// Load a model using model class
-		model::Model model1 = model::Model("models/giraffe/giraffe.obj");
+		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
 
 		// Create the skybox class instance
 		skybox::Skybox skybox = skybox::Skybox();
@@ -200,11 +200,11 @@
 
 			// Draw the triangle
 			// Accept fragment if it closer to the camera than the former one
-			glDepthFunc(GL_LESS);
+			//glDepthFunc(GL_LESS);
 			//glUseProgram(shaderProgram);
-			glm::mat4 Hvw = camera.get_view_transform();
+			/*glm::mat4 Hvw = camera.get_view_transform();
 			glm::mat4 Hcv = camera.get_clip_transform();
-			glm::mat4 Hwm = glm::mat4(1.0f);
+			glm::mat4 Hwm = glm::mat4(1.0f);*/
 			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
 			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 			//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
@@ -213,7 +213,12 @@
 			//glBindVertexArray(0);
 
 			// Draw the model
-			model1.Draw(modelShader);
+			glDepthFunc(GL_LESS);
+			glUseProgram(modelShader);
+			glm::mat4 Hvw = camera.get_view_transform();
+			glm::mat4 Hcv = camera.get_clip_transform();
+			glm::mat4 Hwm = glm::mat4(1.0f);
+			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
 
 			//-------------
 			// DRAW TERRAIN 

@@ -13,6 +13,8 @@ namespace model {
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;	// Texture coordinates
+		glm::vec3 Tangent;
+		glm::vec3 Bitangent;
 	};
 
 	// Data structure for the texture of a model
@@ -20,6 +22,14 @@ namespace model {
 		GLuint id;
 		std::string type;	// type of texture image
 		std::string path;	// path to the texture image
+	};
+
+	// Data structure for material only models
+	struct Material {
+		glm::vec3 Diffuse;
+		glm::vec3 Specular;
+		glm::vec3 Ambient;
+		float Shininess;
 	};
 
 	///<summary>Model mesh attributes and functions</summary
@@ -51,10 +61,12 @@ namespace model {
 		/// mesh shader appropriately.
 		/// Source: learnopengl.com
 		///</summary>
-		void Draw(GLuint shader)
+		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model)
 		{
-			unsigned int diffuseNr = 1;	// number to assign to diffuse textures
-			unsigned int specularNr = 1;	// number to assign to specular textures
+			unsigned int diffuseNr = 1;	// number to assign to diffuse texture
+			unsigned int specularNr = 1;	// number to assign to specular texture
+			unsigned int normalNr = 1;
+			unsigned int heightNr = 1;
 			for (unsigned int i = 0; i < textures.size(); i++)
 			{
 				glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
@@ -65,6 +77,10 @@ namespace model {
 					number = std::to_string(diffuseNr++);
 				else if (name == "texture_specular")
 					number = std::to_string(specularNr++);
+				else if (name == "texture_normal")
+					number = std::to_string(normalNr++); // transfer unsigned int to stream
+				else if (name == "texture_height")
+					number = std::to_string(heightNr++); // transfer unsigned int to stream
 
 				// Set the shader sampler to the current texture and bind it
 				glUniform1i(glGetUniformLocation(shader, (name + number).c_str()), i);
@@ -72,8 +88,11 @@ namespace model {
 			}
 			glActiveTexture(GL_TEXTURE0);
 
-			// draw mesh
+			// draw mesh - apply view transformations from the camera
 			glBindVertexArray(VAO);
+			glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, &view[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, &projection[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &model[0][0]);
 			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 		}
@@ -112,6 +131,12 @@ namespace model {
 			// vertex texture coords
 			glEnableVertexAttribArray(2);
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+			// vertex tangent
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+			// vertex bitangent
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 			glBindVertexArray(0);
 		}
 	};
@@ -140,11 +165,11 @@ namespace model {
 		/// Draw the model to the open gl window.
 		/// Simply loop over the meshes in our vector and call the draw function of each.
 		///</summary>
-		void Draw(GLuint shader)
+		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model)
 		{
 			for (unsigned int i = 0; i < meshes.size(); i++)
 			{
-				meshes[i].Draw(shader);
+				meshes[i].Draw(shader, view, projection, model);
 			}
 		}
 
@@ -230,10 +255,19 @@ namespace model {
 				}
 				else
 					vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-
+				// tangent
+				vector.x = mesh->mTangents[i].x;
+				vector.y = mesh->mTangents[i].y;
+				vector.z = mesh->mTangents[i].z;
+				vertex.Tangent = vector;
+				// bitangent
+				vector.x = mesh->mBitangents[i].x;
+				vector.y = mesh->mBitangents[i].y;
+				vector.z = mesh->mBitangents[i].z;
+				vertex.Bitangent = vector;
 				vertices.push_back(vertex);
 			}
-			// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+			// now loop through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
 			for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 			{
 				aiFace face = mesh->mFaces[i];
@@ -290,6 +324,26 @@ namespace model {
 			}
 			return textures;
 		}
+
+		Material loadMaterial(aiMaterial* mat) {
+			Material material;
+			aiColor3D color(0.f, 0.f, 0.f);
+			float shininess;
+
+			mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+			material.Diffuse = glm::vec3(color.r, color.b, color.g);
+
+			mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
+			material.Ambient = glm::vec3(color.r, color.b, color.g);
+
+			mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
+			material.Specular = glm::vec3(color.r, color.b, color.g);
+
+			mat->Get(AI_MATKEY_SHININESS, shininess);
+			material.Shininess = shininess;
+
+			return material;
+		}
 	};
 
 	GLuint TextureFromFile(const char* path, const std::string& directory)
@@ -304,7 +358,7 @@ namespace model {
 		unsigned char* data = SOIL_load_image(filename.c_str(), &width, &height, &nrComponents, 0);
 		if (data)
 		{
-			GLenum format;
+			GLenum format = GL_RED;
 			if (nrComponents == 1)
 				format = GL_RED;
 			else if (nrComponents == 3)
