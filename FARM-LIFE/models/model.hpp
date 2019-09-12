@@ -59,7 +59,7 @@ namespace model {
 		/// mesh shader appropriately.
 		/// Source: learnopengl.com
 		///</summary>
-		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model)
+		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model, glm::vec3 position)
 		{
 			unsigned int diffuseNr = 1;	// number to assign to diffuse texture
 			unsigned int specularNr = 1;	// number to assign to specular texture
@@ -90,6 +90,9 @@ namespace model {
 			glBindVertexArray(VAO);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, &view[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, &projection[0][0]);
+
+			// apply the movement transform to the model
+			model = glm::translate(model, position);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &model[0][0]);
 			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
@@ -139,6 +142,7 @@ namespace model {
 		std::vector<Texture> loadedTextures;
 		std::vector<Mesh> meshes;
 		std::string directory;
+		glm::vec3 position = glm::vec3(0, 0, 0);
 
 		// Public functions
 
@@ -160,8 +164,16 @@ namespace model {
 		{
 			for (unsigned int i = 0; i < meshes.size(); i++)
 			{
-				meshes[i].Draw(shader, view, projection, model);
+				meshes[i].Draw(shader, view, projection, model, position);
 			}
+		}
+
+		///<summary>
+		/// Move the model to a new position (x,y,z)
+		///</summary>
+		void MoveTo(glm::vec3 coordinates) 
+		{
+			position = coordinates;
 		}
 
 	private:
