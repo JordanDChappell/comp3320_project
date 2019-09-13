@@ -167,7 +167,8 @@
 
 		// Load a model using model class
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
-		giraffe.MoveTo(glm::vec3(0, 0, 0));
+		//giraffe.MoveTo(glm::vec3(0, 0, 0));
+		giraffe.MoveTo(glm::vec3(10, 10, 10));	// move the model to a space in the scene
 
 		// Create the skybox class instance
 		skybox::Skybox skybox = skybox::Skybox();
@@ -183,14 +184,6 @@
         glClearColor(0.0f, 0.0f, 0.6f, 0.0f); 
 
 		float delta_time = 0.0f;
-
-		// Animation of a model.
-		float pos[1000];
-		for (int i = 0; i < 1000; i++) {
-			pos[i] = i / 20;
-		}
-		int count = 0;
-		bool backwards = false;
 
         // Main Loop  
         do  
@@ -228,19 +221,6 @@
 			glm::mat4 Hcv = camera.get_clip_transform();
 			glm::mat4 Hwm = glm::mat4(1.0f);
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
-			giraffe.MoveTo(glm::vec3(0, pos[count], 0));
-			if (count == 999) {
-				backwards = true;
-			}
-			else if (backwards && count == 0) {
-				backwards = false;
-			}
-			if (backwards) {
-				count--;
-			}
-			else {
-				count++;
-			}
 			
 
 			//-------------
