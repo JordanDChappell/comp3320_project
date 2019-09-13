@@ -170,6 +170,9 @@
 		//giraffe.MoveTo(glm::vec3(0, 0, 0));
 		giraffe.MoveTo(glm::vec3(10, 10, 10));	// move the model to a space in the scene
 
+		model::Model barn = model::Model("models/barn/barn.obj");
+		barn.MoveTo(glm::vec3(0, 0, 0));
+
 		// Create the skybox class instance
 		skybox::Skybox skybox = skybox::Skybox();
 		skybox.getInt();		
@@ -221,6 +224,7 @@
 			glm::mat4 Hcv = camera.get_clip_transform();
 			glm::mat4 Hwm = glm::mat4(1.0f);
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
+			barn.Draw(modelShader, Hvw, Hcv, Hwm);
 			
 
 			//-------------
