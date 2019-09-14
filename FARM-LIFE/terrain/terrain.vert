@@ -1,4 +1,4 @@
-#version 150
+#version 400
 
 in vec3 position;
 in vec3 color;
@@ -6,7 +6,7 @@ in vec2 texCoord;
 
 out vec3 Color;
 out vec2 TexCoord;
-out float distanceCamera;
+out float height;
 
 // Transformation matrix
 uniform mat4 Hwm;
@@ -20,7 +20,6 @@ void main()
 {
 	Color = color;
 	TexCoord = texCoord;
-	mat4 Hcm = Hcv * Hvw * Hwm;
-    gl_Position = Hcm * vec4(position[0] * scale, position[1], position[2] * scale, 1.0);
-	distanceCamera = Hcm[3].length();
+	gl_Position = Hcv * Hvw * Hwm * vec4(position[0] * scale, position[1], position[2] * scale, 1.0);
+	height = position[1];
 }
