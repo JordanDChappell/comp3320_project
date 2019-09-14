@@ -198,7 +198,7 @@ void generateTerrain(terraObj terra, glm::mat4 Hvw, glm::mat4 Hcv) {
 	glUniformMatrix4fv(glGetUniformLocation(terra.terraShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 	glUniform1f(glGetUniformLocation(terra.terraShader, "scale"), terra.scale);
 
-	std::cout << (Hcv * Hvw * Hwm)[3].length() << std::endl;
+	//std::cout << (Hcv * Hvw * Hwm)[3].length() << std::endl;
 
 	//-----------------------------
 	// DRAW TERRAIN

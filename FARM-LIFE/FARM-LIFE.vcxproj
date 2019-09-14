@@ -42,6 +42,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -53,13 +55,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\soil\src;$(ProjectDir)dependencies\glew\include;$(ProjectDir)dependencies\glfw\include;$(ProjectDir)dependencies</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)dependencies\assimp\include;$(ProjectDir)\soil\src;$(ProjectDir)dependencies\glew\include;$(ProjectDir)dependencies\glfw\include;$(ProjectDir)dependencies</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\Debug;$(ProjectDir)dependencies\glew\lib;$(ProjectDir)dependencies\glfw\lib-msvc100;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>legacy_stdio_definitions.lib;SOIL.lib;opengl32.lib;glu32.lib;glew32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)dependencies\assimp\lib;$(ProjectDir)\..\Debug;$(ProjectDir)dependencies\glew\lib;$(ProjectDir)dependencies\glfw\lib-msvc100;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>legacy_stdio_definitions.lib;SOIL.lib;opengl32.lib;glu32.lib;glew32.lib;glfw3.lib;assimp-vc142-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -87,18 +89,25 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="kitten.png" />
+    <Image Include="skybox\textures\back.tga" />
+    <Image Include="skybox\textures\bottom.tga" />
+    <Image Include="skybox\textures\front.tga" />
+    <Image Include="skybox\textures\left.tga" />
+    <Image Include="skybox\textures\right.tga" />
+    <Image Include="skybox\textures\top.tga" />
     <Image Include="terrain\grass.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
-    <None Include="shaders\skybox.frag" />
-    <None Include="shaders\skybox.vert" />
+    <None Include="skybox\shaders\skybox.frag" />
+    <None Include="skybox\shaders\skybox.vert" />
     <None Include="terrain\terrain.frag" />
     <None Include="terrain\terrain.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="models\model.hpp" />
+    <ClInclude Include="skybox\skybox.hpp" />
     <ClInclude Include="terrain\terrain.hpp" />
     <ClInclude Include="util\camera.hpp" />
     <ClInclude Include="util\mainUtil.hpp" />
