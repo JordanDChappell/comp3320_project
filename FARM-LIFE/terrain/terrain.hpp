@@ -123,7 +123,7 @@ terraObj createTerrain() {
 		for (int j = 0; j < terra.resZ; j++) {
 			// Position
 			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;	// X
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = ( heights->at(i * (terra.resZ) + j)  - 0.5 ) * c1;			
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = ( heights->at(j * (terra.resX) + i)  - 0.5 ) * c1;			
 			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2] = (float)j;		// Z
 
 			// Texture Coordinates
