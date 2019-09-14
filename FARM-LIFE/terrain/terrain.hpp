@@ -20,24 +20,23 @@ void setTextures(terraObj terra) {
 	//TODO: Create texture buffer:
 	GLuint tex[3];
 	glGenTextures(3, tex);
-	terra.tex[0] = tex[0];
-	terra.tex[1] = tex[1];
-	terra.tex[2] = tex[2];
 
 	int width, height;
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex[0]);
 
-	unsigned char* image =
-		SOIL_load_image("terrain/grass.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex[0]);
+	unsigned char* image = SOIL_load_image("terrain/grass.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
 		GL_UNSIGNED_BYTE, image);
 	SOIL_free_image_data(image);
 	glUniform1i(glGetUniformLocation(terra.terraShader, "texGrass"), 0);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -69,6 +68,10 @@ void setTextures(terraObj terra) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_2D);
+
+	terra.tex[0] = tex[0];
+	terra.tex[1] = tex[1];
+	terra.tex[2] = tex[2];
 }
 
 terraObj createTerrain() {
@@ -98,7 +101,7 @@ terraObj createTerrain() {
 			heights->push_back((float)r / 255.0); //0.0, 1.0
 		}
 	}
-	std::cout << heights->size() << std::endl;
+
 	//-------------------
 	//-------------------
 
@@ -223,22 +226,25 @@ terraObj createTerrain() {
 void generateTerrain(terraObj terra, glm::mat4 Hvw, glm::mat4 Hcv) {
 	//-----------------------------
 	// BIND SHADER AND BUFFERS ----
-	//-----------------------------
+	//-----------------------------	
 	glUseProgram(terra.terraShader);
 	glBindVertexArray(terra.vao);
 	glBindBuffer(GL_ARRAY_BUFFER, terra.vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terra.ebo);
-	
-	glBindTexture(GL_TEXTURE_2D, terra.tex[0]);
+
+	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, terra.tex[0]);
 	glUniform1i(glGetUniformLocation(terra.terraShader, "texGrass"), 0);
 
-	glBindTexture(GL_TEXTURE_2D, terra.tex[1]);
+	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, terra.tex[1]);
 	glUniform1i(glGetUniformLocation(terra.terraShader, "texRock"), 1);
 
-	glBindTexture(GL_TEXTURE_2D, terra.tex[2]);
+	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, terra.tex[2]);
 	glUniform1i(glGetUniformLocation(terra.terraShader, "texWater"), 2);
 
 	//-----------------------------
@@ -256,4 +262,6 @@ void generateTerrain(terraObj terra, glm::mat4 Hvw, glm::mat4 Hcv) {
 	// DRAW TERRAIN
 	//-----------------------------
 	glDrawElements(GL_TRIANGLES, terra.noVertices, GL_UNSIGNED_INT, 0);
+
+	glDeleteTextures(1, terra.tex);
 }

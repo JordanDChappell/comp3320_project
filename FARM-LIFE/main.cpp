@@ -192,8 +192,8 @@
 			glm::mat4 Hvw = camera.get_view_transform();
 			glm::mat4 Hcv = camera.get_clip_transform();
 			glm::mat4 Hwm = glm::mat4(1.0f);
-			//giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
-			//barn.Draw(modelShader, Hvw, Hcv, Hwm);
+			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
+			barn.Draw(modelShader, Hvw, Hcv, Hwm);
 			
 
 			//-------------
