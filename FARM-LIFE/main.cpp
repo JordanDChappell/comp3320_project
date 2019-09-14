@@ -4,6 +4,8 @@
 	* GLFW - Graphics Library Framework
 	* GLM - OpenGL Mathematics
 	*/
+	#include <windows.h>	
+	#include <sdl.h>
 	#include <SOIL.h>
     #include <GL/glew.h>  
 	#include <GLFW/glfw3.h>  
@@ -81,6 +83,9 @@
 
 		// Create a window and create its OpenGL context, creates a fullscreen window using glfwGetPrimaryMonitor(), requires a monitor for fullscreen
 		window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", glfwGetPrimaryMonitor(), NULL);
+		
+		//USE THIS LINE INSTEAD OF LINE ABOVE IF GETTING RUNTIME ERRORS
+		//window = glfwCreateWindow(600, 800, "Farm-Life: GOTY Edition", NULL, NULL);
 
 		if (window == NULL) {
 			std::cerr << "Failed to create GLFW window with dimension " << SCREEN_WIDTH << SCREEN_HEIGHT
@@ -187,8 +192,8 @@
 			glm::mat4 Hvw = camera.get_view_transform();
 			glm::mat4 Hcv = camera.get_clip_transform();
 			glm::mat4 Hwm = glm::mat4(1.0f);
-			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
-			barn.Draw(modelShader, Hvw, Hcv, Hwm);
+			//giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
+			//barn.Draw(modelShader, Hvw, Hcv, Hwm);
 			
 
 			//-------------

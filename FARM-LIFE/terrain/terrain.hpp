@@ -1,5 +1,5 @@
 #include <vector>
-//#include <boost/gil.hpp>
+#undef main
 
 struct terraObj {
 	// Store shader program and buffers
@@ -79,8 +79,28 @@ terraObj createTerrain() {
 	terra.resX = 1000;
 	terra.resZ = 1000;
 	terra.scale = 0.5;
-	int vertexAtt = 8;
+	int vertexAtt = 5;
 
+	//-------------------
+	//---HEIGHT MAP------
+	//-------------------
+	SDL_Surface* img = SDL_LoadBMP("terrain/heightmap.bmp");
+	std::vector<float> tmp;
+
+	std::vector<float>* heights = new std::vector<float>;
+
+
+	for (int i = 0; i < img->h; i++) {
+		for (int j = 0; j < img->w; j++) {
+			Uint32 pixel = ((Uint32*)img->pixels)[i * img->pitch / 4 + j];
+			Uint8 r, g, b; //unsigned char
+			SDL_GetRGB(pixel, img->format, &r, &g, &b);
+			heights->push_back((float)r / 255.0); //0.0, 1.0
+		}
+	}
+	std::cout << heights->size() << std::endl;
+	//-------------------
+	//-------------------
 
 	// Create vertex array object and set it in terra
 	GLuint vao;
@@ -93,31 +113,22 @@ terraObj createTerrain() {
 	// CREATE VERTICES
 	//----------------
 
-	float * vertices = new float[1000 * 1000 * 8];
+	float * vertices = new float[1000 * 1000 * 5];
 
 
 	// Constants for adjusting f(x,z) for the height of the terrain
-	float c1 = 5, c2 = 0.02, c3 = 0.02;
-
+	float c1 = 15;
 	// Loop over grid
 	for (int i = 0; i < terra.resX; i++) {
 		for (int j = 0; j < terra.resZ; j++) {
 			// Position
 			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;	// X
-			//vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = c1 * glm::sin(i * 0.01 * cos(i * 0.01)) * glm::sin(j * 0.01 * cos(j * 0.01)) + ((rand() % 100) / 200);		// Y
-			//Magick::ColorRGB rgb = height_map.pixelColor(i, j);
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = 1; //rgb.red() * c1;
-			
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = ( heights->at(i * (terra.resZ) + j)  - 0.5 ) * c1;			
 			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2] = (float)j;		// Z
 
-			// Colour
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 3] = 0.545f;
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 4] = 0.627;
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 5] = 0.286f;
-
 			// Texture Coordinates
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 6] = i % 2 == 0 ? 1.0f : 0.0f;
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 7] = j % 2 == 0 ? 1.0f : 0.0f;
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 3] = i % 2 == 0 ? 1.0f : 0.0f;
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 4] = j % 2 == 0 ? 1.0f : 0.0f;
 		}
 	}
 
@@ -198,15 +209,10 @@ terraObj createTerrain() {
 	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE,
 		vertexAtt * sizeof(float), 0);
 
-	GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
-	glEnableVertexAttribArray(colAttrib);
-	glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE,
-		vertexAtt * sizeof(float), (void*)(3 * sizeof(float)));
-
 	GLint texAttrib = glGetAttribLocation(shaderProgram, "texCoord");
 	glEnableVertexAttribArray(texAttrib);
 	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
-		vertexAtt * sizeof(float), (void*)(6 * sizeof(float)));
+		vertexAtt * sizeof(float), (void*)(3 * sizeof(float)));
 
 	terra.terraShader = shaderProgram;
 

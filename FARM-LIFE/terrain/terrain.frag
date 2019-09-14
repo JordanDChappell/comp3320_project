@@ -1,6 +1,5 @@
 #version 150
 
-in vec3 Color;
 in vec2 TexCoord;
 in float height;
 
@@ -12,17 +11,15 @@ uniform sampler2D texWater;
 
 void main()
 {
-	
 	vec4 colTexture;
-	if (height < 0.0) {
+	if (height < -2.5) {
 		colTexture = texture(texWater, TexCoord);
 	}
-	else if (height < 1.0) {
+	else if (height <= -1 && height >= -2.5) {
 		colTexture = texture(texRock, TexCoord);
 	}
 	else {
 		colTexture = texture(texGrass, TexCoord);
 	}
-
 	outColor = colTexture;
 }
