@@ -99,9 +99,6 @@ terraObj createTerrain() {
 			Uint8 r, g, b; //unsigned char
 			SDL_GetRGB(pixel, img->format, &r, &g, &b);
 			heights->push_back((float)r / 255.0); //0.0, 1.0
-			if ((float)r / 255.0 > 1.0 || (float)r / 255.0 < 0.0) {
-				std::cout << (float)r / 255.0 << std::endl;
-			}
 		}
 	}
 
