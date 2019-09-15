@@ -148,9 +148,8 @@
 		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 		GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
 
-		// Load a model using model class
+		//// Load a model using model class
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
-		//giraffe.MoveTo(glm::vec3(0, 0, 0));
 		giraffe.MoveTo(glm::vec3(10, 10, 10));	// move the model to a space in the scene
 
 		model::Model barn = model::Model("models/barn/barn.obj");
@@ -186,6 +185,11 @@
 			float last_frame = current_frame;
 			process_input(window, delta_time, camera);
 
+			// get the camera transforms
+			glm::mat4 Hvw = camera.get_view_transform();
+			glm::mat4 Hcv = camera.get_clip_transform();
+			glm::mat4 Hwm = glm::mat4(1.0f);
+
 			/* RENDER */
 			// Clear color buffer  
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
@@ -194,27 +198,20 @@
 
 			// Draw the models
 			glDepthFunc(GL_LESS);
-			glUseProgram(modelShader);
-			glm::mat4 Hvw = camera.get_view_transform();
-			glm::mat4 Hcv = camera.get_clip_transform();
-			glm::mat4 Hwm = glm::mat4(1.0f);
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
 			cat.Draw(modelShader, Hvw, Hcv, Hwm);
 			trough.Draw(modelShader, Hvw, Hcv, Hwm);
 			barn.Draw(modelShader, Hvw, Hcv, Hwm);
 			
-
 			//-------------
 			// DRAW TERRAIN 
 			//-------------
-			Hvw = camera.get_view_transform();
-			Hcv = camera.get_clip_transform();
 			generateTerrain(terra, Hvw, Hcv);
 
 			//--------------------------
 			// DRAW SKYBOX - always last
 			//--------------------------
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix.
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
 			skybox.render(Hvw, Hcv);
 
             //Swap buffers  
