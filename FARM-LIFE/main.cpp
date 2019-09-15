@@ -156,6 +156,12 @@
 		model::Model barn = model::Model("models/barn/barn.obj");
 		barn.MoveTo(glm::vec3(0, 0, 0));
 
+		model::Model cat = model::Model("models/cat/cat.obj");
+		cat.MoveTo(glm::vec3(-10, -1, 0));
+
+		model::Model trough = model::Model("models/trough/watertrough.obj");
+		trough.MoveTo(glm::vec3(-10, -4, 9));
+
 		// Create the skybox class instance
 		skybox::Skybox skybox = skybox::Skybox();
 		skybox.getInt();		
@@ -193,6 +199,8 @@
 			glm::mat4 Hcv = camera.get_clip_transform();
 			glm::mat4 Hwm = glm::mat4(1.0f);
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
+			cat.Draw(modelShader, Hvw, Hcv, Hwm);
+			trough.Draw(modelShader, Hvw, Hcv, Hwm);
 			barn.Draw(modelShader, Hvw, Hcv, Hwm);
 			
 
