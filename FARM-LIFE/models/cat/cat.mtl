@@ -1,5 +1,5 @@
 # Blender MTL File: 'cat.blend'
-# Material Count: 5
+# Material Count: 4
 
 newmtl Body
 Ns 323.999994
@@ -33,14 +33,6 @@ Ni 1.000000
 d 1.000000
 illum 2
 map_Kd Eye.png
-
-newmtl None
-Ns 500
-Ka 0.8 0.8 0.8
-Kd 0.8 0.8 0.8
-Ks 0.8 0.8 0.8
-d 1
-illum 2
 
 newmtl Point_Colours
 Ns 225.000000
