@@ -82,10 +82,10 @@
 		GLFWwindow* window;
 
 		// Create a window and create its OpenGL context, creates a fullscreen window using glfwGetPrimaryMonitor(), requires a monitor for fullscreen
-		window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", glfwGetPrimaryMonitor(), NULL);
+		//window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", glfwGetPrimaryMonitor(), NULL);
 		
 		//USE THIS LINE INSTEAD OF LINE ABOVE IF GETTING RUNTIME ERRORS
-		//window = glfwCreateWindow(600, 800, "Farm-Life: GOTY Edition", NULL, NULL);
+		window = glfwCreateWindow(1200, 800, "Farm-Life: GOTY Edition", NULL, NULL);
 
 		if (window == NULL) {
 			std::cerr << "Failed to create GLFW window with dimension " << SCREEN_WIDTH << SCREEN_HEIGHT
