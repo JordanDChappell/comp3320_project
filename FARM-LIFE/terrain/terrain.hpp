@@ -19,7 +19,7 @@ struct terraObj {
 void setTextures(terraObj terra) {
 	//TODO: Create texture buffer:
 	GLuint tex[3];
-	glGenTextures(3, tex);
+	glGenTextures(3, &tex[0]);
 
 	int width, height;
 
@@ -125,13 +125,13 @@ terraObj createTerrain() {
 	for (int i = 0; i < terra.resX; i++) {
 		for (int j = 0; j < terra.resZ; j++) {
 			// Position
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;	// X
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = ( heights->at(j * (terra.resX) + i)  - 0.5 ) * c1;			
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2] = (float)j;		// Z
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;										// X
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = ( heights->at(j * (terra.resX) + i) ) * c1;		// Y	
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2] = (float)j;										// Z
 
 			// Texture Coordinates
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 3] = i % 2 == 0 ? 1.0f : 0.0f;
-			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 4] = j % 2 == 0 ? 1.0f : 0.0f;
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 3] = i % 2 == 0 ? 1.0f : 0.0f;	// TEX COORDINATE X
+			vertices[(i * (terra.resZ + terra.resZ * (vertexAtt - 1))) + (j * vertexAtt) + 4] = j % 2 == 0 ? 1.0f : 0.0f;	// TEX COORDINATE Y
 		}
 	}
 
@@ -246,6 +246,10 @@ void generateTerrain(terraObj terra, glm::mat4 Hvw, glm::mat4 Hcv) {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, terra.tex[2]);
 	glUniform1i(glGetUniformLocation(terra.terraShader, "texWater"), 2);
+
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, terra.tex[0]);
 
 	//-----------------------------
 	// SET CAMERA IN MIDDLE OF TERRAIN

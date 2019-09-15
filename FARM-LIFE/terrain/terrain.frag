@@ -12,10 +12,10 @@ uniform sampler2D texWater;
 void main()
 {
 	vec4 colTexture;
-	if (height < -2.5) {
+	if (height < 6.0) {
 		colTexture = texture(texWater, TexCoord);
 	}
-	else if (height <= -1 && height >= -2.5) {
+	else if (height <= 8.0 && height >= 6.0) {
 		colTexture = texture(texRock, TexCoord);
 	}
 	else {
