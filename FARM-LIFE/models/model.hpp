@@ -84,7 +84,7 @@ namespace model {
 				glUniform1i(glGetUniformLocation(shader, (name + number).c_str()), i);
 				glBindTexture(GL_TEXTURE_2D, textures[i].id);
 			}
-			glActiveTexture(GL_TEXTURE0);
+			
 
 			// draw mesh - apply view transformations from the camera
 			glBindVertexArray(VAO);
@@ -95,7 +95,10 @@ namespace model {
 			model = glm::translate(model, position);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &model[0][0]);
 			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+			
+			// cleanup
 			glBindVertexArray(0);
+			glActiveTexture(GL_TEXTURE0);
 		}
 
 	private:
@@ -132,6 +135,9 @@ namespace model {
 			// vertex texture coords
 			glEnableVertexAttribArray(2);
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+
+			// cleanup
+			glBindVertexArray(0);
 		}
 	};
 
@@ -162,6 +168,7 @@ namespace model {
 		///</summary>
 		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model)
 		{
+			glUseProgram(shader);	// use the shader before drawing all the meshes.
 			for (unsigned int i = 0; i < meshes.size(); i++)
 			{
 				meshes[i].Draw(shader, view, projection, model, position);
@@ -283,6 +290,10 @@ namespace model {
 			// 4. height maps
 			std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
 			textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
+			// TODO: load a simple material color, rather than textures.
+			// Sample found at at: https://www.lighthouse3d.com/cg-topics/code-samples/importing-3d-models-with-assimp/
+
 			// return a mesh object created from the extracted mesh data
 			return Mesh(vertices, indices, textures);
 		}
@@ -372,7 +383,7 @@ namespace model {
 		}
 		else
 		{
-			std::cout << "Texture failed to load at path: " << path << std::endl;
+			std::cout << "(SOIL) Texture failed to load at path: " << path << std::endl;
 			SOIL_free_image_data(data);
 		}
 
