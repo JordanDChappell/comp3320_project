@@ -63,10 +63,11 @@ namespace terrain {
 			glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), (void*)(3 * sizeof(float)));
 		}
+		~Terrain() {}
 
 		// Precondition:	Terrain object has been constructed
 		// Postcondition:	Terrain is drawn
-		void draw(const glm::mat4 Hvw, const glm::mat4 Hcv) {
+		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
 			//------------------------	
