@@ -64,9 +64,9 @@ namespace terrain {
 				vertexAtt * sizeof(float), (void*)(3 * sizeof(float)));
 		}
 
-		// Precondition: Terrain object has been constructed
-		// Postcondition: Terrain is drawn
-		void draw(glm::mat4 Hvw, glm::mat4 Hcv) {
+		// Precondition:	Terrain object has been constructed
+		// Postcondition:	Terrain is drawn
+		void draw(const glm::mat4 Hvw, const glm::mat4 Hcv) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
 			//------------------------	
@@ -108,11 +108,20 @@ namespace terrain {
 			glActiveTexture(GL_TEXTURE0);
 		}
 
+		// Precondition:	Vertex array, textures and buffers exist.
+		// Postcondition:	Vertex array, textures and buffers deleted.
+		void cleanup() {
+			glDeleteBuffers(1, &vbo);
+			glDeleteBuffers(1, &ebo);
+			glDeleteVertexArrays(1, &vao);
+			glDeleteTextures(3, &tex[0]);
+		}
+
 	private:
 		// Store shader program and buffers
 		GLuint shader;		// shader program
-		GLuint vbo;			// vertex buffer object
 		GLuint vao;			// vertex array object
+		GLuint vbo;			// vertex buffer object
 		GLuint ebo;			// element buffer object
 		GLuint tex[3];		// textures
 
@@ -200,7 +209,7 @@ namespace terrain {
 		// Precondition:	heightMap is the path to a .BMP file which is the height map image to be loaded
 		//					heightMap is the same dimension as resX x resZ 
 		// Postcondition:	returns a vector of heights for each vertex
-		std::vector<float>* readHeightMap(std::string heightMap) {
+		const std::vector<float>* readHeightMap(const std::string heightMap) {
 			// Load in the height map
 			SDL_Surface* img = SDL_LoadBMP(heightMap.c_str());
 
@@ -282,4 +291,5 @@ namespace terrain {
 		}
 	};
 }
+
 #endif		// ASSIGNMENT_TERRAIN_HPP

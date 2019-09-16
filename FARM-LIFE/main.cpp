@@ -231,6 +231,9 @@
         } //Check if the ESC key had been pressed or if the window had been closed  
         while (!glfwWindowShouldClose(window));  
       
+		// Cleanup Terrain (delete buffers etc)
+		terra.cleanup();
+
         //Close OpenGL window and terminate GLFW  
         glfwDestroyWindow(window);  
         //Finalize and clean up GLFW  
