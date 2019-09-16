@@ -158,6 +158,12 @@
 		model::Model cat = model::Model("models/cat/cat.obj");
 		cat.MoveTo(glm::vec3(-10, -1, 0));
 
+		model::Model fence = model::Model("models/fence/fence.obj");
+		fence.MoveTo(glm::vec3(-10, 0, -4));
+
+		model::Model bucket = model::Model("models/bucket/bucket.obj");
+		bucket.MoveTo(glm::vec3(-10, 0, 10));
+
 		model::Model trough = model::Model("models/trough/watertrough.obj");
 		trough.MoveTo(glm::vec3(-10, -4, 9));
 
@@ -201,6 +207,8 @@
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
 			cat.Draw(modelShader, Hvw, Hcv, Hwm);
 			trough.Draw(modelShader, Hvw, Hcv, Hwm);
+			fence.Draw(modelShader, Hvw, Hcv, Hwm);
+			bucket.Draw(modelShader, Hvw, Hcv, Hwm);
 			barn.Draw(modelShader, Hvw, Hcv, Hwm);
 			
 			//-------------
