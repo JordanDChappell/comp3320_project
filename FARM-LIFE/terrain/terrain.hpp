@@ -18,7 +18,7 @@ namespace terrain {
 	
 	public:
 		// Terrain constructor
-		Terrain(int resX_ = 1000, int resZ_ = 1000, int scale_ = 0.5, int maxHeight_ = 15) {
+		Terrain(int resX_ = 1000, int resZ_ = 1000, float scale_ = 0.5, int maxHeight_ = 15) {
 			// Initialise parameters for terrain size and resolution
 			resX = resX_;
 			resZ = resZ_;
