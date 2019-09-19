@@ -174,8 +174,8 @@
 		// Init before the main loop
         float last_frame = glfwGetTime();
 
-		// Create terrain
-		terraObj terra = createTerrain();
+		// Create Terrain
+		terrain::Terrain terra = terrain::Terrain(1000, 1000, 0.5, 15);
 
         //Set a background color  
         glClearColor(0.0f, 0.0f, 0.6f, 0.0f); 
@@ -214,7 +214,7 @@
 			//-------------
 			// DRAW TERRAIN 
 			//-------------
-			generateTerrain(terra, Hvw, Hcv);
+			terra.draw(Hvw, Hcv);
 
 			//--------------------------
 			// DRAW SKYBOX - always last
@@ -230,6 +230,9 @@
         } //Check if the ESC key had been pressed or if the window had been closed  
         while (!glfwWindowShouldClose(window));  
       
+		// Cleanup Terrain (delete buffers etc)
+		terra.cleanup();
+
         //Close OpenGL window and terminate GLFW  
         glfwDestroyWindow(window);  
         //Finalize and clean up GLFW  
