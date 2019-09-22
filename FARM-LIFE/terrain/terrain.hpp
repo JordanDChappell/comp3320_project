@@ -25,7 +25,7 @@ namespace terrain {
 			scale = scale_;
 
 			// Specify how many vertex attributes there are
-			int vertexAtt = 5;
+			int vertexAtt = 8;
 
 			// Maximum height of the terrain
 			int maxHeight = maxHeight_;
@@ -58,10 +58,15 @@ namespace terrain {
 			glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), 0);
 
+			GLint normAttrib = glGetAttribLocation(terraShader, "normal");
+			glEnableVertexAttribArray(normAttrib);
+			glVertexAttribPointer(normAttrib, 3, GL_FLOAT, GL_FALSE,
+				vertexAtt * sizeof(float), (void*)(3 * sizeof(float)));
+
 			GLint texAttrib = glGetAttribLocation(terraShader, "texCoord");
 			glEnableVertexAttribArray(texAttrib);
 			glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
-				vertexAtt * sizeof(float), (void*)(3 * sizeof(float)));
+				vertexAtt * sizeof(float), (void*)(6 * sizeof(float)));
 		}
 		~Terrain() {}
 
@@ -145,7 +150,7 @@ namespace terrain {
 			//----------------
 			// CREATE VERTICES
 			//----------------
-			float* vertices = new float[1000 * 1000 * 5];	// resolution multiplied by number of vertex attributes
+			float* vertices = new float[1000 * 1000 * 8];	// resolution multiplied by number of vertex attributes
 
 			// Loop over grid
 			for (int i = 0; i < resX; i++) {
@@ -157,8 +162,73 @@ namespace terrain {
 					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2] = (float)j;	// Z
 
 					// Texture Coordinates
-					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 3] = i % 2 == 0 ? 1.0f : 0.0f;	// TEX COORDINATE X
-					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 4] = j % 2 == 0 ? 1.0f : 0.0f;	// TEX COORDINATE Y
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 6] = i % 2 == 0 ? 1.0f : 0.0f;	// TEX COORDINATE X
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 7] = j % 2 == 0 ? 1.0f : 0.0f;	// TEX COORDINATE Z
+				}
+			}
+
+			// Loop over grid again to find normals
+			// This is done by finding normals for each adjacent face,
+			// then averaging them.
+			for (int i = 0; i < resX; i++) {
+				for (int j = 0; j < resZ; j++) {
+					// Calculate normal
+					std::vector<glm::vec3> normals;
+					glm::vec3 thisVec = getVertex(i, j, vertices, vertexAtt);
+					glm::vec3 A;
+					glm::vec3 C;
+
+					// Add in normals above
+					if (i != 0) {
+						// And to the left
+						if (j != 0) {
+							A = getVertex(i - 1, j, vertices, vertexAtt);
+							C = getVertex(i, j - 1, vertices, vertexAtt);
+							normals.push_back(glm::cross((A - thisVec), (C - thisVec)));
+						}
+						// And to the right
+						if (j != (resZ - 1)) {
+							A = getVertex(i - 1, j + 1, vertices, vertexAtt);
+							C = getVertex(i - 1, j, vertices, vertexAtt);
+							normals.push_back(glm::cross((A - thisVec), (C - thisVec)));
+
+							A = getVertex(i, j + 1, vertices, vertexAtt);
+							C = getVertex(i - 1, j + 1, vertices, vertexAtt);
+							normals.push_back(glm::cross((A - thisVec), (C - thisVec)));
+						}
+					}
+
+					// Add normals below
+					if (i != (resX - 1)) {
+						// And to the left
+						if (j != 0) {
+							A = getVertex(i, j - 1, vertices, vertexAtt);
+							C = getVertex(i + 1, j - 1, vertices, vertexAtt);
+							normals.push_back(glm::cross((A - thisVec), (C - thisVec)));
+
+							A = getVertex(i + 1, j - 1, vertices, vertexAtt);
+							C = getVertex(i + 1, j, vertices, vertexAtt);
+							normals.push_back(glm::cross((A - thisVec), (C - thisVec)));
+						}
+						// And to the right
+						if (j != (resZ - 1)) {
+							A = getVertex(i + 1, j, vertices, vertexAtt);
+							C = getVertex(i, j + 1, vertices, vertexAtt);
+							normals.push_back(glm::cross((A - thisVec), (C - thisVec)));
+						}
+					}
+
+					// Average of all normals
+					glm::vec3 normal = glm::vec3(0.0f, 0.0f, 0.0f);
+					for (int i = 0; i < normals.size(); i++) {
+						normal += normals.at(i);
+					}
+					normal /= normals.size();
+					
+					// Set normal
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 3] = normal.x;
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 4] = normal.y;
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 5] = normal.z;
 				}
 			}
 
@@ -247,13 +317,13 @@ namespace terrain {
 			//--------------------
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, terraTex[0]);
-			unsigned char* image = SOIL_load_image("terrain/grass.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+			unsigned char* image = SOIL_load_image("terrain/grass1.png", &width, &height, 0, SOIL_LOAD_RGB);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
 				GL_UNSIGNED_BYTE, image);
 
 			// Set the parameters for the grass texture
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glGenerateMipmap(GL_TEXTURE_2D);
@@ -263,13 +333,13 @@ namespace terrain {
 			//--------------------
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, terraTex[1]);
-			image = SOIL_load_image("terrain/rock.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+			image = SOIL_load_image("terrain/rock1.png", &width, &height, 0, SOIL_LOAD_RGB);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
 				GL_UNSIGNED_BYTE, image);
 
 			// Set the parameters for the rock texture
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glGenerateMipmap(GL_TEXTURE_2D);
@@ -284,11 +354,22 @@ namespace terrain {
 				GL_UNSIGNED_BYTE, image);
 
 			// Set the parameters for the water texture
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+
+		// Precondition:	Vertices is populated, contains point (i,j), vertex attributes
+		//					represents how many vertex attributes per vertex.
+		// Postcondition:	Given a mesh of points, returns the (i,j)th point
+		glm::vec3 getVertex(int i, int j, float* vertices, int vertexAtt) {
+			glm::vec3 vertex;
+			vertex.x = vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0];	// X
+			vertex.y = vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1];	// Y	
+			vertex.z = vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2];	// Z
+			return vertex;
 		}
 	};
 }
