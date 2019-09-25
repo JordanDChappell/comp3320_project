@@ -151,7 +151,7 @@ namespace terrain {
 			for (int i = 0; i < resX; i++) {
 				for (int j = 0; j < resZ; j++) {
 					// Position
-					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;	// X
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;	// X 
 					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] =
 						(heights->at(j * (resX)+i)) * maxHeight;										// Y	
 					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2] = (float)j;	// Z

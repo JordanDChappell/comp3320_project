@@ -11,7 +11,7 @@ namespace skybox {
 		GLuint shader;
 
 		// Public functions
-
+		
 		// Constructor - builds the default skybox
 		Skybox()
 		{
