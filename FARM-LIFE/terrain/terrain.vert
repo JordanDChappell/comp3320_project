@@ -1,6 +1,7 @@
 #version 150
 
 in vec3 position;
+in vec3 normal;
 in vec2 texCoord;
 
 out vec2 TexCoord;
