@@ -28,8 +28,8 @@
 	#include "skybox/skybox.hpp";
 
 	// Initial width and height of the window
-	GLuint SCREEN_WIDTH = 1920;
-    GLuint SCREEN_HEIGHT = 1080;
+	GLuint SCREEN_WIDTH = 1200;
+    GLuint SCREEN_HEIGHT = 800;
 
 	// Distances to the near and the far plane. Used for the camera to clip space transform.
 	static constexpr float NEAR_PLANE = 0.1f;
@@ -85,7 +85,7 @@
 		//window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", glfwGetPrimaryMonitor(), NULL);
 
 		//USE THIS LINE INSTEAD OF LINE ABOVE IF GETTING RUNTIME ERRORS
-		window = glfwCreateWindow(1200, 800, "Farm-Life: GOTY Edition", NULL, NULL);
+		window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", NULL, NULL);
 
 		if (window == NULL) {
 			std::cerr << "Failed to create GLFW window with dimension " << SCREEN_WIDTH << SCREEN_HEIGHT
@@ -152,7 +152,7 @@
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
 		giraffe.MoveTo(glm::vec3(10, 10, 10));	// move the model to a space in the scene
 
-		model::Model barn = model::Model("models/barn/barn.obj");
+		/*model::Model barn = model::Model("models/barn/barn.obj");
 		barn.MoveTo(glm::vec3(0, 0, 0));
 
 		model::Model cat = model::Model("models/cat/cat.obj");
@@ -165,18 +165,19 @@
 		bucket.MoveTo(glm::vec3(-10, 0, 10));
 
 		model::Model trough = model::Model("models/trough/watertrough.obj");
-		trough.MoveTo(glm::vec3(-10, -4, 9));
+		trough.MoveTo(glm::vec3(-10, -4, 9));*/
 
 		// Create the skybox class instance
 		skybox::Skybox skybox = skybox::Skybox();
 		skybox.getInt();		
 
-		// Init before the main loop
-        float last_frame = glfwGetTime();
+		
 
 		// Create Terrain
-		terrain::Terrain terra = terrain::Terrain(1000, 1000, 0.5, 15);
-
+		//terrain::Terrain terra = terrain::Terrain(1000, 1000, 0.5, 15);
+		
+		// Init before the main loop
+		float last_frame = glfwGetTime();
         //Set a background color  
         glClearColor(0.0f, 0.0f, 0.6f, 0.0f); 
 
@@ -205,16 +206,17 @@
 			// Draw the models
 			glDepthFunc(GL_LESS);
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
-			cat.Draw(modelShader, Hvw, Hcv, Hwm);
+			giraffe.CheckHitBox(camera.get_position());
+			/*cat.Draw(modelShader, Hvw, Hcv, Hwm);
 			trough.Draw(modelShader, Hvw, Hcv, Hwm);
 			fence.Draw(modelShader, Hvw, Hcv, Hwm);
 			bucket.Draw(modelShader, Hvw, Hcv, Hwm);
-			barn.Draw(modelShader, Hvw, Hcv, Hwm);
+			barn.Draw(modelShader, Hvw, Hcv, Hwm);*/
 			
 			//-------------
 			// DRAW TERRAIN 
 			//-------------
-			terra.draw(Hvw, Hcv);
+			//terra.draw(Hvw, Hcv);
 
 			//--------------------------
 			// DRAW SKYBOX - always last
@@ -231,7 +233,7 @@
         while (!glfwWindowShouldClose(window));  
       
 		// Cleanup Terrain (delete buffers etc)
-		terra.cleanup();
+		//terra.cleanup();
 
         //Close OpenGL window and terminate GLFW  
         glfwDestroyWindow(window);  

@@ -30,6 +30,12 @@ namespace model {
 		float Shininess;
 	};
 
+	// Data structure for a models hitbox
+	struct HitBox {
+		glm::vec3 minVertices;
+		glm::vec3 maxVertices;
+	};
+
 	///<summary>Model mesh attributes and functions</summary
 	class Mesh
 	{
@@ -149,18 +155,16 @@ namespace model {
 		std::vector<Mesh> meshes;
 		std::string directory;
 		glm::vec3 position = glm::vec3(0, 0, 0);
+		HitBox hitBox;
 
 		// Public functions
 
 		// Constructor
 		Model(std::string const& path)
 		{
-
 			// Load the model using ASSIMP library with the path to the model
 			loadModel(path);
 		}
-
-		// More functions. We need a function to search the child nodes in ASSIMP and process meshes recursively.
 
 		///<summary>
 		/// Draw the model to the open gl window.
@@ -168,11 +172,19 @@ namespace model {
 		///</summary>
 		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model)
 		{
+			// Draw the model using it's shader
 			glUseProgram(shader);	// use the shader before drawing all the meshes.
 			for (unsigned int i = 0; i < meshes.size(); i++)
 			{
 				meshes[i].Draw(shader, view, projection, model, position);
 			}
+
+			// Draw the hitbox for reasons? (i felt like it)
+			glLineWidth(5);
+			glColor3f(1.0, 0.0, 0.0);
+			glBegin(GL_LINES);
+			glVertex2f(0.0, 0.5);
+			glEnd();
 		}
 
 		///<summary>
@@ -181,11 +193,25 @@ namespace model {
 		void MoveTo(glm::vec3 coordinates) 
 		{
 			position = coordinates;
+			hitBox.maxVertices = hitBox.maxVertices + coordinates;
+			hitBox.minVertices = hitBox.minVertices + coordinates;
+		}
+
+		bool CheckHitBox(glm::vec3 cameraPos) 
+		{
+			bool insideX = cameraPos.x < hitBox.maxVertices.x && cameraPos.x > hitBox.minVertices.x;
+			bool insideY = cameraPos.y < hitBox.maxVertices.y && cameraPos.y > hitBox.minVertices.y;
+			bool insideZ = cameraPos.z < hitBox.maxVertices.z && cameraPos.z > hitBox.minVertices.z;
+			if (insideX && insideY && insideZ) 
+			{
+				std::cout << "Camera inside model hitbox at: " << cameraPos.x << std::endl;
+				std::cout << "Camera inside model hitbox at: " << cameraPos.y << std::endl;
+				std::cout << "Camera inside model hitbox at: " << cameraPos.z << std::endl;
+			}
+			return (insideX && insideY && insideZ);
 		}
 
 	private:
-
-		// Private functions
 
 		///<summary>
 		/// Load a model using assimp library.
@@ -238,27 +264,29 @@ namespace model {
 			std::vector<Vertex> vertices;
 			std::vector<GLuint> indices;
 			std::vector<Texture> textures;
-			// Walk through each of the mesh's vertices
+
+			// loop through each of the mesh's vertices
 			for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 			{
 				Vertex vertex;
-				glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+				glm::vec3 vector;
+
 				// positions
 				vector.x = mesh->mVertices[i].x;
 				vector.y = mesh->mVertices[i].y;
 				vector.z = mesh->mVertices[i].z;
 				vertex.Position = vector;
+
 				// normals
 				vector.x = mesh->mNormals[i].x;
 				vector.y = mesh->mNormals[i].y;
 				vector.z = mesh->mNormals[i].z;
 				vertex.Normal = vector;
+
 				// texture coordinates
-				if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+				if (mesh->mTextureCoords[0])
 				{
 					glm::vec2 vec;
-					// a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
-					// use models where a vertex can have multiple texture coordinates so we always take the first set (0).
 					vec.x = mesh->mTextureCoords[0][i].x;
 					vec.y = mesh->mTextureCoords[0][i].y;
 					vertex.TexCoords = vec;
@@ -266,7 +294,47 @@ namespace model {
 				else
 					vertex.TexCoords = glm::vec2(0.0f, 0.0f);
 				vertices.push_back(vertex);
+
+				// find the min and max vertices for the hitbox
+				// TODO: can this be optimized? probably...
+				if (i == 0)		// edge case, initialize all min and max values first
+				{
+					hitBox.minVertices.x = mesh->mVertices[i].x;
+					hitBox.minVertices.y = mesh->mVertices[i].y;
+					hitBox.minVertices.z = mesh->mVertices[i].z;
+					hitBox.maxVertices.x = mesh->mVertices[i].x;
+					hitBox.maxVertices.y = mesh->mVertices[i].y;
+					hitBox.maxVertices.z = mesh->mVertices[i].z;
+				}
+				else 
+				{
+					if (mesh->mVertices[i].x < hitBox.minVertices.x)
+					{
+						hitBox.minVertices.x = mesh->mVertices[i].x;
+					}
+					if (mesh->mVertices[i].y < hitBox.minVertices.y)
+					{
+						hitBox.minVertices.y = mesh->mVertices[i].y;
+					}
+					if (mesh->mVertices[i].z < hitBox.minVertices.z)
+					{
+						hitBox.minVertices.z = mesh->mVertices[i].z;
+					}
+					if (mesh->mVertices[i].x > hitBox.maxVertices.x)
+					{
+						hitBox.maxVertices.x = mesh->mVertices[i].x;
+					}
+					if (mesh->mVertices[i].y > hitBox.maxVertices.y)
+					{
+						hitBox.maxVertices.y = mesh->mVertices[i].y;
+					}
+					if (mesh->mVertices[i].z > hitBox.maxVertices.z)
+					{
+						hitBox.maxVertices.z = mesh->mVertices[i].z;
+					}
+				}
 			}
+
 			// now loop through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
 			for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 			{
@@ -305,6 +373,7 @@ namespace model {
 			{
 				aiString str;
 				mat->GetTexture(type, i, &str);
+
 				// check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
 				bool skip = false;
 				for (unsigned int j = 0; j < loadedTextures.size(); j++)
@@ -312,18 +381,18 @@ namespace model {
 					if (std::strcmp(loadedTextures[j].path.data(), str.C_Str()) == 0)
 					{
 						textures.push_back(loadedTextures[j]);
-						skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
+						skip = true; // texture was already loaded once into memory.
 						break;
 					}
 				}
-				if (!skip)
-				{   // if texture hasn't been loaded already, load it
+				if (!skip)	// the texture has already been loaded, no need to load the same image again.
+				{   
 					Texture texture;
 					texture.id = TextureFromFile(str.C_Str(), this->directory);
 					texture.type = typeName;
 					texture.path = str.C_Str();
 					textures.push_back(texture);
-					loadedTextures.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
+					loadedTextures.push_back(texture); 
 				}
 			}
 			return textures;
