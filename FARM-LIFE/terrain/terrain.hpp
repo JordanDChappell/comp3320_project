@@ -9,6 +9,7 @@
 #ifndef ASSIGNMENT_TERRAIN_HPP
 #define ASSIGNMENT_TERRAIN_HPP
 
+#include "../water/water.hpp"
 #include <vector>
 #undef main
 
@@ -29,6 +30,10 @@ namespace terrain {
 
 			// Maximum height of the terrain
 			int maxHeight = maxHeight_;
+
+			// Specify heights where the water starts and where the grass starts
+			float waterHeight = maxHeight / 2.5;
+			float grassHeight = 
 
 			//----------------
 			// READ HEIGHT MAP 
@@ -67,6 +72,12 @@ namespace terrain {
 			glEnableVertexAttribArray(texAttrib);
 			glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), (void*)(6 * sizeof(float)));
+
+			//-------------
+			// CREATE WATER
+			//-------------
+			river = water::Water(resX, resZ, scale, waterHeight);
+
 		}
 		~Terrain() {}
 
@@ -112,6 +123,8 @@ namespace terrain {
 			// Unbind texture and vertex array
 			glBindVertexArray(0);
 			glActiveTexture(GL_TEXTURE0);
+
+			river.draw();
 		}
 
 		// Precondition:	Vertex array, textures and buffers exist.
@@ -137,6 +150,9 @@ namespace terrain {
 		int resZ;			// number of vertices long (z-axis)
 		int noVertices;		// number of vertices to draw
 		
+		// Store water
+		water::Water river; 
+
 		// Precondition:	vertexAtt is number of vertex attributes, maxHeight is maximum height of terrain
 		//					heights is vector of all heights over mesh
 		// Postcondition:	Mesh is created and loaded into VAO, VBO, EBO
