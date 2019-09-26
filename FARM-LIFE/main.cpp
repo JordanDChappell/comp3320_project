@@ -35,6 +35,8 @@
 	static constexpr float NEAR_PLANE = 0.1f;
 	static constexpr float FAR_PLANE = 1000.0f;
 
+	std::vector<model::HitBox> modelHitBoxes;
+
 	void process_input(GLFWwindow* window, const float& delta_time, utility::camera::Camera& camera) {
 		camera.set_movement_sensitivity(0.005f * delta_time);
 
@@ -42,16 +44,16 @@
 			glfwSetWindowShouldClose(window, true);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			camera.move_forward();
+			camera.move_forward(modelHitBoxes);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			camera.move_backward();
+			camera.move_backward(modelHitBoxes);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			camera.move_left();
+			camera.move_left(modelHitBoxes);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			camera.move_right();
+			camera.move_right(modelHitBoxes);
 		}
 	}
 
@@ -152,7 +154,7 @@
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
 		giraffe.MoveTo(glm::vec3(10, 10, 10));	// move the model to a space in the scene
 
-		/*model::Model barn = model::Model("models/barn/barn.obj");
+		model::Model barn = model::Model("models/barn/barn.obj");
 		barn.MoveTo(glm::vec3(0, 0, 0));
 
 		model::Model cat = model::Model("models/cat/cat.obj");
@@ -165,16 +167,22 @@
 		bucket.MoveTo(glm::vec3(-10, 0, 10));
 
 		model::Model trough = model::Model("models/trough/watertrough.obj");
-		trough.MoveTo(glm::vec3(-10, -4, 9));*/
+		trough.MoveTo(glm::vec3(-10, -4, 9));
 
 		// Create the skybox class instance
 		skybox::Skybox skybox = skybox::Skybox();
 		skybox.getInt();		
 
-		
-
 		// Create Terrain
 		//terrain::Terrain terra = terrain::Terrain(1000, 1000, 0.5, 15);
+
+		// Add all of the model hit boxes to a vector, this needs thinking about, should we calculate all collisions on every frame?
+		modelHitBoxes.push_back(giraffe.hitBox);
+		modelHitBoxes.push_back(barn.hitBox);
+		modelHitBoxes.push_back(cat.hitBox);
+		modelHitBoxes.push_back(fence.hitBox);
+		modelHitBoxes.push_back(bucket.hitBox);
+		modelHitBoxes.push_back(trough.hitBox);
 		
 		// Init before the main loop
 		float last_frame = glfwGetTime();
@@ -206,12 +214,11 @@
 			// Draw the models
 			glDepthFunc(GL_LESS);
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
-			giraffe.CheckHitBox(camera.get_position());
-			/*cat.Draw(modelShader, Hvw, Hcv, Hwm);
+			cat.Draw(modelShader, Hvw, Hcv, Hwm);
 			trough.Draw(modelShader, Hvw, Hcv, Hwm);
 			fence.Draw(modelShader, Hvw, Hcv, Hwm);
 			bucket.Draw(modelShader, Hvw, Hcv, Hwm);
-			barn.Draw(modelShader, Hvw, Hcv, Hwm);*/
+			barn.Draw(modelShader, Hvw, Hcv, Hwm);
 			
 			//-------------
 			// DRAW TERRAIN 

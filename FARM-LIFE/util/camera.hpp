@@ -3,6 +3,8 @@
 
 #include <functional>
 #include <algorithm>
+#include <cmath>
+#include "models/model.hpp"
 
 namespace utility {
 	namespace camera {
@@ -34,6 +36,10 @@ namespace utility {
 				last_mouse_pos = glm::vec2(static_cast<float>(width) * 0.5f, static_cast<float>(height) * 0.5f);
 				rotation_sensitivity = 0.05f;
 				movement_sensitivity = 0.005f;
+
+				// init the camera hitbox, used for collision detection, currently a 0.04f unit cube
+				hitBox.origin = position - glm::vec3(0.02f, 0.02f, 0.02f);
+				hitBox.size = position + glm::vec3(0.02f, 0.02f, 0.02f) - hitBox.origin;
 			}
 
 			// Callback function so GLFW can tell us about mouse scroll events
@@ -67,6 +73,9 @@ namespace utility {
 					// clamp pitch to [-89, 89] degrees
 					// weird things happen when pitch is at +/- 90
 					orientation.y = std::min(std::max(-89.0f, orientation.y), 89.0f);
+
+					// rotate the camera hitbox
+
 
 					update_camera_basis();
 				}
@@ -134,38 +143,68 @@ namespace utility {
 
 			// Strafe left
 			// -----------
-			void move_left() {
-				position -= right * movement_sensitivity;
+			void move_left(std::vector<model::HitBox> modelHitBoxes) {
+				glm::vec3 tempOrigin = hitBox.origin - right * movement_sensitivity;
+				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				{
+					position -= right * movement_sensitivity;
+					hitBox.origin = tempOrigin;
+				}
 			}
 
 			// Strafe right
 			// ------------
-			void move_right() {
-				position += right * movement_sensitivity;
+			void move_right(std::vector<model::HitBox> modelHitBoxes) {
+				glm::vec3 tempOrigin = hitBox.origin + right * movement_sensitivity;
+				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				{
+					position += right * movement_sensitivity;
+					hitBox.origin = tempOrigin;
+				}
 			}
 
 			// Move forward
 			// ------------
-			void move_forward() {
-				position += forward * movement_sensitivity;
+			void move_forward(std::vector<model::HitBox> modelHitBoxes) {
+				glm::vec3 tempOrigin = hitBox.origin + forward * movement_sensitivity;
+				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				{
+					position += forward * movement_sensitivity;
+					hitBox.origin = tempOrigin;
+				}
 			}
 
 			// Move backward
 			// -------------
-			void move_backward() {
-				position -= forward * movement_sensitivity;
+			void move_backward(std::vector<model::HitBox> modelHitBoxes) {
+				glm::vec3 tempOrigin = hitBox.origin - forward * movement_sensitivity;
+				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				{
+					position -= forward * movement_sensitivity;
+					hitBox.origin = tempOrigin;
+				}
 			}
 
 			// Move up
 			// -------
-			void move_up() {
-				position += up * movement_sensitivity;
+			void move_up(std::vector<model::HitBox> modelHitBoxes) {
+				glm::vec3 tempOrigin = hitBox.origin + up * movement_sensitivity;
+				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				{
+					position += up * movement_sensitivity;
+					hitBox.origin = tempOrigin;
+				}
 			}
 
 			// Move down
 			// ---------
-			void move_down() {
-				position -= up * movement_sensitivity;
+			void move_down(std::vector<model::HitBox> modelHitBoxes) {
+				glm::vec3 tempOrigin = hitBox.origin - up * movement_sensitivity;
+				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				{
+					position -= up * movement_sensitivity;
+					hitBox.origin = tempOrigin;
+				}
 			}
 
 		private:
@@ -193,6 +232,9 @@ namespace utility {
 			// Position of the camera
 			glm::vec3 position;
 
+			// Hitbox for the camera
+			model::HitBox hitBox;
+
 			// Orientation (pitch, yaw) of the camera
 			// Stored in degrees
 			glm::vec2 orientation;
@@ -206,6 +248,32 @@ namespace utility {
 			// Sensitivity values for camera rotations and motions
 			float rotation_sensitivity;
 			float movement_sensitivity;
+
+			// Functions 
+			// Detect any collisions with the given camera position and a models hitbox
+			bool collisionDetected(std::vector<model::HitBox> modelHitBoxes, glm::vec3 cameraOrigin, glm::vec3 cameraSize)
+			{
+				// Loop over the vector of hitboxes in the world
+				for (int i = 0; i < modelHitBoxes.size(); i++) 
+				{
+
+					//check the X axis
+					if (abs(cameraOrigin.x - modelHitBoxes[i].origin.x) < cameraSize.x + modelHitBoxes[i].size.x)
+					{
+						//check the Y axis
+						if (abs(cameraOrigin.y - modelHitBoxes[i].origin.y) < cameraSize.y + modelHitBoxes[i].size.y)
+						{
+							//check the Z axis
+							if (abs(cameraOrigin.z - modelHitBoxes[i].origin.z) < cameraSize.z + modelHitBoxes[i].size.z)
+							{
+								return true;
+							}
+						}
+					}
+				}
+				
+				return false;
+			}
 		};
 
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //

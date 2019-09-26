@@ -32,8 +32,8 @@ namespace model {
 
 	// Data structure for a models hitbox
 	struct HitBox {
-		glm::vec3 minVertices;
-		glm::vec3 maxVertices;
+		glm::vec3 origin;
+		glm::vec3 size;
 	};
 
 	///<summary>Model mesh attributes and functions</summary
@@ -180,11 +180,6 @@ namespace model {
 			}
 
 			// Draw the hitbox for reasons? (i felt like it)
-			glLineWidth(5);
-			glColor3f(1.0, 0.0, 0.0);
-			glBegin(GL_LINES);
-			glVertex2f(0.0, 0.5);
-			glEnd();
 		}
 
 		///<summary>
@@ -193,25 +188,14 @@ namespace model {
 		void MoveTo(glm::vec3 coordinates) 
 		{
 			position = coordinates;
-			hitBox.maxVertices = hitBox.maxVertices + coordinates;
-			hitBox.minVertices = hitBox.minVertices + coordinates;
-		}
-
-		bool CheckHitBox(glm::vec3 cameraPos) 
-		{
-			bool insideX = cameraPos.x < hitBox.maxVertices.x && cameraPos.x > hitBox.minVertices.x;
-			bool insideY = cameraPos.y < hitBox.maxVertices.y && cameraPos.y > hitBox.minVertices.y;
-			bool insideZ = cameraPos.z < hitBox.maxVertices.z && cameraPos.z > hitBox.minVertices.z;
-			if (insideX && insideY && insideZ) 
-			{
-				std::cout << "Camera inside model hitbox at: " << cameraPos.x << std::endl;
-				std::cout << "Camera inside model hitbox at: " << cameraPos.y << std::endl;
-				std::cout << "Camera inside model hitbox at: " << cameraPos.z << std::endl;
-			}
-			return (insideX && insideY && insideZ);
+			hitBox.origin = hitBox.origin + coordinates;
 		}
 
 	private:
+		// Private model data
+		glm::vec3 maxVertices;	// keeps a record of the models overall max(x,y,z) coordinates
+		glm::vec3 minVertices;	// as above for the minimum vertices
+		bool verticesSet = false;	// flag that enables the vertices to be initialized on first loop over the mesh
 
 		///<summary>
 		/// Load a model using assimp library.
@@ -232,6 +216,10 @@ namespace model {
 
 			// process ASSIMP's root node recursively
 			processNode(scene->mRootNode, scene);
+
+			// initialize the models hitbox
+			hitBox.origin = minVertices;
+			hitBox.size = maxVertices - minVertices;
 		}
 
 		///<summary>
@@ -297,40 +285,41 @@ namespace model {
 
 				// find the min and max vertices for the hitbox
 				// TODO: can this be optimized? probably...
-				if (i == 0)		// edge case, initialize all min and max values first
+				if (!verticesSet)		// edge case, initialize all min and max values first
 				{
-					hitBox.minVertices.x = mesh->mVertices[i].x;
-					hitBox.minVertices.y = mesh->mVertices[i].y;
-					hitBox.minVertices.z = mesh->mVertices[i].z;
-					hitBox.maxVertices.x = mesh->mVertices[i].x;
-					hitBox.maxVertices.y = mesh->mVertices[i].y;
-					hitBox.maxVertices.z = mesh->mVertices[i].z;
+					minVertices.x = mesh->mVertices[i].x;
+					minVertices.y = mesh->mVertices[i].y;
+					minVertices.z = mesh->mVertices[i].z;
+					maxVertices.x = mesh->mVertices[i].x;
+					maxVertices.y = mesh->mVertices[i].y;
+					maxVertices.z = mesh->mVertices[i].z;
+					verticesSet = true;
 				}
 				else 
 				{
-					if (mesh->mVertices[i].x < hitBox.minVertices.x)
+					if (mesh->mVertices[i].x < minVertices.x)
 					{
-						hitBox.minVertices.x = mesh->mVertices[i].x;
+						minVertices.x = mesh->mVertices[i].x;
 					}
-					if (mesh->mVertices[i].y < hitBox.minVertices.y)
+					if (mesh->mVertices[i].y < minVertices.y)
 					{
-						hitBox.minVertices.y = mesh->mVertices[i].y;
+						minVertices.y = mesh->mVertices[i].y;
 					}
-					if (mesh->mVertices[i].z < hitBox.minVertices.z)
+					if (mesh->mVertices[i].z < minVertices.z)
 					{
-						hitBox.minVertices.z = mesh->mVertices[i].z;
+						minVertices.z = mesh->mVertices[i].z;
 					}
-					if (mesh->mVertices[i].x > hitBox.maxVertices.x)
+					if (mesh->mVertices[i].x > maxVertices.x)
 					{
-						hitBox.maxVertices.x = mesh->mVertices[i].x;
+						maxVertices.x = mesh->mVertices[i].x;
 					}
-					if (mesh->mVertices[i].y > hitBox.maxVertices.y)
+					if (mesh->mVertices[i].y > maxVertices.y)
 					{
-						hitBox.maxVertices.y = mesh->mVertices[i].y;
+						maxVertices.y = mesh->mVertices[i].y;
 					}
-					if (mesh->mVertices[i].z > hitBox.maxVertices.z)
+					if (mesh->mVertices[i].z > maxVertices.z)
 					{
-						hitBox.maxVertices.z = mesh->mVertices[i].z;
+						maxVertices.z = mesh->mVertices[i].z;
 					}
 				}
 			}
