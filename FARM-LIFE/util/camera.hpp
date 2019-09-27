@@ -26,7 +26,7 @@ namespace utility {
 				forward = glm::vec3(0.0f, 0.0f, -1.0f);
 				up = glm::vec3(0.0f, 1.0f, 0.0f);
 				world_up = glm::vec3(0.0f, 1.0f, 0.0f);
-				position = glm::vec3(0.0f, 0.0f, 3.0f);
+				position = glm::vec3(0.0f, -10.0f, 3.0f);
 				right = glm::normalize(glm::cross(forward, up));
 
 				orientation = glm::vec2(-90.0f, 0.0f);
@@ -37,9 +37,9 @@ namespace utility {
 				rotation_sensitivity = 0.05f;
 				movement_sensitivity = 0.005f;
 
-				// init the camera hitbox, used for collision detection, currently a 0.04f unit cube
-				hitBox.origin = position - glm::vec3(0.02f, 0.02f, 0.02f);
-				hitBox.size = position + glm::vec3(0.02f, 0.02f, 0.02f) - hitBox.origin;
+				// init the camera hitbox, used for collision detection, currently a 0.6f unit cube
+				hitBox.origin = position - glm::vec3(0.3f, 0.3f, 0.3f);
+				hitBox.size = position + glm::vec3(0.3f, 0.3f, 0.3f) - hitBox.origin;
 			}
 
 			// Callback function so GLFW can tell us about mouse scroll events
@@ -143,46 +143,50 @@ namespace utility {
 
 			// Strafe left
 			// -----------
-			void move_left(std::vector<model::HitBox> modelHitBoxes) {
+			void move_left(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin - right * movement_sensitivity;
 				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
 				{
 					position -= right * movement_sensitivity;
 					hitBox.origin = tempOrigin;
 				}
+				position.y = terrainHeight;
 			}
 
 			// Strafe right
 			// ------------
-			void move_right(std::vector<model::HitBox> modelHitBoxes) {
+			void move_right(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin + right * movement_sensitivity;
 				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
 				{
 					position += right * movement_sensitivity;
 					hitBox.origin = tempOrigin;
 				}
+				position.y = terrainHeight;
 			}
 
 			// Move forward
 			// ------------
-			void move_forward(std::vector<model::HitBox> modelHitBoxes) {
+			void move_forward(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin + forward * movement_sensitivity;
 				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
 				{
 					position += forward * movement_sensitivity;
 					hitBox.origin = tempOrigin;
 				}
+				position.y = terrainHeight;
 			}
 
 			// Move backward
 			// -------------
-			void move_backward(std::vector<model::HitBox> modelHitBoxes) {
+			void move_backward(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin - forward * movement_sensitivity;
 				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
 				{
 					position -= forward * movement_sensitivity;
 					hitBox.origin = tempOrigin;
 				}
+				position.y = terrainHeight;
 			}
 
 			// Move up
@@ -256,22 +260,16 @@ namespace utility {
 				// Loop over the vector of hitboxes in the world
 				for (int i = 0; i < modelHitBoxes.size(); i++) 
 				{
-
-					//check the X axis
-					if (abs(cameraOrigin.x - modelHitBoxes[i].origin.x) < cameraSize.x + modelHitBoxes[i].size.x)
+					// Check each axis for overlap between the model hitbox and the camera hitbox
+					bool xCheck = abs(cameraOrigin.x - modelHitBoxes[i].origin.x) < cameraSize.x + modelHitBoxes[i].size.x;
+					bool yCheck = abs(cameraOrigin.y - modelHitBoxes[i].origin.y) < cameraSize.y + modelHitBoxes[i].size.y;
+					bool zCheck = abs(cameraOrigin.z - modelHitBoxes[i].origin.z) < cameraSize.z + modelHitBoxes[i].size.z;
+					if (xCheck && yCheck && zCheck) 
 					{
-						//check the Y axis
-						if (abs(cameraOrigin.y - modelHitBoxes[i].origin.y) < cameraSize.y + modelHitBoxes[i].size.y)
-						{
-							//check the Z axis
-							if (abs(cameraOrigin.z - modelHitBoxes[i].origin.z) < cameraSize.z + modelHitBoxes[i].size.z)
-							{
-								return true;
-							}
-						}
+						return true;
 					}
+					
 				}
-				
 				return false;
 			}
 		};

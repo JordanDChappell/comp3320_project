@@ -30,6 +30,13 @@ namespace terrain {
 			// Maximum height of the terrain
 			int maxHeight = maxHeight_;
 
+			// Initialize the terraVertices matrix - used to find height of terrain at coordinates
+			terraVertices = new float*[resX_];
+			for (int i = 0; i < resX_; i++) 
+			{
+				terraVertices[i] = new float[resZ_];
+			}
+
 			//----------------
 			// READ HEIGHT MAP 
 			//----------------
@@ -118,6 +125,12 @@ namespace terrain {
 			glDeleteTextures(3, &terraTex[0]);
 		}
 
+		/// <summary>Returns the terrain height at the given (x,y) coordinate</summary>
+		float getHeightAt(int x, int y)
+		{
+			return terraVertices[x][y];
+		}
+
 	private:
 		// Store shader program and buffers
 		GLuint terraShader;		// shader program
@@ -131,6 +144,9 @@ namespace terrain {
 		int resX;			// number of vertices wide (x-axis)
 		int resZ;			// number of vertices long (z-axis)
 		int noVertices;		// number of vertices to draw
+
+		// Store terrain (x,y,z) vector for height detection
+		float** terraVertices;
 		
 		// Precondition:	vertexAtt is number of vertex attributes, maxHeight is maximum height of terrain
 		//					heights is vector of all heights over mesh
@@ -150,15 +166,18 @@ namespace terrain {
 			// Loop over grid
 			for (int i = 0; i < resX; i++) {
 				for (int j = 0; j < resZ; j++) {
+					float currentHeight = (heights->at(j * (resX)+i)) * maxHeight;
 					// Position
-					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;	// X 
-					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] =
-						(heights->at(j * (resX)+i)) * maxHeight;										// Y	
-					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2] = (float)j;	// Z
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;		// X 
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = currentHeight;	// Y	
+					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 2] = (float)j;		// Z
 
 					// Texture Coordinates
 					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 3] = i % 2 == 0 ? 1.0f : 0.0f;	// TEX COORDINATE X
 					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 4] = j % 2 == 0 ? 1.0f : 0.0f;	// TEX COORDINATE Y
+
+					// Vertices to use in collisions etc.
+					terraVertices[i][j] = currentHeight;
 				}
 			}
 

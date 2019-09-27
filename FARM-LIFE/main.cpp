@@ -25,7 +25,7 @@
 	#include "util/camera.hpp"
 	#include "terrain/terrain.hpp"
 	#include "models/model.hpp"
-	#include "skybox/skybox.hpp";
+	#include "skybox/skybox.hpp"
 
 	// Initial width and height of the window
 	GLuint SCREEN_WIDTH = 1200;
@@ -37,23 +37,23 @@
 
 	std::vector<model::HitBox> modelHitBoxes;
 
-	void process_input(GLFWwindow* window, const float& delta_time, utility::camera::Camera& camera) {
+	void process_input(GLFWwindow* window, const float& delta_time, utility::camera::Camera& camera, float terrainHeight) {
 		camera.set_movement_sensitivity(0.005f * delta_time);
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			camera.move_forward(modelHitBoxes);
+			camera.move_forward(modelHitBoxes, terrainHeight);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			camera.move_backward(modelHitBoxes);
+			camera.move_backward(modelHitBoxes, terrainHeight);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			camera.move_left(modelHitBoxes);
+			camera.move_left(modelHitBoxes, terrainHeight);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			camera.move_right(modelHitBoxes);
+			camera.move_right(modelHitBoxes, terrainHeight);
 		}
 	}
 
@@ -146,15 +146,18 @@
 		// Enable depth test
 		glEnable(GL_DEPTH_TEST);
 
+		// Create Terrain
+		terrain::Terrain terra = terrain::Terrain(1000, 1000, 1, 15);
+
 		// Load the shaders to be used in the scene
 		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 		GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
 
 		//// Load a model using model class
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
-		giraffe.MoveTo(glm::vec3(10, 10, 10));	// move the model to a space in the scene
+		giraffe.MoveTo(glm::vec3(10.0f, -9.0f, 10.0f));	// move the model to a space in the scene
 
-		model::Model barn = model::Model("models/barn/barn.obj");
+		/*model::Model barn = model::Model("models/barn/barn.obj");
 		barn.MoveTo(glm::vec3(0, 0, 0));
 
 		model::Model cat = model::Model("models/cat/cat.obj");
@@ -167,22 +170,19 @@
 		bucket.MoveTo(glm::vec3(-10, 0, 10));
 
 		model::Model trough = model::Model("models/trough/watertrough.obj");
-		trough.MoveTo(glm::vec3(-10, -4, 9));
+		trough.MoveTo(glm::vec3(-10, -4, 9));*/
 
 		// Create the skybox class instance
 		skybox::Skybox skybox = skybox::Skybox();
 		skybox.getInt();		
 
-		// Create Terrain
-		//terrain::Terrain terra = terrain::Terrain(1000, 1000, 0.5, 15);
-
 		// Add all of the model hit boxes to a vector, this needs thinking about, should we calculate all collisions on every frame?
 		modelHitBoxes.push_back(giraffe.hitBox);
-		modelHitBoxes.push_back(barn.hitBox);
+		/*modelHitBoxes.push_back(barn.hitBox);
 		modelHitBoxes.push_back(cat.hitBox);
 		modelHitBoxes.push_back(fence.hitBox);
 		modelHitBoxes.push_back(bucket.hitBox);
-		modelHitBoxes.push_back(trough.hitBox);
+		modelHitBoxes.push_back(trough.hitBox);*/
 		
 		// Init before the main loop
 		float last_frame = glfwGetTime();
@@ -198,7 +198,10 @@
 			float current_frame = glfwGetTime();
 			float delta_time = current_frame - last_frame;
 			float last_frame = current_frame;
-			process_input(window, delta_time, camera);
+			int cameraX = (int)camera.get_position().x + 500;
+			int cameraY = (int)camera.get_position().z + 500;
+			float terrainHeight = terra.getHeightAt(cameraX, cameraY) - 15.0f;
+			process_input(window, delta_time, camera, terrainHeight);
 
 			// get the camera transforms
 			glm::mat4 Hvw = camera.get_view_transform();
@@ -214,16 +217,16 @@
 			// Draw the models
 			glDepthFunc(GL_LESS);
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
-			cat.Draw(modelShader, Hvw, Hcv, Hwm);
+			/*cat.Draw(modelShader, Hvw, Hcv, Hwm);
 			trough.Draw(modelShader, Hvw, Hcv, Hwm);
 			fence.Draw(modelShader, Hvw, Hcv, Hwm);
 			bucket.Draw(modelShader, Hvw, Hcv, Hwm);
-			barn.Draw(modelShader, Hvw, Hcv, Hwm);
+			barn.Draw(modelShader, Hvw, Hcv, Hwm);*/
 			
 			//-------------
 			// DRAW TERRAIN 
 			//-------------
-			//terra.draw(Hvw, Hcv);
+			terra.draw(Hvw, Hcv);
 
 			//--------------------------
 			// DRAW SKYBOX - always last
