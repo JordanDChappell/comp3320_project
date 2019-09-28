@@ -124,7 +124,7 @@ namespace terrain {
 			glBindVertexArray(0);
 			glActiveTexture(GL_TEXTURE0);
 
-			float waveHeight = 0.5;
+			float waveHeight = 1.5;
 
 			river.draw(Hvw, Hcv, glm::vec3(0.67f, 0.85f, 0.9f), time, waveHeight);
 		}
