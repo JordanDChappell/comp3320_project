@@ -214,7 +214,7 @@
 			//-------------
 			// DRAW TERRAIN 
 			//-------------
-			terra.draw(Hvw, Hcv);
+			terra.draw(Hvw, Hcv, glfwGetTime());
 
 			//--------------------------
 			// DRAW SKYBOX - always last

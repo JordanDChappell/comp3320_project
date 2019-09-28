@@ -45,7 +45,7 @@ namespace water {
 
 		// Precondition:	Terrain object has been constructed
 		// Postcondition:	Terrain is drawn
-		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& colour) {
+		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& colour, float time, float waveHeight) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
 			//------------------------	
@@ -65,6 +65,8 @@ namespace water {
 			glUniformMatrix4fv(glGetUniformLocation(shader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 			glUniform1f(glGetUniformLocation(shader, "scale"), scale);
    			glUniform3f(glGetUniformLocation(shader, "colour"), colour[0], colour[1], colour[2]);
+			glUniform1f(glGetUniformLocation(shader, "time"), time);
+			glUniform1f(glGetUniformLocation(shader, "waveHeight"), waveHeight);
 
 			//-------------
 			// DRAW TERRAIN

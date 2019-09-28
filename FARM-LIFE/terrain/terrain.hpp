@@ -82,7 +82,7 @@ namespace terrain {
 
 		// Precondition:	Terrain object has been constructed
 		// Postcondition:	Terrain is drawn
-		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv) {
+		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, float time) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
 			//------------------------	
@@ -124,7 +124,9 @@ namespace terrain {
 			glBindVertexArray(0);
 			glActiveTexture(GL_TEXTURE0);
 
-			river.draw(Hvw, Hcv, glm::vec3(0.67f, 0.85f, 0.9f));
+			float waveHeight = 0.5;
+
+			river.draw(Hvw, Hcv, glm::vec3(0.67f, 0.85f, 0.9f), time, waveHeight);
 		}
 
 		// Precondition:	Vertex array, textures and buffers exist.
