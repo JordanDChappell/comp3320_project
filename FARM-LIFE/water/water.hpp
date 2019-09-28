@@ -64,11 +64,16 @@ namespace water {
 			glUniformMatrix4fv(glGetUniformLocation(shader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 			glUniform1f(glGetUniformLocation(shader, "scale"), scale);
-   			glUniform3fv(glGetUniformLocation(shader, "colour"), 1, GL_FALSE, &colour[0]);
+   			glUniform3f(glGetUniformLocation(shader, "colour"), colour[0], colour[1], colour[2]);
 
 			//-------------
 			// DRAW TERRAIN
 			//-------------
+			
+			// Enable blending
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 			glDrawElements(GL_TRIANGLES, noVertices, GL_UNSIGNED_INT, 0);
 			
 			// Unbind vertex array

@@ -10,7 +10,6 @@
 #define ASSIGNMENT_TERRAIN_HPP
 
 #include "../water/water.hpp"
-#include <vector>
 #undef main
 
 namespace terrain {
@@ -33,7 +32,7 @@ namespace terrain {
 
 			// Specify heights where the water starts and where the grass starts
 			float waterHeight = maxHeight / 2.5;
-			float grassHeight = 
+			grassHeight = maxHeight / 1.7;
 
 			//----------------
 			// READ HEIGHT MAP 
@@ -114,6 +113,7 @@ namespace terrain {
 			glUniformMatrix4fv(glGetUniformLocation(terraShader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(terraShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 			glUniform1f(glGetUniformLocation(terraShader, "scale"), scale);
+			glUniform1f(glGetUniformLocation(terraShader, "grassHeight"), grassHeight);
 
 			//-------------
 			// DRAW TERRAIN
@@ -124,7 +124,7 @@ namespace terrain {
 			glBindVertexArray(0);
 			glActiveTexture(GL_TEXTURE0);
 
-			river.draw();
+			river.draw(Hvw, Hcv, glm::vec3(0.67f, 0.85f, 0.9f));
 		}
 
 		// Precondition:	Vertex array, textures and buffers exist.
@@ -149,6 +149,7 @@ namespace terrain {
 		int resX;			// number of vertices wide (x-axis)
 		int resZ;			// number of vertices long (z-axis)
 		int noVertices;		// number of vertices to draw
+		float grassHeight;	// height that the grass starts to grow
 		
 		// Store water
 		water::Water river; 
