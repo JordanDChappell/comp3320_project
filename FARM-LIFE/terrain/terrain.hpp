@@ -9,7 +9,6 @@
 #ifndef ASSIGNMENT_TERRAIN_HPP
 #define ASSIGNMENT_TERRAIN_HPP
 
-#include "../water/water.hpp"
 #undef main
 
 namespace terrain {
@@ -30,8 +29,7 @@ namespace terrain {
 			// Maximum height of the terrain
 			int maxHeight = maxHeight_;
 
-			// Specify heights where the water starts and where the grass starts
-			float waterHeight = maxHeight / 2.5;
+			// Specify height of where the grass starts
 			grassHeight = maxHeight / 1.7;
 
 			//----------------
@@ -71,18 +69,12 @@ namespace terrain {
 			glEnableVertexAttribArray(texAttrib);
 			glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), (void*)(6 * sizeof(float)));
-
-			//-------------
-			// CREATE WATER
-			//-------------
-			river = water::Water(resX, resZ, scale, waterHeight);
-
 		}
 		~Terrain() {}
 
 		// Precondition:	Terrain object has been constructed
 		// Postcondition:	Terrain is drawn
-		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, float time) {
+		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec4& clippingPlane) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
 			//------------------------	
@@ -114,6 +106,7 @@ namespace terrain {
 			glUniformMatrix4fv(glGetUniformLocation(terraShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 			glUniform1f(glGetUniformLocation(terraShader, "scale"), scale);
 			glUniform1f(glGetUniformLocation(terraShader, "grassHeight"), grassHeight);
+			glUniform4f(glGetUniformLocation(terraShader, "clippingPlane"), clippingPlane[0], clippingPlane[1], clippingPlane[2], clippingPlane[3]);
 
 			//-------------
 			// DRAW TERRAIN
@@ -123,10 +116,6 @@ namespace terrain {
 			// Unbind texture and vertex array
 			glBindVertexArray(0);
 			glActiveTexture(GL_TEXTURE0);
-
-			float waveHeight = 1.5;
-
-			river.draw(Hvw, Hcv, glm::vec3(0.67f, 0.85f, 0.9f), time, waveHeight);
 		}
 
 		// Precondition:	Vertex array, textures and buffers exist.
@@ -152,9 +141,6 @@ namespace terrain {
 		int resZ;			// number of vertices long (z-axis)
 		int noVertices;		// number of vertices to draw
 		float grassHeight;	// height that the grass starts to grow
-		
-		// Store water
-		water::Water river; 
 
 		// Precondition:	vertexAtt is number of vertex attributes, maxHeight is maximum height of terrain
 		//					heights is vector of all heights over mesh

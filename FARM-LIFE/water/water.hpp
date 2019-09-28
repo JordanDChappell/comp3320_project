@@ -12,8 +12,8 @@ namespace water {
     
     class Water {
       public:
-		// Terrain constructor
-		Water(int resX_ = 1000, int resZ_ = 1000, float scale_ = 0.5, float height_ = 6.0) {
+		// Water constructor
+		Water(int resX_, int resZ_, float scale_, float height_, GLuint refractTex_, GLuint reflectTex_) {
 			// Initialise parameters for terrain size and resolution
 			resX = resX_;
 			resZ = resZ_;
@@ -33,6 +33,12 @@ namespace water {
 			//----------------------
 			shader = LoadShaders("water/water.vert", "water/water.frag");
 
+			//-------------
+			// SET TEXTURES
+			//-------------
+			refractTex = refractTex_;
+			reflectTex = reflectTex_;
+
 			//----------------------------
 			// LINK VERTEX DATA TO SHADERS
 			//----------------------------
@@ -41,10 +47,11 @@ namespace water {
 			glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), 0);
 		}
+
 		~Water() {}
 
-		// Precondition:	Terrain object has been constructed
-		// Postcondition:	Terrain is drawn
+		// Precondition:	Water object has been constructed
+		// Postcondition:	Water is drawn
 		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& colour, float time, float waveHeight) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
@@ -53,6 +60,14 @@ namespace water {
 			glBindVertexArray(vao);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, refractTex);
+			glUniform1i(glGetUniformLocation(shader, "refractionTexture"), 0);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, reflectTex);
+			glUniform1i(glGetUniformLocation(shader, "reflectionTexture"), 0);
 
 			//--------------------------------
 			// SET CAMERA IN MIDDLE OF WATER
@@ -82,23 +97,33 @@ namespace water {
 			glBindVertexArray(0);
 		}
 
+		// Precondition:	Has a height value
+		// Postcondition:	Returns the height value
+		float getHeight() {
+			return height;
+		}
+
 		// Precondition:	Vertex array, textures and buffers exist.
 		// Postcondition:	Vertex array, textures and buffers deleted.
 		void cleanup() {
 			glDeleteBuffers(1, &vbo);
 			glDeleteBuffers(1, &ebo);
 			glDeleteVertexArrays(1, &vao);
+			glDeleteTextures(1, &refractTex);
+			glDeleteTextures(1, &reflectTex);
 		}
 
 	private:
 		// Store shader program and buffers
-		GLuint shader;	// shader program
-		GLuint vao;		// vertex array object
-		GLuint vbo;		// vertex buffer object
-		GLuint ebo;		// element buffer object
+		GLuint shader;		// shader program
+		GLuint vao;			// vertex array object
+		GLuint vbo;			// vertex buffer object
+		GLuint ebo;			// element buffer object
+		GLuint refractTex;	// texture
+		GLuint reflectTex;	// texture
 
 		// Store terrain size and resolution
-		float scale;		// how much to scale terrain down, if terrain is resX by resZ
+		float scale;		// how much to scale water, if water is resX by resZ
 		int resX;			// number of vertices wide (x-axis)
 		int resZ;			// number of vertices long (z-axis)
 		int noVertices;		// number of vertices to draw
@@ -173,6 +198,7 @@ namespace water {
 
 			std::vector<GLuint>().swap(*triangles);	// free memory from triangles
 		}
+
     };
 
 }

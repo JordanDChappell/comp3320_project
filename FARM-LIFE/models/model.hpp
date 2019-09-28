@@ -59,7 +59,7 @@ namespace model {
 		/// mesh shader appropriately.
 		/// Source: learnopengl.com
 		///</summary>
-		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model, glm::vec3 position)
+		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model, glm::vec3 position, glm::vec4 clippingPlane)
 		{
 			unsigned int diffuseNr = 1;	// number to assign to diffuse texture
 			unsigned int specularNr = 1;	// number to assign to specular texture
@@ -94,8 +94,9 @@ namespace model {
 			// apply the movement transform to the model
 			model = glm::translate(model, position);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &model[0][0]);
+			glUniform4f(glGetUniformLocation(shader, "clippingPlane"), clippingPlane[0], clippingPlane[1], clippingPlane[2], clippingPlane[3]);
 			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-			
+
 			// cleanup
 			glBindVertexArray(0);
 			glActiveTexture(GL_TEXTURE0);
@@ -166,12 +167,12 @@ namespace model {
 		/// Draw the model to the open gl window.
 		/// Simply loop over the meshes in our vector and call the draw function of each.
 		///</summary>
-		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model)
+		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model, glm::vec4 clippingPlane)
 		{
 			glUseProgram(shader);	// use the shader before drawing all the meshes.
 			for (unsigned int i = 0; i < meshes.size(); i++)
 			{
-				meshes[i].Draw(shader, view, projection, model, position);
+				meshes[i].Draw(shader, view, projection, model, position, clippingPlane);
 			}
 		}
 

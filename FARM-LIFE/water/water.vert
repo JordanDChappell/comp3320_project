@@ -3,6 +3,7 @@
 in vec3 position;
 
 out vec4 Colour;
+out vec4 clipSpace;
 
 // Transformation matrix
 uniform mat4 Hwm;
@@ -22,5 +23,7 @@ void main()
 
 	float yPosition = position[1] + ((cos(position[0] + (time * 2)) * 0.15) * cos((position[2] + (time * 2)) * 0.15) * waveHeight);
 
-	gl_Position = Hcv * Hvw * Hwm * vec4(position[0] * scale, yPosition, position[2] * scale, 1.0);
+	clipSpace = Hcv * Hvw * Hwm * vec4(position[0] * scale, yPosition, position[2] * scale, 1.0);
+
+	gl_Position = clipSpace;
 }
