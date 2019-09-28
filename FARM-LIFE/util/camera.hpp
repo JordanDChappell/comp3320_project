@@ -40,6 +40,8 @@ namespace utility {
 				// init the camera hitbox, used for collision detection, currently a 0.6f unit cube
 				hitBox.origin = position - glm::vec3(0.3f, 0.3f, 0.3f);
 				hitBox.size = position + glm::vec3(0.3f, 0.3f, 0.3f) - hitBox.origin;
+
+				noClip = false;
 			}
 
 			// Callback function so GLFW can tell us about mouse scroll events
@@ -145,48 +147,80 @@ namespace utility {
 			// -----------
 			void move_left(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin - right * movement_sensitivity;
-				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				if (!noClip) 
 				{
-					position -= right * movement_sensitivity;
-					hitBox.origin = tempOrigin;
+					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+					{
+						position -= right * movement_sensitivity;
+						hitBox.origin = tempOrigin;
+					}
+					else
+					{
+						position -= right * movement_sensitivity;
+						hitBox.origin = tempOrigin;
+					}
+					position.y = terrainHeight;
 				}
-				position.y = terrainHeight;
 			}
 
 			// Strafe right
 			// ------------
 			void move_right(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin + right * movement_sensitivity;
-				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				if (!noClip)
+				{
+					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+					{
+						position += right * movement_sensitivity;
+						hitBox.origin = tempOrigin;
+					}
+					position.y = terrainHeight;
+				}
+				else
 				{
 					position += right * movement_sensitivity;
 					hitBox.origin = tempOrigin;
 				}
-				position.y = terrainHeight;
 			}
 
 			// Move forward
 			// ------------
 			void move_forward(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin + forward * movement_sensitivity;
-				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				if (!noClip)
+				{
+					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+					{
+						position += forward * movement_sensitivity;
+						hitBox.origin = tempOrigin;
+					}
+					position.y = terrainHeight;
+				}
+				else
 				{
 					position += forward * movement_sensitivity;
 					hitBox.origin = tempOrigin;
 				}
-				position.y = terrainHeight;
 			}
 
 			// Move backward
 			// -------------
 			void move_backward(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin - forward * movement_sensitivity;
-				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				if (!noClip)
+				{
+					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+					{
+						position -= forward * movement_sensitivity;
+						hitBox.origin = tempOrigin;
+					}
+					position.y = terrainHeight;
+				} 
+				else
 				{
 					position -= forward * movement_sensitivity;
 					hitBox.origin = tempOrigin;
 				}
-				position.y = terrainHeight;
 			}
 
 			// Move up
@@ -209,6 +243,19 @@ namespace utility {
 					position -= up * movement_sensitivity;
 					hitBox.origin = tempOrigin;
 				}
+			}
+
+			// Toggle no clip mode
+			// Unbinds the camera from the terrain height
+			void toggleNoClip()
+			{
+				noClip = !noClip;
+			}
+
+			// Returns true if no clip is enabled
+			bool getNoClip()
+			{
+				return noClip;
 			}
 
 		private:
@@ -252,6 +299,9 @@ namespace utility {
 			// Sensitivity values for camera rotations and motions
 			float rotation_sensitivity;
 			float movement_sensitivity;
+
+			// No clip flag, unbind the camera from the terrain
+			bool noClip;
 
 			// Functions 
 			// Detect any collisions with the given camera position and a models hitbox

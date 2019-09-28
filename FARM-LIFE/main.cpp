@@ -55,6 +55,9 @@
 		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			camera.move_right(modelHitBoxes, terrainHeight);
 		}
+		else if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
+			camera.toggleNoClip();
+		}
 	}
 
     int main( void )  
@@ -146,8 +149,12 @@
 		// Enable depth test
 		glEnable(GL_DEPTH_TEST);
 
-		// Create Terrain
-		terrain::Terrain terra = terrain::Terrain(1000, 1000, 1, 15);
+		// Create Terrain - set up variables and initialize a terrain instance
+		int tresX = 1000;
+		int tresY = 1000;
+		float terraScale = 1.0;
+		int terraMaxHeight = 15;
+		terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight);
 
 		// Load the shaders to be used in the scene
 		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
@@ -155,7 +162,7 @@
 
 		//// Load a model using model class
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
-		giraffe.MoveTo(glm::vec3(10.0f, -9.0f, 10.0f));	// move the model to a space in the scene
+		giraffe.MoveTo(glm::vec3(-10.0f, terra.getHeightAt(10, 10) - 23.0f, 10.0f));	// move the model to a space in the scene
 
 		/*model::Model barn = model::Model("models/barn/barn.obj");
 		barn.MoveTo(glm::vec3(0, 0, 0));
@@ -190,6 +197,8 @@
         glClearColor(0.0f, 0.0f, 0.6f, 0.0f); 
 
 		float delta_time = 0.0f;
+		int cameraOffsetX = tresX / 2;
+		int cameraOffsetY = tresY / 2;
 
         // Main Loop  
         do  
@@ -198,8 +207,8 @@
 			float current_frame = glfwGetTime();
 			float delta_time = current_frame - last_frame;
 			float last_frame = current_frame;
-			int cameraX = (int)camera.get_position().x + 500;
-			int cameraY = (int)camera.get_position().z + 500;
+			int cameraX = (int)camera.get_position().x + cameraOffsetY;
+			int cameraY = (int)camera.get_position().z + cameraOffsetY;
 			float terrainHeight = terra.getHeightAt(cameraX, cameraY) - 15.0f;
 			process_input(window, delta_time, camera, terrainHeight);
 
