@@ -2,20 +2,17 @@
  * This Terrain class creates a terrain with the specified resolution, scale and maximum height.
  * The Terrain is a mesh of triangles. It uses a BMP image to generate the height of the Terrain. 
  * The Terrain is drawn so that the camera is on top of the center of the Terrain. 
- * This Terrain is textured with lower vertices being given the water texture, slightly higher 
- * vertices the rock texture, and the highest vertices the grass texture.
+ * This Terrain is textured with lower vertices the rock texture, and the highest vertices the grass texture.
  */
 
 #ifndef ASSIGNMENT_TERRAIN_HPP
 #define ASSIGNMENT_TERRAIN_HPP
 
-#include <vector>
 #undef main
 
 namespace terrain {
 
 	class Terrain {
-	
 	public:
 		// Terrain constructor
 		Terrain(int resX_ = 1000, int resZ_ = 1000, float scale_ = 0.5, int maxHeight_ = 15) {
@@ -30,6 +27,9 @@ namespace terrain {
 			// Maximum height of the terrain
 			int maxHeight = maxHeight_;
 
+			// Specify height of where the grass starts
+			grassHeight = maxHeight / 1.7;
+
 			//----------------
 			// READ HEIGHT MAP 
 			//----------------
@@ -43,7 +43,7 @@ namespace terrain {
 			//----------------------
 			// CREATE SHADER PROGRAM
 			//----------------------
-			terraShader = LoadShaders("terrain/terrain.vert", "terrain/terrain.frag");
+			shader = LoadShaders("terrain/terrain.vert", "terrain/terrain.frag");
 
 			//----------------
 			// CREATE TEXTURES
@@ -53,45 +53,42 @@ namespace terrain {
 			//----------------------------
 			// LINK VERTEX DATA TO SHADERS
 			//----------------------------
-			GLint posAttrib = glGetAttribLocation(terraShader, "position");
+			GLint posAttrib = glGetAttribLocation(shader, "position");
 			glEnableVertexAttribArray(posAttrib);
 			glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), 0);
 
-			GLint normAttrib = glGetAttribLocation(terraShader, "normal");
+			GLint normAttrib = glGetAttribLocation(shader, "normal");
 			glEnableVertexAttribArray(normAttrib);
 			glVertexAttribPointer(normAttrib, 3, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), (void*)(3 * sizeof(float)));
 
-			GLint texAttrib = glGetAttribLocation(terraShader, "texCoord");
+			GLint texAttrib = glGetAttribLocation(shader, "texCoord");
 			glEnableVertexAttribArray(texAttrib);
 			glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), (void*)(6 * sizeof(float)));
 		}
+
 		~Terrain() {}
 
 		// Precondition:	Terrain object has been constructed
 		// Postcondition:	Terrain is drawn
-		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv) {
+		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec4& clippingPlane) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
 			//------------------------	
-			glUseProgram(terraShader);
-			glBindVertexArray(terraVao);
-			glBindBuffer(GL_ARRAY_BUFFER, terraVbo);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terraEbo);
+			glUseProgram(shader);
+			glBindVertexArray(vao);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, terraTex[0]);
-			glUniform1i(glGetUniformLocation(terraShader, "texGrass"), 0);
+			glBindTexture(GL_TEXTURE_2D, tex[0]);
+			glUniform1i(glGetUniformLocation(shader, "texGrass"), 0);
 
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, terraTex[1]);
-			glUniform1i(glGetUniformLocation(terraShader, "texRock"), 1);
-
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, terraTex[2]);
-			glUniform1i(glGetUniformLocation(terraShader, "texWater"), 2);
+			glBindTexture(GL_TEXTURE_2D, tex[1]);
+			glUniform1i(glGetUniformLocation(shader, "texRock"), 1);
 
 			//--------------------------------
 			// SET CAMERA IN MIDDLE OF TERRAIN
@@ -99,10 +96,14 @@ namespace terrain {
 			glm::mat4 Hwm = glm::mat4(1.0f);
 			Hwm[3] = glm::vec4(-(resX * scale) / 2, -20.0, -(resZ * scale) / 2, 1.0);
 
-			glUniformMatrix4fv(glGetUniformLocation(terraShader, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
-			glUniformMatrix4fv(glGetUniformLocation(terraShader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
-			glUniformMatrix4fv(glGetUniformLocation(terraShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
-			glUniform1f(glGetUniformLocation(terraShader, "scale"), scale);
+			glUniformMatrix4fv(glGetUniformLocation(shader, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(shader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
+
+			// Set uniforms
+			glUniform1f(glGetUniformLocation(shader, "scale"), scale);
+			glUniform1f(glGetUniformLocation(shader, "grassHeight"), grassHeight);
+			glUniform4f(glGetUniformLocation(shader, "clippingPlane"), clippingPlane[0], clippingPlane[1], clippingPlane[2], clippingPlane[3]);
 
 			//-------------
 			// DRAW TERRAIN
@@ -117,26 +118,27 @@ namespace terrain {
 		// Precondition:	Vertex array, textures and buffers exist.
 		// Postcondition:	Vertex array, textures and buffers deleted.
 		void cleanup() {
-			glDeleteBuffers(1, &terraVbo);
-			glDeleteBuffers(1, &terraEbo);
-			glDeleteVertexArrays(1, &terraVao);
-			glDeleteTextures(3, &terraTex[0]);
+			glDeleteBuffers(1, &vbo);
+			glDeleteBuffers(1, &ebo);
+			glDeleteVertexArrays(1, &vao);
+			glDeleteTextures(2, &tex[0]);
 		}
 
 	private:
 		// Store shader program and buffers
-		GLuint terraShader;		// shader program
-		GLuint terraVao;		// vertex array object
-		GLuint terraVbo;		// vertex buffer object
-		GLuint terraEbo;		// element buffer object
-		GLuint terraTex[3];		// textures
+		GLuint shader;		// shader program
+		GLuint vao;		// vertex array object
+		GLuint vbo;		// vertex buffer object
+		GLuint ebo;		// element buffer object
+		GLuint tex[2];		// textures
 
 		// Store terrain size and resolution
 		float scale;		// how much to scale terrain down, if terrain is resX by resZ
 		int resX;			// number of vertices wide (x-axis)
 		int resZ;			// number of vertices long (z-axis)
 		int noVertices;		// number of vertices to draw
-		
+		float grassHeight;	// height that the grass starts to grow
+
 		// Precondition:	vertexAtt is number of vertex attributes, maxHeight is maximum height of terrain
 		//					heights is vector of all heights over mesh
 		// Postcondition:	Mesh is created and loaded into VAO, VBO, EBO
@@ -144,8 +146,8 @@ namespace terrain {
 			//---------------------------
 			// BIND VERTEX ARRAY OBJECT
 			//---------------------------
-			glGenVertexArrays(1, &terraVao);
-			glBindVertexArray(terraVao);
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
 
 			//----------------
 			// CREATE VERTICES
@@ -235,8 +237,8 @@ namespace terrain {
 			//---------
 			// BIND VBO 
 			//---------
-			glGenBuffers(1, &terraVbo);
-			glBindBuffer(GL_ARRAY_BUFFER, terraVbo);
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, resX * resZ * vertexAtt * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 			delete[] vertices;	// free memory from vertices
 
@@ -268,10 +270,10 @@ namespace terrain {
 			//---------
 			// BIND EBO
 			//---------
-			glGenBuffers(1, &terraEbo);
+			glGenBuffers(1, &ebo);
 
 			// set elements to the triangles that were just made
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terraEbo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangles->size() * sizeof(float), &triangles->front(), GL_STATIC_DRAW);
 
 			std::vector<GLuint>().swap(*triangles);	// free memory from triangles
@@ -310,14 +312,14 @@ namespace terrain {
 		// Postcondition:	Terrain textures are created and bound for grass, rock and water.
 		void loadTextures() {
 			int width, height;			// Variables for the width and height of image being loaded 
-			glGenTextures(3, &terraTex[0]);		// Generate three texture names
+			glGenTextures(2, &tex[0]);		// Generate three texture names
 
 			//--------------------
 			// CREATE GRASS TEXTURE
 			//--------------------
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, terraTex[0]);
-			unsigned char* image = SOIL_load_image("terrain/grass1.png", &width, &height, 0, SOIL_LOAD_RGB);
+			glBindTexture(GL_TEXTURE_2D, tex[0]);
+			unsigned char* image = SOIL_load_image("terrain/grass.png", &width, &height, 0, SOIL_LOAD_RGB);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
 				GL_UNSIGNED_BYTE, image);
 
@@ -332,28 +334,12 @@ namespace terrain {
 			// CREATE ROCK TEXTURE
 			//--------------------
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, terraTex[1]);
-			image = SOIL_load_image("terrain/rock1.png", &width, &height, 0, SOIL_LOAD_RGB);
+			glBindTexture(GL_TEXTURE_2D, tex[1]);
+			image = SOIL_load_image("terrain/rock.png", &width, &height, 0, SOIL_LOAD_RGB);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
 				GL_UNSIGNED_BYTE, image);
 
 			// Set the parameters for the rock texture
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glGenerateMipmap(GL_TEXTURE_2D);
-
-			//---------------------
-			// CREATE WATER TEXTURE
-			//---------------------
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, terraTex[2]);
-			image = SOIL_load_image("terrain/water.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-				GL_UNSIGNED_BYTE, image);
-
-			// Set the parameters for the water texture
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

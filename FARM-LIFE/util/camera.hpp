@@ -96,6 +96,17 @@ namespace utility {
 				aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
 			}
 
+			// Move the camera's y position by distance
+			void move_y_position(float distance) {
+				position.y += distance;
+			}
+
+			// Invert (negate) the pitch of the camera
+			void invert_pitch() {
+				orientation.y = -orientation.y;
+				update_camera_basis();
+			}
+
 			// Calculate and return the world to camera transform
 			// --------------------------------------------------
 			glm::mat4 get_view_transform() {
