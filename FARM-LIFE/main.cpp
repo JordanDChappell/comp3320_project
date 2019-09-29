@@ -257,7 +257,7 @@
 			glDisable(GL_CLIP_DISTANCE0);
 			// Render the scene
 			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 0, 0, 0));
-			water.draw(camera.get_view_transform(), camera.get_clip_transform(), glm::vec3(0.67f, 0.85f, 0.9f), glfwGetTime(), 1.5);
+			water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(), glm::vec3(0.0f, 0.467f, 0.745f), glfwGetTime(), 1.5);
             
 			//Swap buffers  
             glfwSwapBuffers(window);  

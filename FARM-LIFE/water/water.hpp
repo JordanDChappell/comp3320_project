@@ -72,7 +72,7 @@ namespace water {
 
 		// Precondition:	Water object has been constructed
 		// Postcondition:	Water is drawn
-		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& colour, float time, float waveHeight) {
+		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& camPos, const glm::vec3& colour, float time, float waveHeight) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
 			//------------------------	
@@ -102,6 +102,8 @@ namespace water {
 			glUniformMatrix4fv(glGetUniformLocation(shader, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
+			glUniform3f(glGetUniformLocation(shader, "cameraPosition"), camPos[0], camPos[1], camPos[2]);
+
 			glUniform1f(glGetUniformLocation(shader, "scale"), scale);
    			glUniform3f(glGetUniformLocation(shader, "colour"), colour[0], colour[1], colour[2]);
 			glUniform1f(glGetUniformLocation(shader, "time"), time);
