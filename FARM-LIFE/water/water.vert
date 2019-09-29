@@ -5,6 +5,7 @@ in vec3 position;
 out vec4 clipSpace;
 out vec2 texCoords;
 out vec3 toCameraVector;
+out vec3 fromLightVector;
 
 // Transformation matrix
 uniform mat4 Hwm;
@@ -19,6 +20,8 @@ uniform float time;
 // Height of the waves
 uniform float waveHeight;
 
+uniform vec3 lightPosition;
+
 void main()
 {
 	float yPosition = position[1] + ((cos(position[0] + (time * 1.5)) * 0.15) * cos((position[2] + (time * 1.5)) * 0.15) * waveHeight) - waveHeight;
@@ -32,4 +35,6 @@ void main()
 	texCoords = vec2(position[0], position[2]) / 50;
 
 	toCameraVector = cameraPosition - worldPos.xyz;
+
+	fromLightVector = worldPos.xyz - lightPosition;
 }

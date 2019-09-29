@@ -59,6 +59,18 @@ namespace water {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, tex[3]);
+			unsigned char* image1 = SOIL_load_image("water/normalmap.png", &width, &height, 0, SOIL_LOAD_RGB);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+				GL_UNSIGNED_BYTE, image1);
+
+			// Set the parameters for the grass texture
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 			//----------------------------
 			// LINK VERTEX DATA TO SHADERS
 			//----------------------------
@@ -72,7 +84,8 @@ namespace water {
 
 		// Precondition:	Water object has been constructed
 		// Postcondition:	Water is drawn
-		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& camPos, const glm::vec3& colour, float time, float waveHeight) {
+		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& camPos, const glm::vec3& colour, 
+			float time, float waveHeight, glm::vec3 lightPosition, glm::vec3 lightColour) {
 			//------------------------
 			// BIND SHADER AND BUFFERS
 			//------------------------	
@@ -93,6 +106,10 @@ namespace water {
 			glBindTexture(GL_TEXTURE_2D, tex[2]);
 			glUniform1i(glGetUniformLocation(shader, "dudvMap"), 2);
 
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, tex[3]);
+			glUniform1i(glGetUniformLocation(shader, "normalMap"), 3);
+
 			//--------------------------------
 			// SET CAMERA IN MIDDLE OF WATER
 			//--------------------------------
@@ -108,6 +125,9 @@ namespace water {
    			glUniform3f(glGetUniformLocation(shader, "colour"), colour[0], colour[1], colour[2]);
 			glUniform1f(glGetUniformLocation(shader, "time"), time);
 			glUniform1f(glGetUniformLocation(shader, "waveHeight"), waveHeight);
+
+			glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
+			glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
 
 			//-----------
 			// DRAW WATER
@@ -130,7 +150,7 @@ namespace water {
 			glDeleteBuffers(1, &vbo);
 			glDeleteBuffers(1, &ebo);
 			glDeleteVertexArrays(1, &vao);
-			glDeleteTextures(3, &tex[0]);
+			glDeleteTextures(4, &tex[0]);
 		}
 
 	private:
@@ -139,7 +159,7 @@ namespace water {
 		GLuint vao;			// vertex array object
 		GLuint vbo;			// vertex buffer object
 		GLuint ebo;			// element buffer object
-		GLuint tex[3];		// textures
+		GLuint tex[4];		// textures
 
 		// Store terrain size and resolution
 		float scale;		// how much to scale water, if water is resX by resZ
