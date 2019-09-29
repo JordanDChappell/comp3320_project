@@ -156,21 +156,35 @@
 		int terraMaxHeight = 15;
 		terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight);
 
+		// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
+		int cameraOffsetX = tresX / 2;
+		int cameraOffsetY = tresY / 2;
+
 		// Load the shaders to be used in the scene
 		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 		GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
 
-		//// Load a model using model class
+		// Load a model using model class
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
-		giraffe.MoveTo(glm::vec3(-10.0f, terra.getHeightAt(10, 10) - 23.0f, 10.0f));	// move the model to a space in the scene
+		// Locate the model in the scene
+		int modelXCoord = 100;
+		int modelYCoord = 0;
+		float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY);	// get the terrain height at the current x,y coordinate in the scene
+		giraffe.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));	// move the model to a space in the scene
 
 		/*model::Model barn = model::Model("models/barn/barn.obj");
-		barn.MoveTo(glm::vec3(0, 0, 0));
+		modelXCoord = 100;
+		modelYCoord = 10;
+		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY);
+		barn.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));*/
 
 		model::Model cat = model::Model("models/cat/cat.obj");
-		cat.MoveTo(glm::vec3(-10, -1, 0));
+		modelXCoord = 100;
+		modelYCoord = 10;
+		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY);
+		cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 
-		model::Model fence = model::Model("models/fence/fence.obj");
+		/*model::Model fence = model::Model("models/fence/fence.obj");
 		fence.MoveTo(glm::vec3(-10, 0, -4));
 
 		model::Model bucket = model::Model("models/bucket/bucket.obj");
@@ -185,8 +199,8 @@
 
 		// Add all of the model hit boxes to a vector, this needs thinking about, should we calculate all collisions on every frame?
 		modelHitBoxes.push_back(giraffe.hitBox);
-		/*modelHitBoxes.push_back(barn.hitBox);
 		modelHitBoxes.push_back(cat.hitBox);
+		/*modelHitBoxes.push_back(barn.hitBox);
 		modelHitBoxes.push_back(fence.hitBox);
 		modelHitBoxes.push_back(bucket.hitBox);
 		modelHitBoxes.push_back(trough.hitBox);*/
@@ -197,9 +211,6 @@
         glClearColor(0.0f, 0.0f, 0.6f, 0.0f); 
 
 		float delta_time = 0.0f;
-		int cameraOffsetX = tresX / 2;
-		int cameraOffsetY = tresY / 2;
-
         // Main Loop  
         do  
         {  
@@ -226,8 +237,8 @@
 			// Draw the models
 			glDepthFunc(GL_LESS);
 			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
-			/*cat.Draw(modelShader, Hvw, Hcv, Hwm);
-			trough.Draw(modelShader, Hvw, Hcv, Hwm);
+			cat.Draw(modelShader, Hvw, Hcv, Hwm);
+			/*trough.Draw(modelShader, Hvw, Hcv, Hwm);
 			fence.Draw(modelShader, Hvw, Hcv, Hwm);
 			bucket.Draw(modelShader, Hvw, Hcv, Hwm);
 			barn.Draw(modelShader, Hvw, Hcv, Hwm);*/

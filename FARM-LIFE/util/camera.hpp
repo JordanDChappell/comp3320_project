@@ -26,7 +26,7 @@ namespace utility {
 				forward = glm::vec3(0.0f, 0.0f, -1.0f);
 				up = glm::vec3(0.0f, 1.0f, 0.0f);
 				world_up = glm::vec3(0.0f, 1.0f, 0.0f);
-				position = glm::vec3(0.0f, -10.0f, 3.0f);
+				position = glm::vec3(0.0f, 0.0f, 0.0f);
 				right = glm::normalize(glm::cross(forward, up));
 
 				orientation = glm::vec2(-90.0f, 0.0f);
@@ -75,9 +75,6 @@ namespace utility {
 					// clamp pitch to [-89, 89] degrees
 					// weird things happen when pitch is at +/- 90
 					orientation.y = std::min(std::max(-89.0f, orientation.y), 89.0f);
-
-					// rotate the camera hitbox
-
 
 					update_camera_basis();
 				}
@@ -154,12 +151,12 @@ namespace utility {
 						position -= right * movement_sensitivity;
 						hitBox.origin = tempOrigin;
 					}
-					else
-					{
-						position -= right * movement_sensitivity;
-						hitBox.origin = tempOrigin;
-					}
 					position.y = terrainHeight;
+				}
+				else
+				{
+					position -= right * movement_sensitivity;
+					hitBox.origin = tempOrigin;
 				}
 			}
 
