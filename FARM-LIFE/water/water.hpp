@@ -13,7 +13,7 @@ namespace water {
     class Water {
       public:
 		// Water constructor
-		Water(int resX_, int resZ_, float scale_, float height_, GLuint refractTex_, GLuint reflectTex_) {
+		Water(int resX_, int resZ_, float scale_, float height_, GLuint refractTex_, GLuint reflectTex_, GLuint depthMap_) {
 			// Initialise parameters for terrain size and resolution
 			resX = resX_;
 			resZ = resZ_;
@@ -70,6 +70,10 @@ namespace water {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, tex[4]);
+			tex[4] = depthMap_;
 
 			//----------------------------
 			// LINK VERTEX DATA TO SHADERS
@@ -110,6 +114,10 @@ namespace water {
 			glBindTexture(GL_TEXTURE_2D, tex[3]);
 			glUniform1i(glGetUniformLocation(shader, "normalMap"), 3);
 
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, tex[4]);
+			glUniform1i(glGetUniformLocation(shader, "depthMap"), 4);
+
 			//--------------------------------
 			// SET CAMERA IN MIDDLE OF WATER
 			//--------------------------------
@@ -132,6 +140,9 @@ namespace water {
 			//-----------
 			// DRAW WATER
 			//-----------
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 			glDrawElements(GL_TRIANGLES, noVertices, GL_UNSIGNED_INT, 0);
 			
 			// Unbind vertex array
@@ -159,7 +170,7 @@ namespace water {
 		GLuint vao;			// vertex array object
 		GLuint vbo;			// vertex buffer object
 		GLuint ebo;			// element buffer object
-		GLuint tex[4];		// textures
+		GLuint tex[5];		// textures
 
 		// Store terrain size and resolution
 		float scale;		// how much to scale water, if water is resX by resZ

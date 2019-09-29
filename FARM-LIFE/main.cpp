@@ -220,7 +220,7 @@
 		water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
 
 		// Create water
-		water::Water water = water::Water(1000, 1000, 0.5, 6.0, fbos.getRefractionTexture(), fbos.getReflectionTexture());
+		water::Water water = water::Water(1000, 1000, 0.5, 6.0, fbos.getRefractionTexture(), fbos.getReflectionTexture(), fbos.getRefractionDepthTexture());
 
 		// Set a background color  
 		glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
@@ -258,8 +258,9 @@
 			// Render the scene
 			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 0, 0, 0));
 			water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(), 
-				glm::vec3(0.0f, 0.467f, 0.745f), glfwGetTime(), 1.5, glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0));
-            
+				glm::vec3(0.0f, 0.467f, 0.745f), glfwGetTime(), 0.5, glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0));
+			glDisable(GL_BLEND);
+
 			//Swap buffers  
             glfwSwapBuffers(window);  
             //Get and organize events, like keyboard and mouse input, window resizing, etc...  
