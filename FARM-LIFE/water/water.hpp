@@ -36,7 +36,8 @@ namespace water {
 			//-------------
 			// SET TEXTURES
 			//-------------
-			glGenTextures(2, &tex[0]);
+			int width, height;			// Variables for the width and height of image being loaded 
+			glGenTextures(3, &tex[0]);
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex[0]);
@@ -45,6 +46,18 @@ namespace water {
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, tex[1]);
 			tex[1] = reflectTex_;
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, tex[2]);
+			unsigned char* image = SOIL_load_image("water/dudvmap.png", &width, &height, 0, SOIL_LOAD_RGB);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+				GL_UNSIGNED_BYTE, image);
+
+			// Set the parameters for the grass texture
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 			//----------------------------
 			// LINK VERTEX DATA TO SHADERS
@@ -76,6 +89,10 @@ namespace water {
 			glBindTexture(GL_TEXTURE_2D, tex[1]);
 			glUniform1i(glGetUniformLocation(shader, "reflectionTexture"), 1);
 
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, tex[2]);
+			glUniform1i(glGetUniformLocation(shader, "dudvMap"), 2);
+
 			//--------------------------------
 			// SET CAMERA IN MIDDLE OF WATER
 			//--------------------------------
@@ -90,14 +107,9 @@ namespace water {
 			glUniform1f(glGetUniformLocation(shader, "time"), time);
 			glUniform1f(glGetUniformLocation(shader, "waveHeight"), waveHeight);
 
-			//-------------
-			// DRAW TERRAIN
-			//-------------
-			
-			// Enable blending
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+			//-----------
+			// DRAW WATER
+			//-----------
 			glDrawElements(GL_TRIANGLES, noVertices, GL_UNSIGNED_INT, 0);
 			
 			// Unbind vertex array
@@ -116,7 +128,7 @@ namespace water {
 			glDeleteBuffers(1, &vbo);
 			glDeleteBuffers(1, &ebo);
 			glDeleteVertexArrays(1, &vao);
-			glDeleteTextures(2, &tex[0]);
+			glDeleteTextures(3, &tex[0]);
 		}
 
 	private:
@@ -125,7 +137,7 @@ namespace water {
 		GLuint vao;			// vertex array object
 		GLuint vbo;			// vertex buffer object
 		GLuint ebo;			// element buffer object
-		GLuint tex[2];		// textures
+		GLuint tex[3];		// textures
 
 		// Store terrain size and resolution
 		float scale;		// how much to scale water, if water is resX by resZ
