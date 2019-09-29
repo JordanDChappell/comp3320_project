@@ -2,6 +2,9 @@
  * Based on class by ThinMatrix on YouTube
  * Create and stores reflection, refraction and refraction depth textures for the water.
  */
+#ifndef ASSIGNMENT_WATER_FRAME_BUFFERS_HPP
+#define ASSIGNMENT_WATER_FRAME_BUFFERS_HPP
+
 namespace water {
 	
 	class WaterFrameBuffers {
@@ -163,3 +166,5 @@ namespace water {
 			}
 	};
 }
+
+#endif

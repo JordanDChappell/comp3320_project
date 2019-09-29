@@ -9,6 +9,7 @@
 #define ASSIGNMENT_WATER_HPP
 
 #include <vector>
+#include "WaterFrameBuffers.hpp"
 
 namespace water {
     
@@ -69,6 +70,8 @@ namespace water {
 			// Initalise variables needed for drawing the water
 			float waveHeight = 0.5;
 			glm::vec3 colour = glm::vec3(0.0f, 0.467f, 0.745f);
+			float NEAR_PLANE = 0.1f;
+			float FAR_PLANE = 1000.0f;
 
 			//------------------------
 			// BIND SHADER AND BUFFERS
@@ -235,18 +238,18 @@ namespace water {
 			glGenTextures(5, &tex[0]);	// requires 5 textures
 
 			//-------------------
-			// REFLECTION TEXTURE
+			// REFRACTION TEXTURE
 			//-------------------
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex[0]);
-			tex[0] = fbos.getReflectionTexture();
+			tex[0] = fbos.getRefractionTexture();
 
 			//-------------------
-			// REFRACTION TEXTURE
+			// REFLECTION TEXTURE
 			//-------------------
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, tex[1]);
-			tex[1] = fbos.getRefractionTexture;
+			tex[1] = fbos.getReflectionTexture();
 
 			//------------------
 			// DU/DV MAP TEXTURE

@@ -226,7 +226,7 @@
 		// Create water frame buffers for reflection and refraction
 		water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
 		// Create water
-		water::Water water = water::Water(1000, 1000, 0.5, 6.0, fbos);
+		water::Water water = water::Water(1000, 1000, 0.5f, 6.0f, fbos);
 
 		// Set a background color  
 		glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
