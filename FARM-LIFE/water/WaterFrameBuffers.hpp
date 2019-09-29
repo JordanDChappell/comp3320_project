@@ -63,10 +63,10 @@ namespace water {
 		    }
  
 		private:
-			static constexpr int REFLECTION_WIDTH = 320;
-   			static constexpr int REFLECTION_HEIGHT = 180;
-	     	static constexpr int REFRACTION_WIDTH = 1280;
-  			static constexpr int REFRACTION_HEIGHT = 720;
+			static constexpr int REFLECTION_WIDTH = 600;
+   			static constexpr int REFLECTION_HEIGHT = 400;
+	     	static constexpr int REFRACTION_WIDTH = 600;
+  			static constexpr int REFRACTION_HEIGHT = 400;
  
     		GLuint reflectionFrameBuffer;
     		GLuint reflectionTexture;

@@ -21,7 +21,7 @@ void main()
 {
 	Colour = vec4(colour, 0.5);
 
-	float yPosition = position[1] + ((cos(position[0] + (time * 2)) * 0.15) * cos((position[2] + (time * 2)) * 0.15) * waveHeight);
+	float yPosition = position[1] + ((cos(position[0] + (time * 2)) * 0.15) * cos((position[2] + (time * 2)) * 0.15) * waveHeight) - waveHeight;
 
 	clipSpace = Hcv * Hvw * Hwm * vec4(position[0] * scale, yPosition, position[2] * scale, 1.0);
 

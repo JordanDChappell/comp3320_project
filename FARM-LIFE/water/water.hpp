@@ -36,8 +36,15 @@ namespace water {
 			//-------------
 			// SET TEXTURES
 			//-------------
-			refractTex = refractTex_;
-			reflectTex = reflectTex_;
+			glGenTextures(2, &tex[0]);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex[0]);
+			tex[0] = refractTex_;
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, tex[1]);
+			tex[1] = reflectTex_;
 
 			//----------------------------
 			// LINK VERTEX DATA TO SHADERS
@@ -62,12 +69,12 @@ namespace water {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, refractTex);
+			glBindTexture(GL_TEXTURE_2D, tex[0]);
 			glUniform1i(glGetUniformLocation(shader, "refractionTexture"), 0);
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, reflectTex);
-			glUniform1i(glGetUniformLocation(shader, "reflectionTexture"), 0);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, tex[1]);
+			glUniform1i(glGetUniformLocation(shader, "reflectionTexture"), 1);
 
 			//--------------------------------
 			// SET CAMERA IN MIDDLE OF WATER
@@ -100,7 +107,7 @@ namespace water {
 		// Precondition:	Has a height value
 		// Postcondition:	Returns the height value
 		float getHeight() {
-			return height;
+			return height - 20;
 		}
 
 		// Precondition:	Vertex array, textures and buffers exist.
@@ -109,8 +116,7 @@ namespace water {
 			glDeleteBuffers(1, &vbo);
 			glDeleteBuffers(1, &ebo);
 			glDeleteVertexArrays(1, &vao);
-			glDeleteTextures(1, &refractTex);
-			glDeleteTextures(1, &reflectTex);
+			glDeleteTextures(2, &tex[0]);
 		}
 
 	private:
@@ -119,8 +125,7 @@ namespace water {
 		GLuint vao;			// vertex array object
 		GLuint vbo;			// vertex buffer object
 		GLuint ebo;			// element buffer object
-		GLuint refractTex;	// texture
-		GLuint reflectTex;	// texture
+		GLuint tex[2];		// textures
 
 		// Store terrain size and resolution
 		float scale;		// how much to scale water, if water is resX by resZ

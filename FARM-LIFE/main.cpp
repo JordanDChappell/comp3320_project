@@ -246,7 +246,7 @@
 			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
 			camera.move_y_position(distance);
 			camera.invert_pitch();
-
+			
 			// Render the refraction
 			fbos.bindRefractionFrameBuffer();
 			render(terra, camera, skybox, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
