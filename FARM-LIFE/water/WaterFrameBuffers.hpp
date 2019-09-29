@@ -1,6 +1,6 @@
 /* WaterFrameBuffers.hpp
  * Based on class by ThinMatrix on YouTube
- * Deals with the reflection and refraction textures for the water
+ * Create and stores reflection, refraction and refraction depth textures for the water.
  */
 namespace water {
 	
@@ -8,17 +8,20 @@ namespace water {
 		public:
 			// Buffer Constructor
 			WaterFrameBuffers() {
+				// Create frame buffer and texture attachment for reflection
 				reflectionFrameBuffer = createFrameBuffer();
 		        reflectionTexture = createTextureAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
 		        reflectionDepthBuffer = createDepthBufferAttachment(REFLECTION_WIDTH, REFLECTION_HEIGHT);
 		        unbindCurrentFrameBuffer(1200, 800);
 
+				// Create frame buffer and texture attachments for refraction and depth
         		refractionFrameBuffer = createFrameBuffer();
 		        refractionTexture = createTextureAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT);
 		        refractionDepthTexture = createDepthTextureAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT);
 		        unbindCurrentFrameBuffer(1200, 800);
 			}
 
+			// Destructor
 			~WaterFrameBuffers() {}
 
 			// Call when closing the game
@@ -31,58 +34,68 @@ namespace water {
 		        glDeleteTextures(1, &refractionDepthTexture);
 		    }
 
-			// Call before rendering to reflection FBO
+			// Precondition: 
+			// Postcondition: 	reflection frame buffer is bound
 			void bindReflectionFrameBuffer() {
 		        bindFrameBuffer(reflectionFrameBuffer, REFLECTION_WIDTH, REFLECTION_HEIGHT);
 		    }
 
-		    // Call before rendering to refraction FBO
-		    void bindRefractionFrameBuffer() {
+			// Precondition:
+			// Postcondition:	refraction frame buffer is bound
+			void bindRefractionFrameBuffer() {
 		        bindFrameBuffer(refractionFrameBuffer, REFRACTION_WIDTH, REFRACTION_HEIGHT);
 		    }
 
-		    // Call to switch to default frame buffer
-		    void unbindCurrentFrameBuffer(GLuint SCREEN_WIDTH, GLuint SCREEN_HEIGHT) {
+			// Precondition:
+			// Postcondition:	default frame buffer is bound
+			void unbindCurrentFrameBuffer(GLuint SCREEN_WIDTH, GLuint SCREEN_HEIGHT) {
 		        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		    }
 
-		 	// Get the reflection texture
-		    GLuint getReflectionTexture() {
+			// Precondition:	reflection texture has been created
+			// Postcondition:	returns reflection texture
+			GLuint getReflectionTexture() {
 		        return reflectionTexture;
 		    }
-		     
-		    // Get the refraction texture
-		    GLuint getRefractionTexture() {
+
+			// Precondition:	refraction texture has been created
+			// Postcondition:	returns refraction texture
+			GLuint getRefractionTexture() {
 		        return refractionTexture;
 		    }
-		    
-		    // Get the refraction depth texture
-		    GLuint getRefractionDepthTexture() {
+
+			// Precondition:	refraction depth texture has been created
+			// Postcondition:	returns refraction depth texture
+			GLuint getRefractionDepthTexture() {
 		        return refractionDepthTexture;
 		    }
  
 		private:
+			// Resolution of reflection and refraction textures 
+			// Smaller resolution increases performance, larger looks more realistic
 			static constexpr int REFLECTION_WIDTH = 600;
    			static constexpr int REFLECTION_HEIGHT = 400;
 	     	static constexpr int REFRACTION_WIDTH = 600;
   			static constexpr int REFRACTION_HEIGHT = 400;
- 
+	
+			// Store reflection objects
     		GLuint reflectionFrameBuffer;
     		GLuint reflectionTexture;
     		GLuint reflectionDepthBuffer;
-     
-		    GLuint refractionFrameBuffer;
+
+			// Store refraction objects
+			GLuint refractionFrameBuffer;
 		    GLuint refractionTexture;
 		    GLuint refractionDepthTexture;
 
 		    // Precondition: 
-		    // Postcondition: framebuffer is created
+		    // Postcondition: 	framebuffer is created
 		    GLuint createFrameBuffer() {
 		    	// Generate frame buffer
 		        GLuint frameBuffer;
 		        glGenFramebuffers(1, &frameBuffer);
-		        //	Bind the framebuffer
+		        // Bind the framebuffer
 		        glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 		        // Indicate that we will always render to color attachment 0
 		        glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -90,8 +103,8 @@ namespace water {
 		        return frameBuffer;
 		    }
 
-		    // Precondition: there is a buffer with no texture
-		    // Postcondition: binds texture to the framebuffer
+		    // Precondition: 	there is a buffer with no texture
+		    // Postcondition: 	binds texture to the framebuffer
 		    GLuint createTextureAttachment( int width, int height) {
 		    	// Create texture
 		    	GLuint texture;
@@ -113,8 +126,8 @@ namespace water {
 		        return texture;
 		    }
 
-		    // Precondition: there is a depth buffer on the frame buffer
-		    // Postcondition: creates a depth buffer on the frame buffer
+		    // Precondition:	
+		    // Postcondition: 	creates a depth buffer attachment on the active frame buffer
 		    GLuint createDepthBufferAttachment(int width, int height) {
 		    	// Create buffer
 				GLuint depthBuffer;
@@ -125,8 +138,8 @@ namespace water {
 		        return depthBuffer;
     		}
 
-    		// Precondition: there is a depth buffer with no texture
-		    // Postcondition: binds texture to the depth buffer
+    		// Precondition: 	
+		    // Postcondition: 	binds creates depth buffer texture and binds to active frame buffer
     		GLuint createDepthTextureAttachment(int width, int height){
 		        // Create texture
 		        GLuint texture;
@@ -139,7 +152,9 @@ namespace water {
 		        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
 		        return texture;
 		    }
-	
+
+			// Precondition:
+			// Postcondition: 	binds the given frame buffer
 			void bindFrameBuffer(int frameBuffer, int width, int height) {
 				// Make sure a texture isn't bound
 				glBindTexture(GL_TEXTURE_2D, 0);

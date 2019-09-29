@@ -171,17 +171,23 @@
 
 		//--------------------------------------------------------
 		//-----------COMPLETED DEPENDENCY INITITIALISATION--------
+		//------------------INITIALISE SCENE----------------------
 		//--------------------------------------------------------
 
 		// Enable depth test
 		glEnable(GL_DEPTH_TEST);
 
-		// Load the shaders to be used in the scene
-		GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
+		//--------------
+		// CREATE MODELS
+		//--------------
 
+		// Store all models in a vector
 		std::vector<model::Model> models;
 
-		// Load a model using model class
+		// Create model shader
+		GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
+
+		// Load models using model class
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
 		giraffe.MoveTo(glm::vec3(10, 10, 10));	// move the model to a space in the scene
 		models.push_back(giraffe);
@@ -205,26 +211,28 @@
 		model::Model trough = model::Model("models/trough/watertrough.obj");
 		trough.MoveTo(glm::vec3(-10, -4, 9));
 		models.push_back(trough);
-
-		// Create the skybox class instance
+		
+		//--------------
+		// CREATE SKYBOX
+		//--------------
 		skybox::Skybox skybox = skybox::Skybox();
 		skybox.getInt();
 
-		// Init before the main loop
-		float last_frame = glfwGetTime();
-
-		// Create Terrain
+		//---------------
+		// CREATE TERRAIN
+		//---------------
+		// Create main terrain
 		terrain::Terrain terra = terrain::Terrain();
-
 		// Create water frame buffers for reflection and refraction
 		water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
-
 		// Create water
-		water::Water water = water::Water(1000, 1000, 0.5, 6.0, fbos.getRefractionTexture(), fbos.getReflectionTexture(), fbos.getRefractionDepthTexture());
+		water::Water water = water::Water(1000, 1000, 0.5, 6.0, fbos);
 
 		// Set a background color  
 		glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
 
+		// Init before the main loop
+		float last_frame = glfwGetTime();
 		float delta_time = 0.0f;
 
         // Main Loop  
@@ -236,30 +244,49 @@
 			float last_frame = current_frame;
 			process_input(window, delta_time, camera);
 
+			//------------------------------------------
+			// RENDER REFLECTION AND REFRACTION TEXTURES
+			//------------------------------------------
+			// Allow clipping
 			glEnable(GL_CLIP_DISTANCE0);
 
-			// Render the reflection
+			// Bind the reflection frame buffer
 			fbos.bindReflectionFrameBuffer();
+			
+			// Move the camera
 			float distance = 2 * (camera.get_position().y - water.getHeight());
 			camera.move_y_position(-distance);
 			camera.invert_pitch();
+			
+			// Render the scene
 			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			
+			// Move the camera back
 			camera.move_y_position(distance);
 			camera.invert_pitch();
 			
-			// Render the refraction
+			// Bind the refraction frame buffer
 			fbos.bindRefractionFrameBuffer();
+
+			// Render the scene
 			render(terra, camera, skybox, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
 			
 			// Unbind the frame buffer before rendering the scene
 			fbos.unbindCurrentFrameBuffer(1200, 800);
 			
+			// Disable clipping
 			glDisable(GL_CLIP_DISTANCE0);
-			// Render the scene
+
+			//-----------------
+			// RENDER THE SCENE
+			//-----------------
+			// Render terrain, skybox and models
 			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 0, 0, 0));
+			
+			// TODO: Send in a light when lights are done
+			// Render water
 			water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(), 
-				glm::vec3(0.0f, 0.467f, 0.745f), glfwGetTime(), 0.5, glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0));
-			glDisable(GL_BLEND);
+				glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0));
 
 			//Swap buffers  
             glfwSwapBuffers(window);  

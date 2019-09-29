@@ -1,6 +1,8 @@
 /* Water.hpp
  * This class creates water in a region of size resX by resZ, scaled with the scale parameter.
- * The water will be semi-transparent and be reflective. It will move with small wave patterns.
+ * The water is reflective. It moves with small wave patterns and is distorted to create rippling effects.
+ * The water uses the Fresnel effect for reflectivity. 
+ * The water is more transparent in shallower areas.
  */
 
 #ifndef ASSIGNMENT_WATER_HPP
@@ -13,8 +15,8 @@ namespace water {
     class Water {
       public:
 		// Water constructor
-		Water(int resX_, int resZ_, float scale_, float height_, GLuint refractTex_, GLuint reflectTex_, GLuint depthMap_) {
-			// Initialise parameters for terrain size and resolution
+		Water(int resX_, int resZ_, float scale_, float height_, water::WaterFrameBuffers fbos) {
+			// Initialise parameters for water size and resolution
 			resX = resX_;
 			resZ = resZ_;
 			scale = scale_;
@@ -36,63 +38,41 @@ namespace water {
 			//-------------
 			// SET TEXTURES
 			//-------------
-			int width, height;			// Variables for the width and height of image being loaded 
-			glGenTextures(3, &tex[0]);
+			loadTextures(fbos);
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, tex[0]);
-			tex[0] = refractTex_;
-
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, tex[1]);
-			tex[1] = reflectTex_;
-
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, tex[2]);
-			unsigned char* image = SOIL_load_image("water/dudvmap.png", &width, &height, 0, SOIL_LOAD_RGB);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-				GL_UNSIGNED_BYTE, image);
-
-			// Set the parameters for the grass texture
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, tex[3]);
-			unsigned char* image1 = SOIL_load_image("water/normalmap.png", &width, &height, 0, SOIL_LOAD_RGB);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-				GL_UNSIGNED_BYTE, image1);
-
-			// Set the parameters for the grass texture
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			
-			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_2D, tex[4]);
-			tex[4] = depthMap_;
-
-			//----------------------------
-			// LINK VERTEX DATA TO SHADERS
-			//----------------------------
+			//-----------------------------------
+			// LINK VERTEX DATA TO SHADER PROGRAM
+			//-----------------------------------
 			GLint posAttrib = glGetAttribLocation(shader, "position");
 			glEnableVertexAttribArray(posAttrib);
 			glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), 0);
 		}
 
+		// Destructor
 		~Water() {}
+
+		// Precondition:	Vertex array, textures and buffers exist.
+		// Postcondition:	Vertex array, textures and buffers deleted.
+		void cleanup() {
+			glDeleteBuffers(1, &vbo);
+			glDeleteBuffers(1, &ebo);
+			glDeleteVertexArrays(1, &vao);
+			glDeleteTextures(5, &tex[0]);
+		}
 
 		// Precondition:	Water object has been constructed
 		// Postcondition:	Water is drawn
-		void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& camPos, const glm::vec3& colour, 
-			float time, float waveHeight, glm::vec3 lightPosition, glm::vec3 lightColour) {
+		void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec3 &camPos,
+				  float time, glm::vec3 lightPosition, glm::vec3 lightColour)
+		{
+			// Initalise variables needed for drawing the water
+			float waveHeight = 0.5;
+			glm::vec3 colour = glm::vec3(0.0f, 0.467f, 0.745f);
+
 			//------------------------
 			// BIND SHADER AND BUFFERS
-			//------------------------	
+			//------------------------
 			glUseProgram(shader);
 			glBindVertexArray(vao);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -129,39 +109,37 @@ namespace water {
 			glUniformMatrix4fv(glGetUniformLocation(shader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 			glUniform3f(glGetUniformLocation(shader, "cameraPosition"), camPos[0], camPos[1], camPos[2]);
 
+			// Set uniforms
 			glUniform1f(glGetUniformLocation(shader, "scale"), scale);
    			glUniform3f(glGetUniformLocation(shader, "colour"), colour[0], colour[1], colour[2]);
 			glUniform1f(glGetUniformLocation(shader, "time"), time);
 			glUniform1f(glGetUniformLocation(shader, "waveHeight"), waveHeight);
+			glUniform1f(glGetUniformLocation(shader, "near"), NEAR_PLANE);
+			glUniform1f(glGetUniformLocation(shader, "far"), FAR_PLANE);
 
+			// Set light uniforms
 			glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
 			glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
 
 			//-----------
 			// DRAW WATER
 			//-----------
+			// Enable alpha blending
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+			// Draw the elements
 			glDrawElements(GL_TRIANGLES, noVertices, GL_UNSIGNED_INT, 0);
 			
 			// Unbind vertex array
 			glBindVertexArray(0);
+			glDisable(GL_BLEND);
 		}
 
 		// Precondition:	Has a height value
 		// Postcondition:	Returns the height value
 		float getHeight() {
 			return height - 20;
-		}
-
-		// Precondition:	Vertex array, textures and buffers exist.
-		// Postcondition:	Vertex array, textures and buffers deleted.
-		void cleanup() {
-			glDeleteBuffers(1, &vbo);
-			glDeleteBuffers(1, &ebo);
-			glDeleteVertexArrays(1, &vao);
-			glDeleteTextures(4, &tex[0]);
 		}
 
 	private:
@@ -179,8 +157,7 @@ namespace water {
 		int noVertices;		// number of vertices to draw
         float height;       // height of the water
 		
-		// Precondition:	vertexAtt is number of vertex attributes, maxHeight is maximum height of terrain
-		//					heights is vector of all heights over mesh
+		// Precondition:	vertexAtt is number of vertex attributes, height is height of the water
 		// Postcondition:	Mesh is created and loaded into VAO, VBO, EBO
 		void createMesh(int vertexAtt, float height) {
 			//---------------------------
@@ -249,6 +226,65 @@ namespace water {
 			std::vector<GLuint>().swap(*triangles);	// free memory from triangles
 		}
 
+		// Precondition: 	fbos is populated with textures
+		// Postcondition: 	Generates and binds textures for reflection, refraction,
+		// 					du/dv map, normal map, and depth map.
+		void loadTextures(water::WaterFrameBuffers fbos) {
+			// Initialise textures
+			int width, height; 			// variables for the width and height of image being loaded
+			glGenTextures(5, &tex[0]);	// requires 5 textures
+
+			//-------------------
+			// REFLECTION TEXTURE
+			//-------------------
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex[0]);
+			tex[0] = fbos.getReflectionTexture();
+
+			//-------------------
+			// REFRACTION TEXTURE
+			//-------------------
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, tex[1]);
+			tex[1] = fbos.getRefractionTexture;
+
+			//------------------
+			// DU/DV MAP TEXTURE
+			//------------------
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, tex[2]);
+			unsigned char *image = SOIL_load_image("water/dudvmap.png", &width, &height, 0, SOIL_LOAD_RGB);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+						 GL_UNSIGNED_BYTE, image);
+
+			// Set the parameters for the du/dv map
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			//-------------------
+			// NORMAL MAP TEXTURE
+			//-------------------
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, tex[3]);
+			unsigned char *image1 = SOIL_load_image("water/normalmap.png", &width, &height, 0, SOIL_LOAD_RGB);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+						 GL_UNSIGNED_BYTE, image1);
+
+			// Set the parameters for the normal map
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			//--------------
+			// DEPTH TEXTURE
+			//--------------
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, tex[4]);
+			tex[4] = fbos.getRefractionDepthTexture();
+		}
     };
 
 }

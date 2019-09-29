@@ -14,7 +14,9 @@ uniform vec4 clippingPlane;
 
 void main()
 {
+	// Only draw if on the correct side of the clipping plane specified 
 	gl_ClipDistance[0] = dot(model * vec4(aPos, 1.0), clippingPlane);
-    TexCoords = aTexCoords;    
+    
+	TexCoords = aTexCoords;    
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }
