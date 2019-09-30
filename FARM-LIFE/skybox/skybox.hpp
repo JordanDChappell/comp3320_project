@@ -47,8 +47,8 @@ namespace skybox {
 		void render(glm::mat4 view, glm::mat4 projection)
 		{
 			// view transforms
-			glDepthFunc(GL_LESS)
-			//glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content, won't draw skybox behind objects (optimization)
+			//glDepthFunc(GL_LESS);		// this didn't fix the skybox
+			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content, won't draw skybox behind objects (optimization)
 			glUseProgram(shader);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, &view[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, &projection[0][0]);

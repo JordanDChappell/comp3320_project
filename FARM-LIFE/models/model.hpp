@@ -178,8 +178,6 @@ namespace model {
 			{
 				meshes[i].Draw(shader, view, projection, model, position);
 			}
-
-			// Draw the hitbox for reasons? (i felt like it)
 		}
 
 		///<summary>
@@ -187,7 +185,7 @@ namespace model {
 		///</summary>
 		void MoveTo(glm::vec3 coordinates) 
 		{
-			position = coordinates;
+			position = position + coordinates;
 			hitBox.origin = hitBox.origin + coordinates;
 		}
 

@@ -36,10 +36,13 @@
 	static constexpr float FAR_PLANE = 1000.0f;
 
 	std::vector<model::HitBox> modelHitBoxes;
+	static int debounceCounter = 0;		// simple counter to debounce keyboard inputs
 
 	void process_input(GLFWwindow* window, const float& delta_time, utility::camera::Camera& camera, float terrainHeight) {
-		camera.set_movement_sensitivity(0.005f * delta_time);
+		camera.set_movement_sensitivity(30.0f * delta_time);
+		camera.gravity(delta_time, terrainHeight);
 
+		// Process movement inputs
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
@@ -57,6 +60,24 @@
 		}
 		else if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
 			camera.toggleNoClip();
+		}
+
+		// Process debounced inputs
+		if (debounceCounter == 0)
+		{
+			
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+				camera.jump(delta_time, terrainHeight);
+			}
+		}
+		// debound inputs
+		if (debounceCounter == 5)
+		{
+			debounceCounter = 0;
+		}
+		else
+		{
+			debounceCounter++;
 		}
 	}
 
@@ -169,8 +190,10 @@
 		// Locate the model in the scene
 		int modelXCoord = 100;
 		int modelYCoord = 0;
-		float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY);	// get the terrain height at the current x,y coordinate in the scene
+		float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) - (23.0f - giraffe.hitBox.size.y);	// get the terrain height at the current x,y coordinate in the scene
 		giraffe.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));	// move the model to a space in the scene
+		std::cout << "Giraffe hitbox origin: " << giraffe.hitBox.origin.x << "," << giraffe.hitBox.origin.y << "," << giraffe.hitBox.origin.z << std::endl;
+		std::cout << "Giraffe hitbox size: " << giraffe.hitBox.size.x << "," << giraffe.hitBox.size.y << "," << giraffe.hitBox.size.z << std::endl;
 
 		/*model::Model barn = model::Model("models/barn/barn.obj");
 		modelXCoord = 100;
@@ -181,8 +204,11 @@
 		model::Model cat = model::Model("models/cat/cat.obj");
 		modelXCoord = 100;
 		modelYCoord = 10;
-		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY);
+		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) - (23.0f - cat.hitBox.size.y);
 		cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+
+		std::cout << "Cat hitbox origin: " << cat.hitBox.origin.x << "," << cat.hitBox.origin.y << "," << cat.hitBox.origin.z << std::endl;
+		std::cout << "Cat hitbox size: " << cat.hitBox.size.x << "," << cat.hitBox.size.y << "," << cat.hitBox.size.z << std::endl;
 
 		/*model::Model fence = model::Model("models/fence/fence.obj");
 		fence.MoveTo(glm::vec3(-10, 0, -4));
@@ -207,18 +233,19 @@
 		
 		// Init before the main loop
 		float last_frame = glfwGetTime();
+		float current_frame = 0.0f;
+		float delta_time = 0.0f;
         //Set a background color  
         glClearColor(0.0f, 0.0f, 0.6f, 0.0f); 
 
-		float delta_time = 0.0f;
         // Main Loop  
         do  
         {  
 			/* PROCESS INPUT */
-			float current_frame = glfwGetTime();
-			float delta_time = current_frame - last_frame;
-			float last_frame = current_frame;
-			int cameraX = (int)camera.get_position().x + cameraOffsetY;
+			current_frame = glfwGetTime();
+			delta_time = current_frame - last_frame;
+			last_frame = current_frame;
+			int cameraX = (int)camera.get_position().x + cameraOffsetX;
 			int cameraY = (int)camera.get_position().z + cameraOffsetY;
 			float terrainHeight = terra.getHeightAt(cameraX, cameraY) - 15.0f;
 			process_input(window, delta_time, camera, terrainHeight);

@@ -26,7 +26,7 @@ namespace utility {
 				forward = glm::vec3(0.0f, 0.0f, -1.0f);
 				up = glm::vec3(0.0f, 1.0f, 0.0f);
 				world_up = glm::vec3(0.0f, 1.0f, 0.0f);
-				position = glm::vec3(0.0f, 0.0f, 0.0f);
+				position = glm::vec3(0.0f, 50.0f, 0.0f);
 				right = glm::normalize(glm::cross(forward, up));
 
 				orientation = glm::vec2(-90.0f, 0.0f);
@@ -35,13 +35,14 @@ namespace utility {
 				first_mouse = true;
 				last_mouse_pos = glm::vec2(static_cast<float>(width) * 0.5f, static_cast<float>(height) * 0.5f);
 				rotation_sensitivity = 0.05f;
-				movement_sensitivity = 0.005f;
+				movement_sensitivity = 10.0f;
 
-				// init the camera hitbox, used for collision detection, currently a 0.6f unit cube
-				hitBox.origin = position - glm::vec3(0.3f, 0.3f, 0.3f);
-				hitBox.size = position + glm::vec3(0.3f, 0.3f, 0.3f) - hitBox.origin;
+				// init the camera hitbox, used for collision detection, currently a 1.0f unit cube
+				hitBox.origin = position - glm::vec3(0.5f, 0.5f, 0.5f);
+				hitBox.size = position + glm::vec3(0.5f, 0.5f, 0.5f) - hitBox.origin;
 
 				noClip = false;
+				downVelocity = 0;
 			}
 
 			// Callback function so GLFW can tell us about mouse scroll events
@@ -151,7 +152,12 @@ namespace utility {
 						position -= right * movement_sensitivity;
 						hitBox.origin = tempOrigin;
 					}
-					position.y = terrainHeight;
+					// move the z axis if there is no purposeful upward or downward velocity
+					if (downVelocity > -0.3f && downVelocity < 0.3f)
+					{
+						position.y = terrainHeight;
+						hitBox.origin.y = terrainHeight;
+					}
 				}
 				else
 				{
@@ -171,7 +177,12 @@ namespace utility {
 						position += right * movement_sensitivity;
 						hitBox.origin = tempOrigin;
 					}
-					position.y = terrainHeight;
+					// move the z axis if there is no purposeful upward or downward velocity
+					if (downVelocity > -0.3f && downVelocity < 0.3f)
+					{
+						position.y = terrainHeight;
+						hitBox.origin.y = terrainHeight;
+					}
 				}
 				else
 				{
@@ -191,7 +202,12 @@ namespace utility {
 						position += forward * movement_sensitivity;
 						hitBox.origin = tempOrigin;
 					}
-					position.y = terrainHeight;
+					// move the z axis if there is no purposeful upward or downward velocity
+					if (downVelocity > -0.3f && downVelocity < 0.3f)
+					{
+						position.y = terrainHeight;
+						hitBox.origin.y = terrainHeight;
+					}
 				}
 				else
 				{
@@ -211,7 +227,12 @@ namespace utility {
 						position -= forward * movement_sensitivity;
 						hitBox.origin = tempOrigin;
 					}
-					position.y = terrainHeight;
+					// move the z axis if there is no purposeful upward or downward velocity
+					if (downVelocity > -0.3f && downVelocity < 0.3f)
+					{
+						position.y = terrainHeight;
+						hitBox.origin.y = terrainHeight;
+					}
 				} 
 				else
 				{
@@ -253,6 +274,45 @@ namespace utility {
 			bool getNoClip()
 			{
 				return noClip;
+			}
+
+			///<summary>Apply downwards velocity to the camera if it is above the terrain height</summmary>
+			void gravity(float deltaTime, float terrainHeight)
+			{
+				if (!noClip)
+				{
+					// Check whether the camera is "on the ground"
+					if (position.y <= terrainHeight)
+					{
+						if (downVelocity != 0)
+						{
+							downVelocity = 0;	// reset velocity
+						}
+					}
+					// If the camera is "in the air" apply the gravity calculation
+					else
+					{
+						// Check whether we have reached terminal velocity
+						if (downVelocity > -50.0f)
+						{
+							downVelocity += -9.8f * deltaTime;	// first set velocity
+						}
+						position.y += downVelocity * deltaTime;	// move the camera towards the terrain
+						hitBox.origin.y += downVelocity * deltaTime;
+					}
+				}
+			}
+
+			///<summary>Apply a burst of upwards velocity</summmary>
+			void jump(float deltaTime, float terrainHeight)
+			{
+				// Check if the camera is on the ground first
+				if (position.y <= terrainHeight)
+				{
+					downVelocity += 10.0f;
+					position.y += downVelocity * deltaTime;
+					hitBox.origin.y += downVelocity * deltaTime;
+				}
 			}
 
 		private:
@@ -299,6 +359,9 @@ namespace utility {
 
 			// No clip flag, unbind the camera from the terrain
 			bool noClip;
+
+			// Downwards velocity to the terrain, gravity
+			float downVelocity;
 
 			// Functions 
 			// Detect any collisions with the given camera position and a models hitbox
