@@ -18,11 +18,12 @@ namespace terrain {
 	
 	public:
 		// Terrain constructor
-		Terrain(int resX_ = 1000, int resZ_ = 1000, float scale_ = 0.5, int maxHeight_ = 15) {
+		Terrain(int resX_ = 1000, int resZ_ = 1000, float scale_ = 0.5, int maxHeight_ = 15, float yOffset_ = -20.0f) {
 			// Initialise parameters for terrain size and resolution
 			resX = resX_;
 			resZ = resZ_;
 			scale = scale_;
+			yOffset = yOffset_;
 
 			// Specify how many vertex attributes there are
 			int vertexAtt = 5;
@@ -99,7 +100,7 @@ namespace terrain {
 			// SET CAMERA IN MIDDLE OF TERRAIN
 			//--------------------------------
 			glm::mat4 Hwm = glm::mat4(1.0f);
-			Hwm[3] = glm::vec4(-(resX * scale) / 2, -20.0, -(resZ * scale) / 2, 1.0);
+			Hwm[3] = glm::vec4(-(resX * scale) / 2, yOffset, -(resZ * scale) / 2, 1.0);
 
 			glUniformMatrix4fv(glGetUniformLocation(terraShader, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(terraShader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
@@ -141,6 +142,7 @@ namespace terrain {
 
 		// Store terrain size and resolution
 		float scale;		// how much to scale terrain down, if terrain is resX by resZ
+		float yOffset;		// how much to offset the terrain by in the y direction (from 0.0f)
 		int resX;			// number of vertices wide (x-axis)
 		int resZ;			// number of vertices long (z-axis)
 		int noVertices;		// number of vertices to draw
@@ -166,7 +168,7 @@ namespace terrain {
 			// Loop over grid
 			for (int i = 0; i < resX; i++) {
 				for (int j = 0; j < resZ; j++) {
-					float currentHeight = (heights->at(j * (resX)+i)) * maxHeight;
+					float currentHeight = (heights->at(j * (resX)+i)) * maxHeight;	// find the current height of the terrain at the x,z pos
 					// Position
 					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 0] = (float)i;		// X 
 					vertices[(i * (resZ + resZ * (vertexAtt - 1))) + (j * vertexAtt) + 1] = currentHeight;	// Y	

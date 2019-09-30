@@ -175,13 +175,14 @@
 		int tresY = 1000;
 		float terraScale = 1.0;
 		int terraMaxHeight = 15;
-		terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight);
+		float terraYOffset = -20.0f;
+		terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight, terraYOffset);
 
 		// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
 		// Terrain is also -20.0f from the origin in the "Z" axis
 		int cameraOffsetX = tresX / 2;
 		int cameraOffsetY = tresY / 2;
-		float cameraOffsetZ = -20.0f;
+		
 
 		// Load the shaders to be used in the scene
 		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
@@ -194,19 +195,19 @@
 		int modelYCoord = 0;
 		// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add half the models height to get to ground level
 		// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
-		float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + cameraOffsetZ + (giraffe.hitBox.size.y / 2);
+		float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe.hitBox.size.y / 2);
 		giraffe.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));	// move the model to a space in the scene
 
 		model::Model barn = model::Model("models/barn/barn.obj");
 		modelXCoord = 10;
 		modelYCoord = 10;
-		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + cameraOffsetZ + (barn.hitBox.size.y / 2);
+		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn.hitBox.size.y / 2);
 		barn.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 
 		model::Model cat = model::Model("models/cat/cat.obj");
 		modelXCoord = 100;
 		modelYCoord = 10;
-		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + cameraOffsetZ + (cat.hitBox.size.y / 2);
+		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat.hitBox.size.y / 2);
 		cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 
 		/*model::Model fence = model::Model("models/fence/fence.obj");
@@ -248,7 +249,7 @@
 			// find the current rough terrain height at the camera position
 			int cameraX = (int)camera.get_position().x + cameraOffsetX;
 			int cameraY = (int)camera.get_position().z + cameraOffsetY;
-			float terrainHeight = terra.getHeightAt(cameraX, cameraY) + cameraOffsetZ + 5.0f;	// using the offset down 20.0f units and adding some height for the camera
+			float terrainHeight = terra.getHeightAt(cameraX, cameraY) + terraYOffset + 5.0f;	// using the offset down 20.0f units and adding some height for the camera
 			process_input(window, delta_time, camera, terrainHeight);
 
 			// get the camera transforms
