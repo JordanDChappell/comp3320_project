@@ -39,8 +39,9 @@
 	static int debounceCounter = 0;		// simple counter to debounce keyboard inputs
 
 	void process_input(GLFWwindow* window, const float& delta_time, utility::camera::Camera& camera, float terrainHeight) {
+		// Movement sensitivity is updated base on the delta_time and not framerate, gravity accelleration is also based on delta_time
 		camera.set_movement_sensitivity(30.0f * delta_time);
-		camera.gravity(delta_time, terrainHeight);
+		camera.gravity(delta_time, terrainHeight);	// apply gravity, giving the floor of the current (x,y) position
 
 		// Process movement inputs
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -58,19 +59,18 @@
 		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			camera.move_right(modelHitBoxes, terrainHeight);
 		}
-		else if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
-			camera.toggleNoClip();
-		}
-
-		// Process debounced inputs
+		
+		// Process debounced inputs - this ensures we won't have 5 jump events triggering before we leave the ground etc.
 		if (debounceCounter == 0)
 		{
-			
 			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 				camera.jump(delta_time, terrainHeight);
 			}
+			else if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
+				camera.toggleNoClip();
+			}
 		}
-		// debound inputs
+		// debounce inputs
 		if (debounceCounter == 5)
 		{
 			debounceCounter = 0;
@@ -171,15 +171,17 @@
 		glEnable(GL_DEPTH_TEST);
 
 		// Create Terrain - set up variables and initialize a terrain instance
-		int tresX = 1000;
+		int tresX = 1000;	// x and y resolutions for the terrain, keep in a variable for use in other calculations
 		int tresY = 1000;
 		float terraScale = 1.0;
 		int terraMaxHeight = 15;
 		terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight);
 
 		// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
+		// Terrain is also -20.0f from the origin in the "Z" axis
 		int cameraOffsetX = tresX / 2;
 		int cameraOffsetY = tresY / 2;
+		float cameraOffsetZ = -20.0f;
 
 		// Load the shaders to be used in the scene
 		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
@@ -187,28 +189,25 @@
 
 		// Load a model using model class
 		model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
-		// Locate the model in the scene
+		// Locate the model in the scene, simply give x and y coordinates (technically x and z in openGL)
 		int modelXCoord = 100;
 		int modelYCoord = 0;
-		float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) - (23.0f - giraffe.hitBox.size.y);	// get the terrain height at the current x,y coordinate in the scene
+		// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add half the models height to get to ground level
+		// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
+		float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + cameraOffsetZ + (giraffe.hitBox.size.y / 2);
 		giraffe.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));	// move the model to a space in the scene
-		std::cout << "Giraffe hitbox origin: " << giraffe.hitBox.origin.x << "," << giraffe.hitBox.origin.y << "," << giraffe.hitBox.origin.z << std::endl;
-		std::cout << "Giraffe hitbox size: " << giraffe.hitBox.size.x << "," << giraffe.hitBox.size.y << "," << giraffe.hitBox.size.z << std::endl;
 
-		/*model::Model barn = model::Model("models/barn/barn.obj");
-		modelXCoord = 100;
+		model::Model barn = model::Model("models/barn/barn.obj");
+		modelXCoord = 10;
 		modelYCoord = 10;
-		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY);
-		barn.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));*/
+		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + cameraOffsetZ + (barn.hitBox.size.y / 2);
+		barn.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 
 		model::Model cat = model::Model("models/cat/cat.obj");
 		modelXCoord = 100;
 		modelYCoord = 10;
-		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) - (23.0f - cat.hitBox.size.y);
+		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + cameraOffsetZ + (cat.hitBox.size.y / 2);
 		cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
-
-		std::cout << "Cat hitbox origin: " << cat.hitBox.origin.x << "," << cat.hitBox.origin.y << "," << cat.hitBox.origin.z << std::endl;
-		std::cout << "Cat hitbox size: " << cat.hitBox.size.x << "," << cat.hitBox.size.y << "," << cat.hitBox.size.z << std::endl;
 
 		/*model::Model fence = model::Model("models/fence/fence.obj");
 		fence.MoveTo(glm::vec3(-10, 0, -4));
@@ -223,11 +222,11 @@
 		skybox::Skybox skybox = skybox::Skybox();
 		skybox.getInt();		
 
-		// Add all of the model hit boxes to a vector, this needs thinking about, should we calculate all collisions on every frame?
+		// Add all of the model hit boxes to a vector
 		modelHitBoxes.push_back(giraffe.hitBox);
 		modelHitBoxes.push_back(cat.hitBox);
-		/*modelHitBoxes.push_back(barn.hitBox);
-		modelHitBoxes.push_back(fence.hitBox);
+		modelHitBoxes.push_back(barn.hitBox);
+		/*modelHitBoxes.push_back(fence.hitBox);
 		modelHitBoxes.push_back(bucket.hitBox);
 		modelHitBoxes.push_back(trough.hitBox);*/
 		
@@ -245,9 +244,11 @@
 			current_frame = glfwGetTime();
 			delta_time = current_frame - last_frame;
 			last_frame = current_frame;
+
+			// find the current rough terrain height at the camera position
 			int cameraX = (int)camera.get_position().x + cameraOffsetX;
 			int cameraY = (int)camera.get_position().z + cameraOffsetY;
-			float terrainHeight = terra.getHeightAt(cameraX, cameraY) - 15.0f;
+			float terrainHeight = terra.getHeightAt(cameraX, cameraY) + cameraOffsetZ + 5.0f;	// using the offset down 20.0f units and adding some height for the camera
 			process_input(window, delta_time, camera, terrainHeight);
 
 			// get the camera transforms
@@ -267,8 +268,8 @@
 			cat.Draw(modelShader, Hvw, Hcv, Hwm);
 			/*trough.Draw(modelShader, Hvw, Hcv, Hwm);
 			fence.Draw(modelShader, Hvw, Hcv, Hwm);
-			bucket.Draw(modelShader, Hvw, Hcv, Hwm);
-			barn.Draw(modelShader, Hvw, Hcv, Hwm);*/
+			bucket.Draw(modelShader, Hvw, Hcv, Hwm);*/
+			barn.Draw(modelShader, Hvw, Hcv, Hwm);
 			
 			//-------------
 			// DRAW TERRAIN 

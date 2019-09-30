@@ -215,9 +215,9 @@ namespace model {
 			// process ASSIMP's root node recursively
 			processNode(scene->mRootNode, scene);
 
-			// initialize the models hitbox
+			// initialize the models hitbox, origin is the minimum vertex in each axis
 			hitBox.origin = minVertices;
-			hitBox.size = maxVertices - minVertices;
+			hitBox.size = maxVertices - minVertices;	// size is just the max - min
 		}
 
 		///<summary>
@@ -282,7 +282,7 @@ namespace model {
 				vertices.push_back(vertex);
 
 				// find the min and max vertices for the hitbox
-				// TODO: can this be optimized? probably...
+				// TODO: can this be optimized? probably...but it's not that slow
 				if (!verticesSet)		// edge case, initialize all min and max values first
 				{
 					minVertices.x = mesh->mVertices[i].x;

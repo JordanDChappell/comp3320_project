@@ -142,21 +142,17 @@ namespace utility {
 			}
 
 			// Strafe left
-			// -----------
+			// Moves the camera to the left if there are no collisions detected
 			void move_left(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
+				// tempOrigin is the proposed next location of the camera, used to test for a collision on the next movement space
 				glm::vec3 tempOrigin = hitBox.origin - right * movement_sensitivity;
+				// if noClip is not set, detect a collision, otherwise ignore it and allow the camera to clip through things
 				if (!noClip) 
 				{
 					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
 					{
-						position -= right * movement_sensitivity;
-						hitBox.origin = tempOrigin;
-					}
-					// move the z axis if there is no purposeful upward or downward velocity
-					if (downVelocity > -0.3f && downVelocity < 0.3f)
-					{
-						position.y = terrainHeight;
-						hitBox.origin.y = terrainHeight;
+						position -= right * movement_sensitivity;	// the next position is valid so we can move the camera
+						hitBox.origin = tempOrigin;					// move the hitbox with the camera
 					}
 				}
 				else
@@ -167,7 +163,7 @@ namespace utility {
 			}
 
 			// Strafe right
-			// ------------
+			// The opposite movement of left, a clone of the left function with a positive right direction
 			void move_right(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
 				glm::vec3 tempOrigin = hitBox.origin + right * movement_sensitivity;
 				if (!noClip)
@@ -176,12 +172,6 @@ namespace utility {
 					{
 						position += right * movement_sensitivity;
 						hitBox.origin = tempOrigin;
-					}
-					// move the z axis if there is no purposeful upward or downward velocity
-					if (downVelocity > -0.3f && downVelocity < 0.3f)
-					{
-						position.y = terrainHeight;
-						hitBox.origin.y = terrainHeight;
 					}
 				}
 				else
@@ -194,19 +184,15 @@ namespace utility {
 			// Move forward
 			// ------------
 			void move_forward(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
-				glm::vec3 tempOrigin = hitBox.origin + forward * movement_sensitivity;
+				// Remove Y axis movement from the forward vector, this will keep the camera from taking flight!
+				glm::vec3 movementForward = glm::vec3(forward.x, 0.0f, forward.z);
+				glm::vec3 tempOrigin = hitBox.origin + movementForward * movement_sensitivity;
 				if (!noClip)
 				{
 					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
 					{
-						position += forward * movement_sensitivity;
+						position += movementForward * movement_sensitivity;
 						hitBox.origin = tempOrigin;
-					}
-					// move the z axis if there is no purposeful upward or downward velocity
-					if (downVelocity > -0.3f && downVelocity < 0.3f)
-					{
-						position.y = terrainHeight;
-						hitBox.origin.y = terrainHeight;
 					}
 				}
 				else
@@ -219,19 +205,14 @@ namespace utility {
 			// Move backward
 			// -------------
 			void move_backward(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
-				glm::vec3 tempOrigin = hitBox.origin - forward * movement_sensitivity;
+				glm::vec3 movementForward = glm::vec3(forward.x, 0.0f, forward.z);
+				glm::vec3 tempOrigin = hitBox.origin - movementForward * movement_sensitivity;
 				if (!noClip)
 				{
 					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
 					{
-						position -= forward * movement_sensitivity;
+						position -= movementForward * movement_sensitivity;
 						hitBox.origin = tempOrigin;
-					}
-					// move the z axis if there is no purposeful upward or downward velocity
-					if (downVelocity > -0.3f && downVelocity < 0.3f)
-					{
-						position.y = terrainHeight;
-						hitBox.origin.y = terrainHeight;
 					}
 				} 
 				else
@@ -281,13 +262,14 @@ namespace utility {
 			{
 				if (!noClip)
 				{
-					// Check whether the camera is "on the ground"
-					if (position.y <= terrainHeight)
+					// Check whether the camera is "on the ground", make sure it stays above the ground
+					if (position.y < terrainHeight)
 					{
 						if (downVelocity != 0)
 						{
 							downVelocity = 0;	// reset velocity
 						}
+						position.y = terrainHeight;
 					}
 					// If the camera is "in the air" apply the gravity calculation
 					else
@@ -298,7 +280,7 @@ namespace utility {
 							downVelocity += -9.8f * deltaTime;	// first set velocity
 						}
 						position.y += downVelocity * deltaTime;	// move the camera towards the terrain
-						hitBox.origin.y += downVelocity * deltaTime;
+						hitBox.origin.y += downVelocity * deltaTime;	// make sure to move the hitbox with the camera
 					}
 				}
 			}
@@ -306,9 +288,10 @@ namespace utility {
 			///<summary>Apply a burst of upwards velocity</summmary>
 			void jump(float deltaTime, float terrainHeight)
 			{
-				// Check if the camera is on the ground first
+				// Check if the camera is on the ground first, can't double jump :(
 				if (position.y <= terrainHeight)
 				{
+					// An initial burst of upwards velocity
 					downVelocity += 10.0f;
 					position.y += downVelocity * deltaTime;
 					hitBox.origin.y += downVelocity * deltaTime;
