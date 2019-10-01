@@ -105,6 +105,17 @@ namespace utility {
 				aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
 			}
 
+			// Move the camera's y position by distance
+			void move_y_position(float distance) {
+				position.y += distance;
+			}
+
+			// Invert (negate) the pitch of the camera
+			void invert_pitch() {
+				orientation.y = -orientation.y;
+				update_camera_basis();
+			}
+
 			// Calculate and return the world to camera transform
 			// --------------------------------------------------
 			glm::mat4 get_view_transform() {
@@ -129,6 +140,12 @@ namespace utility {
 				return forward;
 			}
 
+			// Return the camera hitbox
+			model::HitBox getHitBox()
+			{
+				return hitBox;
+			}
+
 			// Set the sensitivity of keyboard movement events
 			// -----------------------------------------------
 			void set_movement_sensitivity(const float& sensitivity) {
@@ -143,13 +160,13 @@ namespace utility {
 
 			// Strafe left
 			// Moves the camera to the left if there are no collisions detected
-			void move_left(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
+			void move_left(std::vector<model::HitBox> hitBoxes) {
 				// tempOrigin is the proposed next location of the camera, used to test for a collision on the next movement space
 				glm::vec3 tempOrigin = hitBox.origin - right * movement_sensitivity;
 				// if noClip is not set, detect a collision, otherwise ignore it and allow the camera to clip through things
 				if (!noClip) 
 				{
-					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+					if (!collisionDetected(hitBoxes, tempOrigin, hitBox.size))
 					{
 						position -= right * movement_sensitivity;	// the next position is valid so we can move the camera
 						hitBox.origin = tempOrigin;					// move the hitbox with the camera
@@ -164,11 +181,11 @@ namespace utility {
 
 			// Strafe right
 			// The opposite movement of left, a clone of the left function with a positive right direction
-			void move_right(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
+			void move_right(std::vector<model::HitBox> hitBoxes) {
 				glm::vec3 tempOrigin = hitBox.origin + right * movement_sensitivity;
 				if (!noClip)
 				{
-					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+					if (!collisionDetected(hitBoxes, tempOrigin, hitBox.size))
 					{
 						position += right * movement_sensitivity;
 						hitBox.origin = tempOrigin;
@@ -183,13 +200,13 @@ namespace utility {
 
 			// Move forward
 			// ------------
-			void move_forward(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
+			void move_forward(std::vector<model::HitBox> hitBoxes) {
 				// Remove Y axis movement from the forward vector, this will keep the camera from taking flight!
 				glm::vec3 movementForward = glm::vec3(forward.x, 0.0f, forward.z);
 				glm::vec3 tempOrigin = hitBox.origin + movementForward * movement_sensitivity;
 				if (!noClip)
 				{
-					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+					if (!collisionDetected(hitBoxes, tempOrigin, hitBox.size))
 					{
 						position += movementForward * movement_sensitivity;
 						hitBox.origin = tempOrigin;
@@ -204,17 +221,18 @@ namespace utility {
 
 			// Move backward
 			// -------------
-			void move_backward(std::vector<model::HitBox> modelHitBoxes, float terrainHeight) {
+			void move_backward(std::vector<model::HitBox> hitBoxes) {
+				// Remove Y axis movement from the forward vector, this will keep the camera from taking flight!
 				glm::vec3 movementForward = glm::vec3(forward.x, 0.0f, forward.z);
 				glm::vec3 tempOrigin = hitBox.origin - movementForward * movement_sensitivity;
 				if (!noClip)
 				{
-					if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+					if (!collisionDetected(hitBoxes, tempOrigin, hitBox.size))
 					{
 						position -= movementForward * movement_sensitivity;
 						hitBox.origin = tempOrigin;
 					}
-				} 
+				}
 				else
 				{
 					position -= forward * movement_sensitivity;
@@ -224,9 +242,9 @@ namespace utility {
 
 			// Move up
 			// -------
-			void move_up(std::vector<model::HitBox> modelHitBoxes) {
+			void move_up(std::vector<model::HitBox> hitBoxes) {
 				glm::vec3 tempOrigin = hitBox.origin + up * movement_sensitivity;
-				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				if (!collisionDetected(hitBoxes, tempOrigin, hitBox.size))
 				{
 					position += up * movement_sensitivity;
 					hitBox.origin = tempOrigin;
@@ -235,9 +253,9 @@ namespace utility {
 
 			// Move down
 			// ---------
-			void move_down(std::vector<model::HitBox> modelHitBoxes) {
+			void move_down(std::vector<model::HitBox> hitBoxes) {
 				glm::vec3 tempOrigin = hitBox.origin - up * movement_sensitivity;
-				if (!collisionDetected(modelHitBoxes, tempOrigin, hitBox.size))
+				if (!collisionDetected(hitBoxes, tempOrigin, hitBox.size))
 				{
 					position -= up * movement_sensitivity;
 					hitBox.origin = tempOrigin;
@@ -270,6 +288,7 @@ namespace utility {
 							downVelocity = 0;	// reset velocity
 						}
 						position.y = terrainHeight;
+						hitBox.origin.y = terrainHeight;
 					}
 					// If the camera is "in the air" apply the gravity calculation
 					else
@@ -348,15 +367,15 @@ namespace utility {
 
 			// Functions 
 			// Detect any collisions with the given camera position and a models hitbox
-			bool collisionDetected(std::vector<model::HitBox> modelHitBoxes, glm::vec3 cameraOrigin, glm::vec3 cameraSize)
+			bool collisionDetected(std::vector<model::HitBox> hitBoxes, glm::vec3 cameraOrigin, glm::vec3 cameraSize)
 			{
 				// Loop over the vector of hitboxes in the world
-				for (int i = 0; i < modelHitBoxes.size(); i++) 
+				for (int i = 0; i < hitBoxes.size(); i++)
 				{
 					// Check each axis for overlap between the model hitbox and the camera hitbox
-					bool xCheck = abs(cameraOrigin.x - modelHitBoxes[i].origin.x) < cameraSize.x + modelHitBoxes[i].size.x;
-					bool yCheck = abs(cameraOrigin.y - modelHitBoxes[i].origin.y) < cameraSize.y + modelHitBoxes[i].size.y;
-					bool zCheck = abs(cameraOrigin.z - modelHitBoxes[i].origin.z) < cameraSize.z + modelHitBoxes[i].size.z;
+					bool xCheck = abs(cameraOrigin.x - hitBoxes[i].origin.x) < cameraSize.x + hitBoxes[i].size.x;
+					bool yCheck = abs(cameraOrigin.y - hitBoxes[i].origin.y) < cameraSize.y + hitBoxes[i].size.y;
+					bool zCheck = abs(cameraOrigin.z - hitBoxes[i].origin.z) < cameraSize.z + hitBoxes[i].size.z;
 					if (xCheck && yCheck && zCheck) 
 					{
 						return true;

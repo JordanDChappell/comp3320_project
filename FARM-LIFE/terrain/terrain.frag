@@ -1,25 +1,39 @@
 #version 150
 
+// in variables
 in vec2 TexCoord;
 in float height;
 
+// out variables
 out vec4 outColor;
 
-uniform sampler2D texGrass;
-uniform sampler2D texRock;
-uniform sampler2D texWater;
+// Textures
+uniform sampler2D texGrass;	// grass texture
+uniform sampler2D texRock;	// rock texture
+
+// Height value at which the terrain becomes grass
+uniform float grassHeight;
 
 void main()
 {
 	vec4 colTexture;
-	if (height < 6.0) {
-		colTexture = texture(texWater, TexCoord);
+	vec4 grassTexture = texture(texGrass, TexCoord);
+	vec4 rockTexture = texture(texRock, TexCoord);
+
+	// Texture will just be rock
+	if (height < (grassHeight - 1)) {
+		colTexture = rockTexture;
 	}
-	else if (height <= 8.0 && height >= 6.0) {
-		colTexture = texture(texRock, TexCoord);
+
+	// Fade in the grass
+	else if (height <= grassHeight && height >= (grassHeight - 1)) {
+		colTexture = mix(rockTexture, grassTexture, height - (grassHeight - 1));
 	}
+
+	// Only grass
 	else {
-		colTexture = texture(texGrass, TexCoord);
+		colTexture = grassTexture;
 	}
+
 	outColor = colTexture;
 }

@@ -26,6 +26,8 @@
 	#include "terrain/terrain.hpp"
 	#include "models/model.hpp"
 	#include "skybox/skybox.hpp"
+	#include "water/water.hpp"
+	#include "water/WaterFrameBuffers.hpp"
 
 	// Initial width and height of the window
 	GLuint SCREEN_WIDTH = 1200;
@@ -35,7 +37,8 @@
 	static constexpr float NEAR_PLANE = 0.1f;
 	static constexpr float FAR_PLANE = 1000.0f;
 
-	std::vector<model::HitBox> modelHitBoxes;
+	std::vector<model::Model> models;	// vector of all models to render
+	std::vector<model::HitBox> hitBoxes;	// vector of all hitboxes in the scene for collision detections
 	static int debounceCounter = 0;		// simple counter to debounce keyboard inputs
 
 	void process_input(GLFWwindow* window, const float& delta_time, utility::camera::Camera& camera, float terrainHeight) {
@@ -48,16 +51,16 @@
 			glfwSetWindowShouldClose(window, true);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			camera.move_forward(modelHitBoxes, terrainHeight);
+			camera.move_forward(hitBoxes);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			camera.move_backward(modelHitBoxes, terrainHeight);
+			camera.move_backward(hitBoxes);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			camera.move_left(modelHitBoxes, terrainHeight);
+			camera.move_left(hitBoxes);
 		}
 		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			camera.move_right(modelHitBoxes, terrainHeight);
+			camera.move_right(hitBoxes);
 		}
 		
 		// Process debounced inputs - this ensures we won't have 5 jump events triggering before we leave the ground etc.
@@ -69,6 +72,17 @@
 			else if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
 				camera.toggleNoClip();
 			}
+			else if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
+				std::cout << "Model Hitbox: " << std::endl;
+				std::cout << hitBoxes[0].origin.x << " " << hitBoxes[0].origin.y << " " << hitBoxes[0].origin.z << std::endl;
+				std::cout << hitBoxes[0].size.x << " " << hitBoxes[0].size.y << " " << hitBoxes[0].size.z << std::endl;
+
+				model::HitBox cameraHitBox = camera.getHitBox();
+
+				std::cout << "Model Hitbox: " << std::endl;
+				std::cout << cameraHitBox.origin.x << " " << cameraHitBox.origin.y << " " << cameraHitBox.origin.z << std::endl;
+				std::cout << cameraHitBox.size.x << " " << cameraHitBox.size.y << " " << cameraHitBox.size.z << std::endl;
+			}
 		}
 		// debounce inputs
 		if (debounceCounter == 5)
@@ -79,6 +93,36 @@
 		{
 			debounceCounter++;
 		}
+	}
+
+	void render(terrain::Terrain terra, utility::camera::Camera camera, skybox::Skybox skybox, std::vector<model::Model> models, GLuint modelShader, glm::vec4 clippingPlane) {
+		// get the camera transforms
+		glm::mat4 Hvw = camera.get_view_transform();
+		glm::mat4 Hcv = camera.get_clip_transform();
+		glm::mat4 Hwm = glm::mat4(1.0f);
+		
+		// Clear color buffer  
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// NOTE: Draw all other objects before the skybox
+
+		// Draw the models
+		glDepthFunc(GL_LESS);
+
+		for (int i = 0; i < models.size(); i++) {
+			models.at(i).Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane);
+		}
+
+		//-------------
+		// DRAW TERRAIN 
+		//-------------
+		terra.draw(Hvw, Hcv, clippingPlane);
+
+		//--------------------------
+		// DRAW SKYBOX - always last
+		//--------------------------
+		Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
+		skybox.render(Hvw, Hcv);
 	}
 
     int main( void )  
@@ -165,24 +209,35 @@
 
 		//--------------------------------------------------------
 		//-----------COMPLETED DEPENDENCY INITITIALISATION--------
+		//------------------INITIALISE SCENE----------------------
 		//--------------------------------------------------------
 
 		// Enable depth test
 		glEnable(GL_DEPTH_TEST);
 
-		// Create Terrain - set up variables and initialize a terrain instance
+		//---------------
+		// CREATE TERRAIN
+		//---------------
+		// Set up variables and initialize a terrain instance
 		int tresX = 1000;	// x and y resolutions for the terrain, keep in a variable for use in other calculations
 		int tresY = 1000;
 		float terraScale = 1.0;
 		int terraMaxHeight = 15;
-		float terraYOffset = -20.0f;
+		float terraYOffset = -20.0f;	// the terrain is 
+		// Create main terrain
 		terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight, terraYOffset);
+		// Create water frame buffers for reflection and refraction
+		water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
+		// Create water
+		water::Water water = water::Water(tresX, tresY, terraScale, 6.0f, fbos);
 
 		// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
-		// Terrain is also -20.0f from the origin in the "Z" axis
 		int cameraOffsetX = tresX / 2;
 		int cameraOffsetY = tresY / 2;
 		
+		//--------------
+		// CREATE MODELS
+		//--------------
 
 		// Load the shaders to be used in the scene
 		//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
@@ -197,39 +252,41 @@
 		// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
 		float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe.hitBox.size.y / 2);
 		giraffe.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));	// move the model to a space in the scene
+		models.push_back(giraffe);	// push the model to the render vector
+		hitBoxes.push_back(giraffe.hitBox);	// push the model's hitbox to the hitBox vector
 
 		model::Model barn = model::Model("models/barn/barn.obj");
 		modelXCoord = 10;
 		modelYCoord = 10;
 		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn.hitBox.size.y / 2);
 		barn.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+		models.push_back(barn);
+		hitBoxes.push_back(barn.hitBox);
 
 		model::Model cat = model::Model("models/cat/cat.obj");
 		modelXCoord = 100;
 		modelYCoord = 10;
 		modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat.hitBox.size.y / 2);
 		cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+		models.push_back(cat);
+		hitBoxes.push_back(cat.hitBox);
 
 		/*model::Model fence = model::Model("models/fence/fence.obj");
 		fence.MoveTo(glm::vec3(-10, 0, -4));
+		models.push_back(fence);
 
 		model::Model bucket = model::Model("models/bucket/bucket.obj");
 		bucket.MoveTo(glm::vec3(-10, 0, 10));
+		models.push_back(bucket);
 
 		model::Model trough = model::Model("models/trough/watertrough.obj");
 		trough.MoveTo(glm::vec3(-10, -4, 9));*/
-
-		// Create the skybox class instance
+		
+		//--------------
+		// CREATE SKYBOX
+		//--------------
 		skybox::Skybox skybox = skybox::Skybox();
-		skybox.getInt();		
-
-		// Add all of the model hit boxes to a vector
-		modelHitBoxes.push_back(giraffe.hitBox);
-		modelHitBoxes.push_back(cat.hitBox);
-		modelHitBoxes.push_back(barn.hitBox);
-		/*modelHitBoxes.push_back(fence.hitBox);
-		modelHitBoxes.push_back(bucket.hitBox);
-		modelHitBoxes.push_back(trough.hitBox);*/
+		skybox.getInt();
 		
 		// Init before the main loop
 		float last_frame = glfwGetTime();
@@ -252,51 +309,65 @@
 			float terrainHeight = terra.getHeightAt(cameraX, cameraY) + terraYOffset + 5.0f;	// using the offset down 20.0f units and adding some height for the camera
 			process_input(window, delta_time, camera, terrainHeight);
 
-			// get the camera transforms
-			glm::mat4 Hvw = camera.get_view_transform();
-			glm::mat4 Hcv = camera.get_clip_transform();
-			glm::mat4 Hwm = glm::mat4(1.0f);
+			//------------------------------------------
+			// RENDER REFLECTION AND REFRACTION TEXTURES
+			//------------------------------------------
+			// Allow clipping
+			glEnable(GL_CLIP_DISTANCE0);
 
-			/* RENDER */
-			// Clear color buffer  
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+			// Bind the reflection frame buffer
+			fbos.bindReflectionFrameBuffer();
 			
-			// NOTE: Draw all other objects before the skybox
-
-			// Draw the models
-			glDepthFunc(GL_LESS);
-			giraffe.Draw(modelShader, Hvw, Hcv, Hwm);
-			cat.Draw(modelShader, Hvw, Hcv, Hwm);
-			/*trough.Draw(modelShader, Hvw, Hcv, Hwm);
-			fence.Draw(modelShader, Hvw, Hcv, Hwm);
-			bucket.Draw(modelShader, Hvw, Hcv, Hwm);*/
-			barn.Draw(modelShader, Hvw, Hcv, Hwm);
+			// Move the camera
+			float distance = 2 * (camera.get_position().y - water.getHeight());
+			camera.move_y_position(-distance);
+			camera.invert_pitch();
 			
-			//-------------
-			// DRAW TERRAIN 
-			//-------------
-			terra.draw(Hvw, Hcv);
+			// Render the scene
+			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			
+			// Move the camera back
+			camera.move_y_position(distance);
+			camera.invert_pitch();
+			
+			// Bind the refraction frame buffer
+			fbos.bindRefractionFrameBuffer();
 
-			//--------------------------
-			// DRAW SKYBOX - always last
-			//--------------------------
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
-			skybox.render(Hvw, Hcv);
+			// Render the scene
+			render(terra, camera, skybox, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+		
+			// Unbind the frame buffer before rendering the scene
+			fbos.unbindCurrentFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+			
+			// Disable clipping
+			glDisable(GL_CLIP_DISTANCE0);
 
-            //Swap buffers  
+			//-----------------
+			// RENDER THE SCENE
+			//-----------------
+			// Render terrain, skybox and models
+			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 0, 0, 0));
+			
+			// TODO: Send in a light when lights are done
+			// Render water
+			water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(), 
+				glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0));
+
+			//Swap buffers  
             glfwSwapBuffers(window);  
             //Get and organize events, like keyboard and mouse input, window resizing, etc...  
             glfwPollEvents();  
       
-        } //Check if the ESC key had been pressed or if the window had been closed  
+        } // Check if the ESC key had been pressed or if the window had been closed  
         while (!glfwWindowShouldClose(window));  
       
-		// Cleanup Terrain (delete buffers etc)
-		//terra.cleanup();
+		// Cleanup (delete buffers etc)
+		terra.cleanup();
+		fbos.cleanup();
 
-        //Close OpenGL window and terminate GLFW  
+        // Close OpenGL window and terminate GLFW  
         glfwDestroyWindow(window);  
-        //Finalize and clean up GLFW  
+        // Finalize and clean up GLFW  
         glfwTerminate();  
       
         exit(EXIT_SUCCESS);  
