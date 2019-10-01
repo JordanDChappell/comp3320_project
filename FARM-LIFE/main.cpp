@@ -125,6 +125,69 @@
 		skybox.render(Hvw, Hcv);
 	}
 
+	// Loads a loading screen for FARM-LIFE: GAME OF THE YEAR EDITION
+	void addLoadingScreen() {
+		// Create and bind vertex array object
+		GLuint vao1;
+		glGenVertexArrays(1, &vao1);
+		glBindVertexArray(vao1);
+
+		// Create vertex buffer object
+		float vertices[] = {
+			-1.0f,  1.0f, 0.0f, 0.0f,	// upper left
+			 1.0f,  1.0f, 1.0f, 0.0f,	// upper right
+			 1.0f, -1.0f, 1.0f, 1.0f,	// lower right
+			-1.0f, -1.0f, 0.0f, 1.0f	// lower left
+		};
+
+		GLuint vbo1;
+		glGenBuffers(1, &vbo1);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo1);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		// Create and bind element buffer object
+		int elements[] = {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+		GLuint ebo1;
+		glGenBuffers(1, &ebo1);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo1);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+		// Create shader program
+		GLuint shader1 = LoadShaders("shaders/loading.vert", "shaders/loading.frag");
+		glUseProgram(shader1);
+
+		// Create and bind texture
+		int width, height;			// Variables for the width and height of image being loaded 
+		GLuint tex1;
+		glGenTextures(1, &tex1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex1);
+		unsigned char* image = SOIL_load_image("loading_screen.png", &width, &height, 0, SOIL_LOAD_RGB);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+			GL_UNSIGNED_BYTE, image);
+		glUniform1i(glGetUniformLocation(shader1, "screen"), 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// Set vertex attributes
+		GLuint posAttrib = glGetAttribLocation(shader1, "position");
+		glEnableVertexAttribArray(posAttrib);
+		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
+			4 * sizeof(float), 0);
+
+		GLuint texAttrib = glGetAttribLocation(shader1, "texcoords");
+		glEnableVertexAttribArray(texAttrib);
+		glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
+			4 * sizeof(float), (void*)(2 * sizeof(float)));
+	}
+
     int main( void )  
     {  
 		// Set the screen size by the current desktop height, width (for fullscreen)
@@ -211,10 +274,16 @@
 		//-----------COMPLETED DEPENDENCY INITITIALISATION--------
 		//------------------INITIALISE SCENE----------------------
 		//--------------------------------------------------------
-
+		
+		// Draw screen while waiting for the main program to load
+		addLoadingScreen();
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glfwSwapBuffers(window);
+		
 		// Enable depth test
 		glEnable(GL_DEPTH_TEST);
 
+		
 		//---------------
 		// CREATE TERRAIN
 		//---------------
@@ -271,7 +340,7 @@
 		models.push_back(cat);
 		hitBoxes.push_back(cat.hitBox);
 
-		/*model::Model fence = model::Model("models/fence/fence.obj");
+		model::Model fence = model::Model("models/fence/fence.obj");
 		fence.MoveTo(glm::vec3(-10, 0, -4));
 		models.push_back(fence);
 
@@ -280,7 +349,7 @@
 		models.push_back(bucket);
 
 		model::Model trough = model::Model("models/trough/watertrough.obj");
-		trough.MoveTo(glm::vec3(-10, -4, 9));*/
+		trough.MoveTo(glm::vec3(-10, -4, 9));
 		
 		//--------------
 		// CREATE SKYBOX
