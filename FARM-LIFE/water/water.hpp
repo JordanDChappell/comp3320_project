@@ -65,7 +65,7 @@ namespace water {
 		// Precondition:	Water object has been constructed
 		// Postcondition:	Water is drawn
 		void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec3 &camPos,
-				  float time, glm::vec3 lightPosition, glm::vec3 lightColour)
+				  float time, glm::vec3 lightPosition, glm::vec3 lightColour, bool isCameraAbove)
 		{
 			// Initalise variables needed for drawing the water
 			float waveHeight = 0.5;
@@ -119,6 +119,7 @@ namespace water {
 			glUniform1f(glGetUniformLocation(shader, "waveHeight"), waveHeight);
 			glUniform1f(glGetUniformLocation(shader, "near"), NEAR_PLANE);
 			glUniform1f(glGetUniformLocation(shader, "far"), FAR_PLANE);
+			glUniform1i(glGetUniformLocation(shader, "isCameraAbove"), isCameraAbove ? 1 : 0);
 
 			// Set light uniforms
 			glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);

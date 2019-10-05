@@ -22,10 +22,11 @@ uniform vec3 colour;					// colour to add blue tint
 uniform vec3 lightColour;				// colour of the light
 uniform float near;						// near plane of program
 uniform float far;						// far plane of program
+uniform bool isCameraAbove;				// check if we need to do reflectivity or not
 
 // Parameters for specular lighting
-const float shineDamper = 20.0;			// Adjust shine
-const float reflectivity = 0.6;			// Adjust reflectivity
+const float shineDamper = 20.0;			// adjust shine
+const float reflectivity = 0.6;			// adjust reflectivity
 
 void main()
 {
@@ -37,7 +38,7 @@ void main()
 	vec2 ndc = ((clipSpace.xy / clipSpace.w) / 2.0) + 0.5;
 
 	// Set the texture coordinates based on the normalised device coordinates
-	vec2 reflectTexCoords = vec2(ndc.x, -ndc.y);	// mirror in y since reflecting
+	vec2 reflectTexCoords = vec2(ndc.x, -ndc.y);	
 	vec2 refractTexCoords = vec2(ndc.x, ndc.y);
 
 	// Distort the texture coordinates to create ripples using the du/dv map
@@ -104,6 +105,9 @@ void main()
 	//-----------------------
 	// Reflective vs refractive with Fresnel effect
 	outColour = mix(reflectColour, refractColour, refractiveFactor);
+	if (!isCameraAbove) {
+		outColour = refractColour;
+	}
 	// Add colour tint and add specular highlights
 	outColour = mix(outColour, vec4(colour, 1.0), 0.05) + vec4(specularHighlights, 1.0);
 	// Adjust alpha value based on water depth

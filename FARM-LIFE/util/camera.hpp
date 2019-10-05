@@ -82,7 +82,7 @@ namespace utility {
 			}
 
 			void update_camera_basis() {
-				// calculate pitch and yaw
+				// calculate yaw, pitch, roll
 				const float cos_yaw = std::cos(glm::radians(orientation.x));
 				const float sin_yaw = std::sin(glm::radians(orientation.x));
 				const float cos_pitch = std::cos(glm::radians(orientation.y));
@@ -115,6 +115,13 @@ namespace utility {
 				orientation.y = -orientation.y;
 				update_camera_basis();
 			}
+
+			// Invert (negate) the yaw of the camera
+			void invert_yaw() {
+				orientation.x = -orientation.x;
+				update_camera_basis();
+			}
+
 
 			// Calculate and return the world to camera transform
 			// --------------------------------------------------

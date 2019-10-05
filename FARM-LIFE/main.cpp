@@ -285,14 +285,14 @@
 		int tresX = 1000;	// x and y resolutions for the terrain, keep in a variable for use in other calculations
 		int tresY = 1000;
 		float terraScale = 1.0;
-		int terraMaxHeight = 15;
+		int terraMaxHeight = 30;
 		float terraYOffset = -20.0f;	// the terrain is 
 		// Create main terrain
 		terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight, terraYOffset);
 		// Create water frame buffers for reflection and refraction
 		water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
 		// Create water
-		water::Water water = water::Water(tresX, tresY, terraScale, 6.0f, fbos);
+		water::Water water = water::Water(tresX, tresY, terraScale, terraMaxHeight/2.5, fbos);
 
 		// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
 		int cameraOffsetX = tresX / 2;
@@ -378,40 +378,68 @@
 			//------------------------------------------
 			// RENDER REFLECTION AND REFRACTION TEXTURES
 			//------------------------------------------
-			// Allow clipping
-			glEnable(GL_CLIP_DISTANCE0);
+			// If camera is above the water, do reflection and refraction as you would expect
+			if (camera.get_position().y > water.getHeight()-0.5) {
+				// Allow clipping
+				glEnable(GL_CLIP_DISTANCE0);
 
-			// Bind the reflection frame buffer
-			fbos.bindReflectionFrameBuffer();
+				// Bind the reflection frame buffer
+				fbos.bindReflectionFrameBuffer();
+
+				// Move the camera
+				float distance = 2 * (camera.get_position().y - water.getHeight());
+				camera.move_y_position(-distance);
+				camera.invert_pitch();
+
+				// Render the scene
+				render(terra, camera, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+
+				// Render skybox last, disable clipping for skybox
+				glDisable(GL_CLIP_DISTANCE0);
+				Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
+				skybox.render(Hvw, Hcv);
+				glEnable(GL_CLIP_DISTANCE0);
+
+				// Move the camera back
+				camera.move_y_position(distance);
+				camera.invert_pitch();
+
+				// Bind the refraction frame buffer
+				fbos.bindRefractionFrameBuffer();
+
+				// Render the scene
+				render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+				// Render skybox last
+				glDisable(GL_CLIP_DISTANCE0);
+				Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
+				skybox.render(Hvw, Hcv);
+			}
+			// If the camera is below the water, dont need reflection only refraction
+			else {
+				// Allow clipping
+				glEnable(GL_CLIP_DISTANCE0);
+
+				// Bind the reflection frame buffer
+				fbos.bindReflectionFrameBuffer();
+
+				// Render the scene, don't bother changing since this is refraction
+				render(terra, camera, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+				// Render skybox last, disable clipping for skybox
+				glDisable(GL_CLIP_DISTANCE0);
+				Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
+				skybox.render(Hvw, Hcv);
+				glEnable(GL_CLIP_DISTANCE0);
+
+				// Bind the refraction frame buffer
+				fbos.bindRefractionFrameBuffer();
+				// Render the scene
+				render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+				// Render skybox last
+				glDisable(GL_CLIP_DISTANCE0);
+				Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
+				skybox.render(Hvw, Hcv);
+			}
 			
-			// Move the camera
-			float distance = 2 * (camera.get_position().y - water.getHeight());
-			camera.move_y_position(-distance);
-			camera.invert_pitch();
-			
-			// Render the scene
-			render(terra, camera, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
-
-			// Render skybox last, disable clipping for skybox
-			glDisable(GL_CLIP_DISTANCE0);
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
-			skybox.render(Hvw, Hcv);
-			glEnable(GL_CLIP_DISTANCE0);
-
-			// Move the camera back
-			camera.move_y_position(distance);
-			camera.invert_pitch();
-
-			// Bind the refraction frame buffer
-			fbos.bindRefractionFrameBuffer();
-
-			// Render the scene
-			render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
-			// Render skybox last
-			glDisable(GL_CLIP_DISTANCE0);
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
-			skybox.render(Hvw, Hcv);
-
 			// Unbind the frame buffer before rendering the scene
 			fbos.unbindCurrentFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 			
@@ -424,7 +452,7 @@
 			// TODO: Send in a light when lights are done
 			// Render water
 			water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(), 
-				glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0));
+				glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
 			// Render skybox last
 			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
 			skybox.render(Hvw, Hcv);
