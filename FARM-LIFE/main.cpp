@@ -3,6 +3,7 @@
 	* GLEW - OpenGL Extension Wrangler
 	* GLFW - Graphics Library Framework
 	* GLM - OpenGL Mathematics
+	* OpenAL - Open Audio Library
 	*/
 #include <windows.h>
 #include <sdl.h>
@@ -12,6 +13,8 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "al.h" 
+#include "alc.h" 
 
 // Include the standard C++ headers
 #include <iostream>
