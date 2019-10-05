@@ -17,13 +17,14 @@ class Terrain
 {
 public:
 	// Terrain constructor
-	Terrain(int resX_ = 1000, int resZ_ = 1000, float scale_ = 0.5, int maxHeight_ = 30, float yOffset_ = -20.0f)
+	Terrain(int resX_ = 1000, int resZ_ = 1000, float scale_ = 0.5, int maxHeight_ = 30, float yOffset_ = -20.0f, float waterHeight_ = 12)
 	{
 		// Initialise parameters for terrain size and resolution
 		resX = resX_;
 		resZ = resZ_;
 		scale = scale_;
 		yOffset = yOffset_;
+		waterHeight = waterHeight_;
 
 		// Specify how many vertex attributes there are
 		int vertexAtt = 3;
@@ -74,7 +75,7 @@ public:
 
 	// Precondition:	Terrain object has been constructed
 	// Postcondition:	Terrain is drawn
-	void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec4 &clippingPlane)
+	void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec4 &clippingPlane, glm::vec3 cameraPosition, glm::vec3 lightPosition, glm::vec3 lightColour, float time)
 	{
 		//------------------------
 		// BIND SHADER AND BUFFERS
@@ -100,6 +101,10 @@ public:
 		glBindTexture(GL_TEXTURE_2D, tex[3]);
 		glUniform1i(glGetUniformLocation(shader, "normalMap"), 3);
 
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, tex[4]);
+		glUniform1i(glGetUniformLocation(shader, "waterNormalMap"), 4);
+
 		//--------------------------------
 		// SET CAMERA IN MIDDLE OF TERRAIN
 		//--------------------------------
@@ -113,7 +118,16 @@ public:
 		// Set uniforms
 		glUniform1f(glGetUniformLocation(shader, "scale"), scale);
 		glUniform1f(glGetUniformLocation(shader, "grassHeight"), grassHeight);
+		glUniform1f(glGetUniformLocation(shader, "resolutionX"), resX);
+		glUniform1f(glGetUniformLocation(shader, "resolutionZ"), resZ);
+		glUniform1f(glGetUniformLocation(shader, "time"), time);
+		glUniform1f(glGetUniformLocation(shader, "waterHeight"), waterHeight);
+
 		glUniform4f(glGetUniformLocation(shader, "clippingPlane"), clippingPlane[0], clippingPlane[1], clippingPlane[2], clippingPlane[3]);
+
+		glUniform3f(glGetUniformLocation(shader, "cameraPosition"), cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+		glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
+		glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
 
 		//-------------
 		// DRAW TERRAIN
@@ -132,7 +146,7 @@ public:
 		glDeleteBuffers(1, &vbo);
 		glDeleteBuffers(1, &ebo);
 		glDeleteVertexArrays(1, &vao);
-		glDeleteTextures(4, &tex[0]);
+		glDeleteTextures(5, &tex[0]);
 	}
 
 	/// <summary>Returns the terrain height at the given (x,y) coordinate</summary>
@@ -147,7 +161,7 @@ private:
 	GLuint vao;	// vertex array object
 	GLuint vbo;	// vertex buffer object
 	GLuint ebo;	// element buffer object
-	GLuint tex[4]; // textures
+	GLuint tex[5]; // textures
 
 	// Store terrain size and resolution
 	float scale;	// how much to scale terrain down, if terrain is resX by resZ
@@ -155,6 +169,7 @@ private:
 	int resX;		// number of vertices wide (x-axis)
 	int resZ;		// number of vertices long (z-axis)
 	int noVertices; // number of vertices to draw
+	float waterHeight;
 
 	// Store terrain (x,y,z) vector for height detection
 	float **terraVertices;
@@ -277,7 +292,7 @@ private:
 	void loadTextures()
 	{
 		int width, height;		   // Variables for the width and height of image being loaded
-		glGenTextures(4, &tex[0]); // Generate three texture names
+		glGenTextures(5, &tex[0]); // Generate three texture names
 
 		//--------------------
 		// CREATE GRASS TEXTURE
@@ -335,6 +350,20 @@ private:
 		// Set the parameters for the rock texture
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		//------------------------
+		// CREATE WATER NORMAL MAP
+		//------------------------
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, tex[4]);
+		image = SOIL_load_image("water/normalmap.png", &width, &height, 0, SOIL_LOAD_RGB);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+		// Set the parameters for the rock texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
