@@ -95,7 +95,7 @@
 		}
 	}
 
-	void render(terrain::Terrain terra, utility::camera::Camera camera, skybox::Skybox skybox, std::vector<model::Model> models, GLuint modelShader, glm::vec4 clippingPlane) {
+	void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model> models, GLuint modelShader, glm::vec4 clippingPlane) {
 		// get the camera transforms
 		glm::mat4 Hvw = camera.get_view_transform();
 		glm::mat4 Hcv = camera.get_clip_transform();
@@ -117,12 +117,6 @@
 		// DRAW TERRAIN 
 		//-------------
 		terra.draw(Hvw, Hcv, clippingPlane);
-
-		//--------------------------
-		// DRAW SKYBOX - always last
-		//--------------------------
-		Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
-		skybox.render(Hvw, Hcv);
 	}
 
 	// Loads a loading screen for FARM-LIFE: GAME OF THE YEAR EDITION
@@ -378,6 +372,9 @@
 			float terrainHeight = terra.getHeightAt(cameraX, cameraY) + terraYOffset + 5.0f;	// using the offset down 20.0f units and adding some height for the camera
 			process_input(window, delta_time, camera, terrainHeight);
 
+			glm::mat4 Hvw = camera.get_view_transform();
+			glm::mat4 Hcv = camera.get_clip_transform();
+
 			//------------------------------------------
 			// RENDER REFLECTION AND REFRACTION TEXTURES
 			//------------------------------------------
@@ -393,34 +390,44 @@
 			camera.invert_pitch();
 			
 			// Render the scene
-			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
-			
+			render(terra, camera, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+
+			// Render skybox last, disable clipping for skybox
+			glDisable(GL_CLIP_DISTANCE0);
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
+			skybox.render(Hvw, Hcv);
+			glEnable(GL_CLIP_DISTANCE0);
+
 			// Move the camera back
 			camera.move_y_position(distance);
 			camera.invert_pitch();
-			
+
 			// Bind the refraction frame buffer
 			fbos.bindRefractionFrameBuffer();
 
 			// Render the scene
-			render(terra, camera, skybox, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
-		
+			render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+			// Render skybox last
+			glDisable(GL_CLIP_DISTANCE0);
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
+			skybox.render(Hvw, Hcv);
+
 			// Unbind the frame buffer before rendering the scene
 			fbos.unbindCurrentFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 			
-			// Disable clipping
-			glDisable(GL_CLIP_DISTANCE0);
-
 			//-----------------
 			// RENDER THE SCENE
 			//-----------------
 			// Render terrain, skybox and models
-			render(terra, camera, skybox, models, modelShader, glm::vec4(0, 0, 0, 0));
+			render(terra, camera, models, modelShader, glm::vec4(0, 0, 0, 0));
 			
 			// TODO: Send in a light when lights are done
 			// Render water
 			water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(), 
 				glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0));
+			// Render skybox last
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform()));	// remove translation from the view matrix. Keeps the skybox centered on camera.
+			skybox.render(Hvw, Hcv);
 
 			//Swap buffers  
             glfwSwapBuffers(window);  
