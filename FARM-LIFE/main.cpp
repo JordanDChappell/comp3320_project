@@ -13,8 +13,8 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include "al.h" 
-#include "alc.h" 
+#include "al.h"
+#include "alc.h"
 
 // Include the standard C++ headers
 #include <iostream>
@@ -31,6 +31,7 @@
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
+#include "util/audio.hpp"
 
 // Initial width and height of the window
 GLuint SCREEN_WIDTH = 1200;
@@ -280,6 +281,27 @@ int main(void)
 		return -1;
 	}
 
+	// Initialise AL
+	ALCdevice* device = alcOpenDevice(NULL);
+	if (device == NULL)
+	{
+		std::cout << "cannot open sound card" << std::endl;
+	}
+	if (!device) {
+		std::cout << "not device" << std::endl;
+	}
+	ALCcontext* context = alcCreateContext(device, NULL);
+	if (context == NULL)
+	{
+		std::cout << "cannot open context" << std::endl;
+	}
+	if (!context) {
+		std::cout << "not context" << std::endl;
+	}
+	std::cout << alGetError() << std::endl;
+
+	alcMakeContextCurrent(context);
+
 	//--------------------------------------------------------
 	//-----------COMPLETED DEPENDENCY INITITIALISATION--------
 	//------------------INITIALISE SCENE----------------------
@@ -290,6 +312,11 @@ int main(void)
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glfwSwapBuffers(window);
 
+	setListener(camera.get_position());
+	util::Source music = util::Source();
+	GLuint audioBuffer = loadAudio("audio/bensound-acousticbreeze.wav");
+	music.play(audioBuffer);
+	std::cout << alGetError() << std::endl;
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 
@@ -376,6 +403,8 @@ int main(void)
 	// Main Loop
 	do
 	{
+		//music.play(audioBuffer);
+		
 		/* PROCESS INPUT */
 		current_frame = glfwGetTime();
 		delta_time = current_frame - last_frame;
@@ -485,6 +514,11 @@ int main(void)
 	// Cleanup (delete buffers etc)
 	terra.cleanup();
 	fbos.cleanup();
+	music.cleanup();
+	alDeleteBuffers(1, &audioBuffer);
+
+	alcDestroyContext(context);
+	alcCloseDevice(device);
 
 	// Close OpenGL window and terminate GLFW
 	glfwDestroyWindow(window);
