@@ -3,6 +3,7 @@
 	* GLEW - OpenGL Extension Wrangler
 	* GLFW - Graphics Library Framework
 	* GLM - OpenGL Mathematics
+	* OpenAL - Open Audio Library
 	*/
 #include <windows.h>
 #include <sdl.h>
@@ -12,6 +13,8 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "al.h"
+#include "alc.h"
 
 // Include the standard C++ headers
 #include <iostream>
@@ -23,6 +26,7 @@
 // Include project files
 #include "util/mainUtil.hpp"
 #include "util/camera.hpp"
+#include "audio/audio.hpp"
 #include "terrain/terrain.hpp"
 #include "models/model.hpp"
 #include "skybox/skybox.hpp"
@@ -277,6 +281,27 @@ int main(void)
 		return -1;
 	}
 
+	// Initialise AL
+	ALCdevice* device = alcOpenDevice(NULL);
+	if (device == NULL)
+	{
+		std::cout << "cannot open sound card" << std::endl;
+	}
+	if (!device) {
+		std::cout << "not device" << std::endl;
+	}
+	ALCcontext* context = alcCreateContext(device, NULL);
+	if (context == NULL)
+	{
+		std::cout << "cannot open context" << std::endl;
+	}
+	if (!context) {
+		std::cout << "not context" << std::endl;
+	}
+
+	alcMakeContextCurrent(context);
+	alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
+
 	//--------------------------------------------------------
 	//-----------COMPLETED DEPENDENCY INITITIALISATION--------
 	//------------------INITIALISE SCENE----------------------
@@ -286,6 +311,17 @@ int main(void)
 	addLoadingScreen();
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glfwSwapBuffers(window);
+
+	//---------------------
+	// SET BACKGROUND MUSIC
+	//---------------------
+	audio::setListener(camera.get_position());
+	audio::Source camSource = audio::Source();
+	camSource.setLooping(true);
+	camSource.setPosition(camera.get_position());
+	camSource.setVolume(0.07);
+	GLuint mainMusic = audio::loadAudio("audio/bensound-acousticbreeze.wav");
+	camSource.play(mainMusic);
 
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
@@ -305,6 +341,7 @@ int main(void)
 	water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
 	// Create water
 	water::Water water = water::Water(tresX, tresY, terraScale, terraMaxHeight / 2.5, fbos);
+	water.playSound("audio/river.wav");
 
 	// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
 	int cameraOffsetX = tresX / 2;
@@ -345,6 +382,7 @@ int main(void)
 	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
+	
 
 	model::Model fence = model::Model("models/fence/fence.obj");
 	fence.MoveTo(glm::vec3(-10, 0, -4));
@@ -370,9 +408,15 @@ int main(void)
 	//Set a background color
 	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
 
+	// Sounds
+	cat.playSound("audio/cat-purring.wav", true, 0.2);
+	terra.playSound("audio/meadow-birds.wav");
+
 	// Main Loop
 	do
-	{
+	{	
+		audio::setListener(camera.get_position());
+		camSource.setPosition(camera.get_position());
 		/* PROCESS INPUT */
 		current_frame = glfwGetTime();
 		delta_time = current_frame - last_frame;
@@ -482,6 +526,12 @@ int main(void)
 	// Cleanup (delete buffers etc)
 	terra.cleanup();
 	fbos.cleanup();
+	camSource.cleanup();
+	alDeleteBuffers(1, &mainMusic);
+
+	// Terminate OpenAL
+	alcDestroyContext(context);
+	alcCloseDevice(device);
 
 	// Close OpenGL window and terminate GLFW
 	glfwDestroyWindow(window);

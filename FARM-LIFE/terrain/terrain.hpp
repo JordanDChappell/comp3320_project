@@ -69,9 +69,21 @@ public:
 		glEnableVertexAttribArray(posAttrib);
 		glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE,
 							  vertexAtt * sizeof(float), 0);
+
+		// Initialise sound
+		sound = audio::Source();
+		sound.setLooping(true);
 	}
 
+	// Destructor
 	~Terrain() {}
+
+	// Precondition:	file is an audio file in wav format
+	// Postcondition:	sound is played from the source on this model
+	void playSound(const char* file) {
+		GLuint buffer = audio::loadAudio(file);
+		sound.play(buffer);
+	}
 
 	// Precondition:	Terrain object has been constructed
 	// Postcondition:	Terrain is drawn
@@ -134,6 +146,9 @@ public:
 		//-------------
 		glDrawElements(GL_TRIANGLES, noVertices, GL_UNSIGNED_INT, 0);
 
+		// Update sound position
+		sound.setPosition(cameraPosition);
+
 		// Unbind texture and vertex array
 		glBindVertexArray(0);
 		glActiveTexture(GL_TEXTURE0);
@@ -147,6 +162,7 @@ public:
 		glDeleteBuffers(1, &ebo);
 		glDeleteVertexArrays(1, &vao);
 		glDeleteTextures(5, &tex[0]);
+		sound.cleanup();
 	}
 
 	/// <summary>Returns the terrain height at the given (x,y) coordinate</summary>
@@ -164,17 +180,18 @@ private:
 	GLuint tex[5]; // textures
 
 	// Store terrain size and resolution
-	float scale;	// how much to scale terrain down, if terrain is resX by resZ
-	float yOffset;  // how much to offset the terrain by in the y direction (from 0.0f)
-	int resX;		// number of vertices wide (x-axis)
-	int resZ;		// number of vertices long (z-axis)
-	int noVertices; // number of vertices to draw
-	float waterHeight;
+	float scale;			// how much to scale terrain down, if terrain is resX by resZ
+	float yOffset;  		// how much to offset the terrain by in the y direction (from 0.0f)
+	int resX;				// number of vertices wide (x-axis)
+	int resZ;				// number of vertices long (z-axis)
+	int noVertices; 		// number of vertices to draw
+	float waterHeight;		// height of the water
+	audio::Source sound;	// source for the terrain ambient sound
 
 	// Store terrain (x,y,z) vector for height detection
 	float **terraVertices;
 
-	float grassHeight; // height that the grass starts to grow
+	float grassHeight; 		// height that the grass starts to grow
 
 	// Precondition:	vertexAtt is number of vertex attributes, maxHeight is maximum height of terrain
 	//					heights is vector of all heights over mesh
