@@ -68,9 +68,6 @@ namespace audio {
 				fread(type, sizeof(char), 1, fp);
 			}
 		}
-		//fread(type, sizeof(char), 3, fp);
-		//if (type[0] != 'a' || type[1] != 't' || type[2] != 'a')
-		//	std::cout << "OpenAL Error: Missing DATA" << std::endl;
 
 		// Read data
 		fread(&dataSize, sizeof(DWORD), 1, fp);
@@ -95,7 +92,6 @@ namespace audio {
 			else if (channels == 2)
 				format = AL_FORMAT_STEREO16;
 		}
-		std::cout << bitsPerSample << " " << channels << std::endl;
 		
 		// Create the buffer and return it
 		GLuint buffer;
@@ -130,50 +126,64 @@ namespace audio {
 		}
 
 		// Plays audio from buffer at source
+		// NOTE: if you want to disable sounds, comment out the last two lines
+		// If the sound is paused, then this will play the sound given from the beginning
 		void play(GLuint buffer) {
 			stop();
 			alSourcei(sourceid, AL_BUFFER, buffer);
 			continuePlaying();
 		}
 
+		// Sets the volume of the sound to volume
 		void setVolume(float volume) {
 			alSourcef(sourceid, AL_GAIN, volume);
 		}
 
+		// Sets the pitch of the sound to pitch
 		void setPitch(float pitch) {
 			alSourcef(sourceid, AL_PITCH, 1);		
 		}
 
+		// Sets the source position
 		void setPosition(glm::vec3 position) {
 			alSource3f(sourceid, AL_POSITION, position.x, position.y, position.z);
 		}
 
+		// Sets the source velocity
 		void setVelocity(glm::vec3 velocity) {
 			alSource3f(sourceid, AL_VELOCITY, velocity.x, velocity.y, velocity.z);
 		}
 
+		// Sets whether to loop the sound or not
 		void setLooping(bool loop) {
 			alSourcei(sourceid, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
 		}
 
+		// Returns whether or not the sound is playing
 		bool isPlaying() {
 			int isPlaying;
 			alGetSourcei(sourceid, AL_SOURCE_STATE, &isPlaying);
 			return isPlaying == AL_PLAYING;
 		}
 
+		// Sets the radius where the sound will be played at full volume at
+		// The larger this is, the further you can move away from the source and still hear the
+		// sound, and vice versa. 
 		void setReferenceDistance(float distance) {
 			alSourcef(sourceid, AL_REFERENCE_DISTANCE, distance);
 		}
-			
+		
+		// Pauses the sound, if continued it will play from where it was when paused
 		void pause() {
 			alSourcePause(sourceid);
 		}
 
+		// Continues playing the sound after being paused
 		void continuePlaying() {
 			alSourcePlay(sourceid);
 		}
 
+		// Stops the sound. Will play from the beginning if played again.
 		void stop() {
 			alSourceStop(sourceid);
 		}

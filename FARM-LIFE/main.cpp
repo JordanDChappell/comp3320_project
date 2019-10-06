@@ -298,7 +298,6 @@ int main(void)
 	if (!context) {
 		std::cout << "not context" << std::endl;
 	}
-	std::cout << alGetError() << std::endl;
 
 	alcMakeContextCurrent(context);
 	alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
@@ -342,6 +341,7 @@ int main(void)
 	water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
 	// Create water
 	water::Water water = water::Water(tresX, tresY, terraScale, terraMaxHeight / 2.5, fbos);
+	water.playSound("audio/river.wav");
 
 	// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
 	int cameraOffsetX = tresX / 2;
@@ -382,7 +382,7 @@ int main(void)
 	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
-	cat.playSound("audio/cat-purring.wav", true, 0.2);
+	
 
 	model::Model fence = model::Model("models/fence/fence.obj");
 	fence.MoveTo(glm::vec3(-10, 0, -4));
@@ -408,11 +408,15 @@ int main(void)
 	//Set a background color
 	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
 
+	// Sounds
+	cat.playSound("audio/cat-purring.wav", true, 0.2);
+	terra.playSound("audio/meadow-birds.wav");
+
 	// Main Loop
 	do
-	{
-		//music.play(audioBuffer);
-		
+	{	
+		audio::setListener(camera.get_position());
+		camSource.setPosition(camera.get_position());
 		/* PROCESS INPUT */
 		current_frame = glfwGetTime();
 		delta_time = current_frame - last_frame;

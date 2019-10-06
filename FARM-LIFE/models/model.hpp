@@ -168,9 +168,13 @@ namespace model {
 		{
 			// Load the model using ASSIMP library with the path to the model
 			loadModel(path);
+			// Initialise the source
 			sound = audio::Source();
 		}
 
+		// Precondition:	file is an audio file in wav format. Reference distance is the
+		//					radius the sound is played at full volume at
+		// Postcondition:	sound is played from the source on this model
 		void playSound(const char* file, bool loop, float reference_distance) {
 			GLuint buffer = audio::loadAudio(file);
 			sound.play(buffer);
@@ -191,10 +195,8 @@ namespace model {
 				meshes[i].Draw(shader, view, projection, model, position, clippingPlane);
 			}
 
-			// Set the source position
-			glm::mat4 new_model = projection * view * glm::translate(model, position);
-			glm::vec3 sound_position = glm::vec3(new_model[3].x, new_model[3].y, new_model[3].z);
-			sound.setPosition(sound_position);
+			// Update the sound source position
+			sound.setPosition(position);
 		}
 
 		///<summary>
