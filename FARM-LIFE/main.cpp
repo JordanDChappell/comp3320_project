@@ -26,12 +26,12 @@
 // Include project files
 #include "util/mainUtil.hpp"
 #include "util/camera.hpp"
+#include "audio/audio.hpp"
 #include "terrain/terrain.hpp"
 #include "models/model.hpp"
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
-#include "util/audio.hpp"
 
 // Initial width and height of the window
 GLuint SCREEN_WIDTH = 1200;
@@ -301,6 +301,7 @@ int main(void)
 	std::cout << alGetError() << std::endl;
 
 	alcMakeContextCurrent(context);
+	alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
 
 	//--------------------------------------------------------
 	//-----------COMPLETED DEPENDENCY INITITIALISATION--------
@@ -312,11 +313,17 @@ int main(void)
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glfwSwapBuffers(window);
 
-	setListener(camera.get_position());
-	util::Source music = util::Source();
-	GLuint audioBuffer = loadAudio("audio/bensound-acousticbreeze.wav");
-	music.play(audioBuffer);
-	std::cout << alGetError() << std::endl;
+	//---------------------
+	// SET BACKGROUND MUSIC
+	//---------------------
+	audio::setListener(camera.get_position());
+	audio::Source camSource = audio::Source();
+	camSource.setLooping(true);
+	camSource.setPosition(camera.get_position());
+	camSource.setVolume(0.07);
+	GLuint mainMusic = audio::loadAudio("audio/bensound-acousticbreeze.wav");
+	camSource.play(mainMusic);
+
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 
@@ -375,6 +382,7 @@ int main(void)
 	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
+	cat.playSound("audio/cat-purring.wav", true, 0.2);
 
 	model::Model fence = model::Model("models/fence/fence.obj");
 	fence.MoveTo(glm::vec3(-10, 0, -4));
@@ -514,9 +522,10 @@ int main(void)
 	// Cleanup (delete buffers etc)
 	terra.cleanup();
 	fbos.cleanup();
-	music.cleanup();
-	alDeleteBuffers(1, &audioBuffer);
+	camSource.cleanup();
+	alDeleteBuffers(1, &mainMusic);
 
+	// Terminate OpenAL
 	alcDestroyContext(context);
 	alcCloseDevice(device);
 
