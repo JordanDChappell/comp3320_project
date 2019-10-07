@@ -282,20 +282,22 @@ int main(void)
 	}
 
 	// Initialise AL
-	ALCdevice* device = alcOpenDevice(NULL);
+	ALCdevice *device = alcOpenDevice(NULL);
 	if (device == NULL)
 	{
 		std::cout << "cannot open sound card" << std::endl;
 	}
-	if (!device) {
+	if (!device)
+	{
 		std::cout << "not device" << std::endl;
 	}
-	ALCcontext* context = alcCreateContext(device, NULL);
+	ALCcontext *context = alcCreateContext(device, NULL);
 	if (context == NULL)
 	{
 		std::cout << "cannot open context" << std::endl;
 	}
-	if (!context) {
+	if (!context)
+	{
 		std::cout << "not context" << std::endl;
 	}
 
@@ -382,7 +384,6 @@ int main(void)
 	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
-	
 
 	model::Model fence = model::Model("models/fence/fence.obj");
 	fence.MoveTo(glm::vec3(-10, 0, -4));
@@ -414,7 +415,7 @@ int main(void)
 
 	// Main Loop
 	do
-	{	
+	{
 		audio::setListener(camera.get_position());
 		camSource.setPosition(camera.get_position());
 		/* PROCESS INPUT */
@@ -496,6 +497,7 @@ int main(void)
 			glDisable(GL_CLIP_DISTANCE0);
 			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
 			skybox.render(Hvw, Hcv);
+			glEnable(GL_CLIP_DISTANCE0);
 		}
 
 		// Unbind the frame buffer before rendering the scene
@@ -505,8 +507,9 @@ int main(void)
 		// RENDER THE SCENE
 		//-----------------
 		// Render terrain, skybox and models
+		glEnable(GL_CLIP_DISTANCE0);
 		render(terra, camera, models, modelShader, glm::vec4(0, 0, 0, 0));
-
+		glDisable(GL_CLIP_DISTANCE0);
 		// TODO: Send in a light when lights are done
 		// Render water
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
