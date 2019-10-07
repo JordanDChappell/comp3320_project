@@ -51,7 +51,7 @@ void main()
     float angle = acos(dot(normal, vec3(0.0, 1.0, 0.0)));
     vec3 axis = cross(normal, vec3(0.0, 1.0, 0.0));
 
-    mat4 rotate = rotationMatrix(axis, angle);
+    mat4 rotate = rotationMatrix(axis, -angle);
     
     // Check if need to clip vertex based on clipping plane
     float clip = dot(Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0), clippingPlane);
