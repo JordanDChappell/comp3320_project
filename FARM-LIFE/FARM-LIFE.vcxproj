@@ -86,6 +86,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="particles\CubeEmitter.cpp" />
+    <ClCompile Include="particles\ParticleEffect.cpp" />
+    <ClCompile Include="particles\ParticleSystemPCH.cpp" />
+    <ClCompile Include="particles\SphereEmitter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="skybox\textures\back.tga" />
@@ -105,10 +109,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="models\model.hpp" />
+    <ClInclude Include="particles\CubeEmitter.h" />
+    <ClInclude Include="particles\Interpolator.h" />
+    <ClInclude Include="particles\Particle.h" />
+    <ClInclude Include="particles\ParticleEffect.h" />
+    <ClInclude Include="particles\ParticleEmitter.h" />
+    <ClInclude Include="particles\ParticleSystemPCH.h" />
+    <ClInclude Include="particles\Random.h" />
+    <ClInclude Include="particles\SphereEmitter.h" />
     <ClInclude Include="skybox\skybox.hpp" />
     <ClInclude Include="terrain\terrain.hpp" />
     <ClInclude Include="util\camera.hpp" />
     <ClInclude Include="util\mainUtil.hpp" />
+    <ClInclude Include="water\water.hpp" />
     <ClInclude Include="water\WaterFrameBuffers.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

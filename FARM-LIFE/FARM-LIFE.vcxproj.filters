@@ -2,6 +2,18 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="particles\ParticleEffect.cpp">
+      <Filter>particles</Filter>
+    </ClCompile>
+    <ClCompile Include="particles\ParticleSystemPCH.cpp">
+      <Filter>particles</Filter>
+    </ClCompile>
+    <ClCompile Include="particles\CubeEmitter.cpp">
+      <Filter>particles\emitter</Filter>
+    </ClCompile>
+    <ClCompile Include="particles\SphereEmitter.cpp">
+      <Filter>particles\emitter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="util\camera.hpp" />
@@ -12,6 +24,31 @@
     </ClInclude>
     <ClInclude Include="models\model.hpp" />
     <ClInclude Include="water\WaterFrameBuffers.hpp" />
+    <ClInclude Include="water\water.hpp" />
+    <ClInclude Include="particles\ParticleEffect.h">
+      <Filter>particles</Filter>
+    </ClInclude>
+    <ClInclude Include="particles\Interpolator.h">
+      <Filter>particles</Filter>
+    </ClInclude>
+    <ClInclude Include="particles\Particle.h">
+      <Filter>particles</Filter>
+    </ClInclude>
+    <ClInclude Include="particles\ParticleSystemPCH.h">
+      <Filter>particles</Filter>
+    </ClInclude>
+    <ClInclude Include="particles\Random.h">
+      <Filter>particles</Filter>
+    </ClInclude>
+    <ClInclude Include="particles\CubeEmitter.h">
+      <Filter>particles\emitter</Filter>
+    </ClInclude>
+    <ClInclude Include="particles\ParticleEmitter.h">
+      <Filter>particles\emitter</Filter>
+    </ClInclude>
+    <ClInclude Include="particles\SphereEmitter.h">
+      <Filter>particles\emitter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="skybox\textures\back.tga">
@@ -51,6 +88,12 @@
     </Filter>
     <Filter Include="skybox\textures">
       <UniqueIdentifier>{cd95c1f0-b6f0-44e7-ac1b-10f6726cd011}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="particles">
+      <UniqueIdentifier>{af9a630b-a755-4006-a33b-5c2ddebed667}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="particles\emitter">
+      <UniqueIdentifier>{696fdbc3-20b8-4267-b0e3-192816e959c3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
