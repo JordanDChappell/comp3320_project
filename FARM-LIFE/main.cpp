@@ -30,6 +30,15 @@
 	#include "skybox/skybox.hpp"
 	#include "water/water.hpp"
 	#include "water/WaterFrameBuffers.hpp"
+	#include "particles/ParticleEffect.h"
+	#include "particles/SphereEmitter.h"
+	#include "particles/CubeEmitter.h"
+
+	// Initialise particle emitters and effects
+	particle::SphereEmitter g_ParticleEmitter;
+	particle::CubeEmitter g_CubeEmitter;
+
+	particle::ParticleEffect g_ParticleEffect(1000);
 
 	// Initial width and height of the window
 	GLuint SCREEN_WIDTH = 1200;
@@ -197,6 +206,19 @@
 
 		std::srand(1);
 		utility::camera::Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, NEAR_PLANE, FAR_PLANE);
+
+		// Set the colour interpolator to be used for the particle effects
+		particle::ParticleEffect::ColourInterpolator colours;
+
+		colours.AddValue(0.0f, glm::vec4(1, 0, 0, 1));     // red
+		colours.AddValue(0.15f, glm::vec4(1, 0, 1, 1));     // magenta
+		colours.AddValue(0.33f, glm::vec4(0, 0, 1, 1));     // blue
+		colours.AddValue(0.5f, glm::vec4(0, 1, 1, 1));     // cyan
+		colours.AddValue(0.67f, glm::vec4(0, 1, 0, 0.75));  // green
+		colours.AddValue(0.84f, glm::vec4(1, 1, 0, 0.5));   // yellow
+		colours.AddValue(1.0f, glm::vec4(1, 0, 0, 0));     // red
+
+		g_ParticleEffect.SetColourInterplator(colours);
 
 		//Set the error callback  
 		glfwSetErrorCallback(error_callback);
