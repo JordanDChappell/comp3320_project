@@ -158,6 +158,13 @@ namespace utility {
 				rotation_sensitivity = sensitivity;
 			}
 
+			// Get current camera orientation
+			// Used for displaying objects relative to camera, e.g. billboarding
+			// - Returns rotation (yaw, pitch, roll)
+			glm::vec3 get_rotation() {
+				return glm::vec3(orientation.x, orientation.y, 0.0f);
+			}
+
 			// Strafe left
 			// Moves the camera to the left if there are no collisions detected
 			void move_left(std::vector<model::HitBox> hitBoxes) {
