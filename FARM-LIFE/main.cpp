@@ -2,7 +2,8 @@
 	* SOIL - Library for loading textures (Simple OpenGL Image Library)
 	* GLEW - OpenGL Extension Wrangler
 	* GLFW - Graphics Library Framework
-	* GLM - OpenGL Mathematics
+	* GLM  - OpenGL Mathematics
+	* GLUT - OpenGL Utility Toolkit
 	*/
 	#include <windows.h>	
 	#include <sdl.h>
@@ -12,6 +13,7 @@
 	#include "glm/glm.hpp"
 	#include "glm/gtc/matrix_transform.hpp"
 	#include "glm/gtc/type_ptr.hpp"
+	#include "glut/glut.h"
 
 	// Include the standard C++ headers  
 	#include <iostream> 
