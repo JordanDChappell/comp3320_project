@@ -9,12 +9,12 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include <gl/glut.h>
+#include <glut/glut.h>
 
 #define GLM_SWIZZLE_XYZW
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/swizzle.hpp>
+//#include <glm/gtc/swizzle.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtx/compatibility.hpp>
