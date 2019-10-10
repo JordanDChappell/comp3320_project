@@ -1,5 +1,10 @@
 #pragma once;
 
+/* Interpolator.h
+ * Header file for Interpolator class used for smoothing values over a range.
+ * Used in Particle Effects to interpolate colours over texture.
+ */
+
 template <typename T>
 class Interpolator
 {
