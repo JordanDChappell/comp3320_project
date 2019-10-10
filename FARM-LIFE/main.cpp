@@ -30,6 +30,7 @@
 	#include "skybox/skybox.hpp"
 	#include "water/water.hpp"
 	#include "water/WaterFrameBuffers.hpp"
+	#include "particles/ParticleSystemPCH.h"
 	#include "particles/ParticleEffect.h"
 	#include "particles/SphereEmitter.h"
 	#include "particles/CubeEmitter.h"
@@ -207,6 +208,17 @@
 		std::srand(1);
 		utility::camera::Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, NEAR_PLANE, FAR_PLANE);
 
+
+		/* BEGIN PARTICLE */
+		if (g_ParticleEffect.LoadTexture("fire/Particle-Texture.png"))
+		{
+			std::cout << "Successfully loaded particle texture." << std::endl;
+		}
+		else
+		{
+			std::cerr << "Failed to load particle texture!" << std::endl;
+		}
+
 		// Set the colour interpolator to be used for the particle effects
 		particle::ParticleEffect::ColourInterpolator colours;
 
@@ -219,6 +231,12 @@
 		colours.AddValue(1.0f, glm::vec4(1, 0, 0, 0));     // red
 
 		g_ParticleEffect.SetColourInterplator(colours);
+
+		g_ParticleEffect.SetParticleEmitter(&g_ParticleEmitter);
+		g_ParticleEffect.EmitParticles();
+		g_ParticleEffect.SetCamera(&camera);
+
+		/* END PARTICLE */
 
 		//Set the error callback  
 		glfwSetErrorCallback(error_callback);
