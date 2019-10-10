@@ -186,7 +186,7 @@ namespace particle
 		glEnableClientState(GL_COLOR_ARRAY);
 
 		glVertexPointer(3, GL_FLOAT, sizeof(Vertex), &(vertexBuffer[0].pos));
-		glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &(vertexBuffer[0].pex0));
+		glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &(vertexBuffer[0].tex0));
 		glColorPointer(4, GL_FLOAT, sizeof(Vertex), &(vertexBuffer[0].diffuse));
 
 		glDrawArrays(GL_QUADS, 0, vertexBuffer.size());
