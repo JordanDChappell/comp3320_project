@@ -27,7 +27,8 @@ void main()
          texColour = texture(grassTex4, texCoords);
      }
     //vec4 texColour = texture(grassTex1, texCoords);
-    if(texColour[3] < 0.1) {
+    
+    if(texColour[3] < 0.5) {
         discard;
     }
     outColour = texColour;
