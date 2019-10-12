@@ -24,6 +24,7 @@ namespace particle {
       velocity = glm::vec3(0);
       colour = glm::vec4(0);
       fRotate = 0;
+	  fSize = 0;
       fAge = 0;
       fLifeTime = 0;
     }
