@@ -26,7 +26,7 @@ namespace utility {
 				forward = glm::vec3(0.0f, 0.0f, -1.0f);
 				up = glm::vec3(0.0f, 1.0f, 0.0f);
 				world_up = glm::vec3(0.0f, 1.0f, 0.0f);
-				position = glm::vec3(0.0f, 50.0f, 0.0f);
+				position = glm::vec3(-40.0f, 50.0f, 0.0f);
 				right = glm::normalize(glm::cross(forward, up));
 
 				orientation = glm::vec2(-90.0f, 0.0f);

@@ -28,6 +28,7 @@
 	#include "skybox/skybox.hpp"
 	#include "water/water.hpp"
 	#include "water/WaterFrameBuffers.hpp"
+#include "tree.hpp"
 
 	// Initial width and height of the window
 	GLuint SCREEN_WIDTH = 1200;
@@ -340,9 +341,17 @@
 		models.push_back(cat);
 		hitBoxes.push_back(cat.hitBox);
 
+
 		model::Model fence = model::Model("models/fence/fence.obj");
 		fence.MoveTo(glm::vec3(-10, 0, -4));
 		models.push_back(fence);
+
+		tree::Tree trees = tree::Tree("ebkezjkb", "models/fence/fence.obj");
+		for (int i = 0; i < 5; i++) {
+			models.push_back(trees.placeTree(i));
+			//models.push_back(fenceTab[i]);
+		}
+		
 
 		model::Model bucket = model::Model("models/bucket/bucket.obj");
 		bucket.MoveTo(glm::vec3(-10, 0, 10));
@@ -350,6 +359,7 @@
 
 		model::Model trough = model::Model("models/trough/watertrough.obj");
 		trough.MoveTo(glm::vec3(-10, -4, 9));
+		
 		
 		//--------------
 		// CREATE SKYBOX
