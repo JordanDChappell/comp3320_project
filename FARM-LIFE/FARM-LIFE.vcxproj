@@ -107,7 +107,9 @@
     <ClInclude Include="audio\audio.hpp" />
     <ClInclude Include="models\model.hpp" />
     <ClInclude Include="particles\CubeEmitter.hpp" />
+    <ClInclude Include="particles\Interpolator.hpp" />
     <ClInclude Include="particles\Particle.hpp" />
+    <ClInclude Include="particles\ParticleEffect.hpp" />
     <ClInclude Include="particles\ParticleEmitter.hpp" />
     <ClInclude Include="particles\Random.hpp" />
     <ClInclude Include="particles\SphereEmitter.hpp" />

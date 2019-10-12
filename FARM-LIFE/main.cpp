@@ -32,12 +32,14 @@
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
+#include "particles/ParticleEffect.hpp"
 #include "particles/SphereEmitter.hpp"
 #include "particles/CubeEmitter.hpp"
 
-// Initialise particle emitters
+// Initialise particle emitters and effects
 particle::SphereEmitter g_ParticleEmitter;
 particle::CubeEmitter g_CubeEmitter;
+particle::ParticleEffect g_ParticleEffect(1000); // 1000 particles
 
 // Initial width and height of the window
 GLuint SCREEN_WIDTH = 1200;

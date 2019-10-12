@@ -19,6 +19,8 @@
     <ClInclude Include="particles\ParticleEmitter.hpp" />
     <ClInclude Include="particles\SphereEmitter.hpp" />
     <ClInclude Include="particles\Random.hpp" />
+    <ClInclude Include="particles\ParticleEffect.hpp" />
+    <ClInclude Include="particles\Interpolator.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="skybox\textures\back.tga">
