@@ -396,13 +396,6 @@ int main(void)
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
 
-	tree::Tree trees = tree::Tree("ebkezjkb", "models/fence/fence.obj");
-	for (int i = 0; i < 5; i++)
-	{
-		models.push_back(trees.placeTree(i));
-		//models.push_back(fenceTab[i]);
-	}
-
 	tree::Tree tree = tree::Tree("re", "models/bucket/bucket.obj");
 	for (int i = 0; i < 50; i++)
 	{
