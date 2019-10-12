@@ -1,6 +1,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include "../audio/audio.hpp"
 
 #ifndef A1_MODEL_HPP
 #define A1_MODEL_HPP
@@ -167,6 +168,18 @@ namespace model {
 		{
 			// Load the model using ASSIMP library with the path to the model
 			loadModel(path);
+			// Initialise the source
+			sound = audio::Source();
+		}
+
+		// Precondition:	file is an audio file in wav format. Reference distance is the
+		//					radius the sound is played at full volume at
+		// Postcondition:	sound is played from the source on this model
+		void playSound(const char* file, bool loop, float reference_distance) {
+			GLuint buffer = audio::loadAudio(file);
+			sound.play(buffer);
+			sound.setLooping(loop);
+			sound.setReferenceDistance(reference_distance);
 		}
 
 		///<summary>
@@ -181,6 +194,9 @@ namespace model {
 			{
 				meshes[i].Draw(shader, view, projection, model, position, clippingPlane);
 			}
+
+			// Update the sound source position
+			sound.setPosition(position);
 		}
 
 		///<summary>
@@ -197,6 +213,7 @@ namespace model {
 		glm::vec3 maxVertices;	// keeps a record of the models overall max(x,y,z) coordinates
 		glm::vec3 minVertices;	// as above for the minimum vertices
 		bool verticesSet = false;	// flag that enables the vertices to be initialized on first loop over the mesh
+		audio::Source sound;
 
 		///<summary>
 		/// Load a model using assimp library.

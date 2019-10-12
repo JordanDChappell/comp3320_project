@@ -82,7 +82,7 @@ namespace utility {
 			}
 
 			void update_camera_basis() {
-				// calculate pitch and yaw
+				// calculate yaw, pitch, roll
 				const float cos_yaw = std::cos(glm::radians(orientation.x));
 				const float sin_yaw = std::sin(glm::radians(orientation.x));
 				const float cos_pitch = std::cos(glm::radians(orientation.y));
@@ -105,6 +105,13 @@ namespace utility {
 				aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
 			}
 
+			// Get current camera orientation 
+			// Used for displaying objects relative to camera, e.g. billboarding 
+			// - Returns rotation (yaw, pitch, roll) 
+			glm::vec3 get_rotation() { 
+				return glm::vec3(orientation.x, orientation.y, 0.0f); 
+			} 
+
 			// Move the camera's y position by distance
 			void move_y_position(float distance) {
 				position.y += distance;
@@ -115,6 +122,13 @@ namespace utility {
 				orientation.y = -orientation.y;
 				update_camera_basis();
 			}
+
+			// Invert (negate) the yaw of the camera
+			void invert_yaw() {
+				orientation.x = -orientation.x;
+				update_camera_basis();
+			}
+
 
 			// Calculate and return the world to camera transform
 			// --------------------------------------------------

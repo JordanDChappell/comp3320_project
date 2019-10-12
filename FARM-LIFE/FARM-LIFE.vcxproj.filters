@@ -24,31 +24,8 @@
     </ClInclude>
     <ClInclude Include="models\model.hpp" />
     <ClInclude Include="water\WaterFrameBuffers.hpp" />
-    <ClInclude Include="water\water.hpp" />
-    <ClInclude Include="particles\ParticleEffect.h">
-      <Filter>particles</Filter>
-    </ClInclude>
-    <ClInclude Include="particles\Interpolator.h">
-      <Filter>particles</Filter>
-    </ClInclude>
-    <ClInclude Include="particles\Particle.h">
-      <Filter>particles</Filter>
-    </ClInclude>
-    <ClInclude Include="particles\ParticleSystemPCH.h">
-      <Filter>particles</Filter>
-    </ClInclude>
-    <ClInclude Include="particles\Random.h">
-      <Filter>particles</Filter>
-    </ClInclude>
-    <ClInclude Include="particles\CubeEmitter.h">
-      <Filter>particles\emitter</Filter>
-    </ClInclude>
-    <ClInclude Include="particles\ParticleEmitter.h">
-      <Filter>particles\emitter</Filter>
-    </ClInclude>
-    <ClInclude Include="particles\SphereEmitter.h">
-      <Filter>particles\emitter</Filter>
-    </ClInclude>
+    <ClInclude Include="util\audio.hpp" />
+    <ClInclude Include="audio\audio.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="skybox\textures\back.tga">
