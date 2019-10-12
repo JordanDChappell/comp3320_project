@@ -50,7 +50,7 @@ namespace particle
 		bool LoadTexture(const std::string& fileName);
 
 		// Resize the particle buffer with numParticles
-		void Resize(unsigned int numParticles) {}
+		void Resize(unsigned int numParticles);
 	protected:
 		void RandomizeParticle(Particle& particle);
 		void EmitParticle(Particle& particle);
@@ -265,6 +265,12 @@ namespace particle
 
 		glPopAttrib();
 		glPopMatrix();
+	}
+
+	void ParticleEffect::Resize(unsigned int numParticles)
+	{
+		particles.resize(numParticles, Particle());
+		vertexBuffer.resize(numParticles * 4, Vertex());
 	}
 }
 
