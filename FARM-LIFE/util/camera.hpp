@@ -105,6 +105,17 @@ namespace utility {
 				aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
 			}
 
+			/**
+			 * Get current camera orientation.
+			 * Used for displaying objects relative to camera, e.g. billboarding.
+			 *
+			 * returns rotation, a 3-dimensional vector made of the cameras 
+			 *     yaw, pitch and roll
+			 */
+			glm::vec3 get_rotation() {
+				return glm::vec3(orientation.x, orientation.y, 0.0f);
+			}
+
 			// Move the camera's y position by distance
 			void move_y_position(float distance) {
 				position.y += distance;
