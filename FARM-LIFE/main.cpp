@@ -32,7 +32,7 @@
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
-#include "tree.hpp"
+#include "trees/tree.hpp"
 
 // Initial width and height of the window
 GLuint SCREEN_WIDTH = 1200;
@@ -384,9 +384,9 @@ int main(void)
 	models.push_back(barn);
 	hitBoxes.push_back(barn.hitBox);
 
-		model::Model fence = model::Model("models/fence/fence.obj");
-		fence.MoveTo(glm::vec3(-10, 0, -4));
-		models.push_back(fence);
+	model::Model fence = model::Model("models/fence/fence.obj");
+	fence.MoveTo(glm::vec3(-10, 0, -4));
+	models.push_back(fence);
 
 	model::Model cat = model::Model("models/cat/cat.obj");
 	modelXCoord = 100;
@@ -395,24 +395,19 @@ int main(void)
 	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
-		tree::Tree trees = tree::Tree("ebkezjkb", "models/fence/fence.obj");
-		for (int i = 0; i < 5; i++) {
-			models.push_back(trees.placeTree(i));
-			//models.push_back(fenceTab[i]);
-		}
-		
 
-		model::Model bucket = model::Model("models/bucket/bucket.obj");
-		bucket.MoveTo(glm::vec3(-10, 0, 10));
-		models.push_back(bucket);
+	tree::Tree trees = tree::Tree("ebkezjkb", "models/fence/fence.obj");
+	for (int i = 0; i < 5; i++)
+	{
+		models.push_back(trees.placeTree(i));
+		//models.push_back(fenceTab[i]);
+	}
 
-	model::Model fence = model::Model("models/fence/fence.obj");
-	fence.MoveTo(glm::vec3(-10, 0, -4));
-	models.push_back(fence);
-
-	model::Model bucket = model::Model("models/bucket/bucket.obj");
-	bucket.MoveTo(glm::vec3(-10, 0, 10));
-	models.push_back(bucket);
+	tree::Tree tree = tree::Tree("re", "models/bucket/bucket.obj");
+	for (int i = 0; i < 50; i++)
+	{
+		models.push_back(tree.placeTree(i));
+	};
 
 	model::Model trough = model::Model("models/trough/watertrough.obj");
 	trough.MoveTo(glm::vec3(-10, -4, 9));
