@@ -14,6 +14,11 @@
     <ClInclude Include="water\WaterFrameBuffers.hpp" />
     <ClInclude Include="util\audio.hpp" />
     <ClInclude Include="audio\audio.hpp" />
+    <ClInclude Include="particles\Particle.hpp" />
+    <ClInclude Include="particles\CubeEmitter.hpp" />
+    <ClInclude Include="particles\ParticleEmitter.hpp" />
+    <ClInclude Include="particles\SphereEmitter.hpp" />
+    <ClInclude Include="particles\Random.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="skybox\textures\back.tga">
@@ -53,6 +58,9 @@
     </Filter>
     <Filter Include="skybox\textures">
       <UniqueIdentifier>{cd95c1f0-b6f0-44e7-ac1b-10f6726cd011}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="particles">
+      <UniqueIdentifier>{a0d98f4b-30a8-4d9d-848f-3968172960e4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

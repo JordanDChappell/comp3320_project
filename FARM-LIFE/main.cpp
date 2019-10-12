@@ -32,6 +32,12 @@
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
+#include "particles/SphereEmitter.hpp"
+#include "particles/CubeEmitter.hpp"
+
+// Initialise particle emitters
+particle::SphereEmitter g_ParticleEmitter;
+particle::CubeEmitter g_CubeEmitter;
 
 // Initial width and height of the window
 GLuint SCREEN_WIDTH = 1200;
