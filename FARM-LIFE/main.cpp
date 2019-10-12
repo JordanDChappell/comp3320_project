@@ -108,7 +108,7 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 	}
 }
 
-void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model> models, GLuint modelShader, glm::vec4 clippingPlane)
+void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model> models, skybox::Skybox skybox, GLuint modelShader, glm::vec4 clippingPlane)
 {
 	// get the camera transforms
 	glm::mat4 Hvw = camera.get_view_transform();
@@ -127,6 +127,12 @@ void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<
 	{
 		models.at(i).Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane);
 	}
+
+	// Render skybox last, disable clipping for skybox
+	glDisable(GL_CLIP_DISTANCE0);
+	glm::mat4 skybox_Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
+	skybox.render(skybox_Hvw, Hcv);
+	glEnable(GL_CLIP_DISTANCE0);
 
 	//-------------
 	// DRAW TERRAIN
@@ -282,20 +288,22 @@ int main(void)
 	}
 
 	// Initialise AL
-	ALCdevice* device = alcOpenDevice(NULL);
+	ALCdevice *device = alcOpenDevice(NULL);
 	if (device == NULL)
 	{
 		std::cout << "cannot open sound card" << std::endl;
 	}
-	if (!device) {
+	if (!device)
+	{
 		std::cout << "not device" << std::endl;
 	}
-	ALCcontext* context = alcCreateContext(device, NULL);
+	ALCcontext *context = alcCreateContext(device, NULL);
 	if (context == NULL)
 	{
 		std::cout << "cannot open context" << std::endl;
 	}
-	if (!context) {
+	if (!context)
+	{
 		std::cout << "not context" << std::endl;
 	}
 
@@ -382,7 +390,6 @@ int main(void)
 	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
-	
 
 	model::Model fence = model::Model("models/fence/fence.obj");
 	fence.MoveTo(glm::vec3(-10, 0, -4));
@@ -414,7 +421,7 @@ int main(void)
 
 	// Main Loop
 	do
-	{	
+	{
 		audio::setListener(camera.get_position());
 		camSource.setPosition(camera.get_position());
 		/* PROCESS INPUT */
@@ -449,13 +456,7 @@ int main(void)
 			camera.invert_pitch();
 
 			// Render the scene
-			render(terra, camera, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
-
-			// Render skybox last, disable clipping for skybox
-			glDisable(GL_CLIP_DISTANCE0);
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
-			skybox.render(Hvw, Hcv);
-			glEnable(GL_CLIP_DISTANCE0);
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
 
 			// Move the camera back
 			camera.move_y_position(distance);
@@ -465,11 +466,7 @@ int main(void)
 			fbos.bindRefractionFrameBuffer();
 
 			// Render the scene
-			render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
-			// Render skybox last
-			glDisable(GL_CLIP_DISTANCE0);
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
-			skybox.render(Hvw, Hcv);
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
 		}
 		// If the camera is below the water, dont need reflection only refraction
 		else
@@ -481,21 +478,12 @@ int main(void)
 			fbos.bindReflectionFrameBuffer();
 
 			// Render the scene, don't bother changing since this is refraction
-			render(terra, camera, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
-			// Render skybox last, disable clipping for skybox
-			glDisable(GL_CLIP_DISTANCE0);
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
-			skybox.render(Hvw, Hcv);
-			glEnable(GL_CLIP_DISTANCE0);
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
 
 			// Bind the refraction frame buffer
 			fbos.bindRefractionFrameBuffer();
 			// Render the scene
-			render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
-			// Render skybox last
-			glDisable(GL_CLIP_DISTANCE0);
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
-			skybox.render(Hvw, Hcv);
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
 		}
 
 		// Unbind the frame buffer before rendering the scene
@@ -505,15 +493,13 @@ int main(void)
 		// RENDER THE SCENE
 		//-----------------
 		// Render terrain, skybox and models
-		render(terra, camera, models, modelShader, glm::vec4(0, 0, 0, 0));
-
+		glEnable(GL_CLIP_DISTANCE0);
+		render(terra, camera, models, skybox, modelShader, glm::vec4(0, 0, 0, 0));
+		glDisable(GL_CLIP_DISTANCE0);
 		// TODO: Send in a light when lights are done
 		// Render water
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
 				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
-		// Render skybox last
-		Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
-		skybox.render(Hvw, Hcv);
 
 		//Swap buffers
 		glfwSwapBuffers(window);

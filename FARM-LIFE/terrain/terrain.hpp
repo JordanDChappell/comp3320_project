@@ -56,6 +56,8 @@ public:
 		// CREATE SHADER PROGRAM
 		//----------------------
 		shader = LoadShaders("terrain/terrain.vert", "terrain/terrain.frag");
+		grassShader = LoadShaders("terrain/grass.vert", "terrain/grass.frag");
+		AddGeometryShader(grassShader, "terrain/grass.geom");
 
 		//----------------
 		// CREATE TEXTURES
@@ -80,7 +82,8 @@ public:
 
 	// Precondition:	file is an audio file in wav format
 	// Postcondition:	sound is played from the source on this model
-	void playSound(const char* file) {
+	void playSound(const char *file)
+	{
 		GLuint buffer = audio::loadAudio(file);
 		sound.play(buffer);
 	}
@@ -149,6 +152,52 @@ public:
 		// Update sound position
 		sound.setPosition(cameraPosition);
 
+		// ----------
+		// DRAW GRASS
+		//-----------
+		// Buffers and shader
+		glUseProgram(grassShader); // switch to the grass shader
+		glBindVertexArray(vao);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+		// Uniforms
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, grassTex[0]);
+		glUniform1i(glGetUniformLocation(grassShader, "normalMap"), 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, grassTex[1]);
+		glUniform1i(glGetUniformLocation(grassShader, "grassTex1"), 1);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, grassTex[2]);
+		glUniform1i(glGetUniformLocation(grassShader, "grassTex2"), 2);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, grassTex[3]);
+		glUniform1i(glGetUniformLocation(grassShader, "grassTex3"), 3);
+
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, grassTex[4]);
+		glUniform1i(glGetUniformLocation(grassShader, "grassTex4"), 4);
+
+		glUniformMatrix4fv(glGetUniformLocation(grassShader, "Hvw"), 1, GL_FALSE, &Hvw[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(grassShader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(grassShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
+
+		glUniform4f(glGetUniformLocation(grassShader, "clippingPlane"), clippingPlane[0], clippingPlane[1], clippingPlane[2], clippingPlane[3]);
+		glUniform1f(glGetUniformLocation(grassShader, "scale"), scale);
+		glUniform1f(glGetUniformLocation(grassShader, "resX"), resX);
+		glUniform1f(glGetUniformLocation(grassShader, "resZ"), resZ);
+		glUniform1f(glGetUniformLocation(grassShader, "grassHeight"), grassHeight);
+		glUniform1f(glGetUniformLocation(grassShader, "grassScale"), 5.0);
+		glUniform3f(glGetUniformLocation(grassShader, "cameraPosition"), cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+
+		// Draw grass
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDrawArrays(GL_POINTS, 0, (resX * resZ)); // draw the points
+		glDisable(GL_BLEND);
 		// Unbind texture and vertex array
 		glBindVertexArray(0);
 		glActiveTexture(GL_TEXTURE0);
@@ -162,10 +211,12 @@ public:
 		glDeleteBuffers(1, &ebo);
 		glDeleteVertexArrays(1, &vao);
 		glDeleteTextures(5, &tex[0]);
+		glDeleteTextures(5, &grassTex[0]);
 		sound.cleanup();
 	}
 
-	/// <summary>Returns the terrain height at the given (x,y) coordinate</summary>
+	// Precondition:	x is in [0, resX], y is in [0, resZ]
+	// Postcondition:	Returns the terrain height at the given (x,y) coordinate
 	float getHeightAt(int x, int y)
 	{
 		return terraVertices[x][y];
@@ -173,25 +224,27 @@ public:
 
 private:
 	// Store shader program and buffers
-	GLuint shader; // shader program
-	GLuint vao;	// vertex array object
-	GLuint vbo;	// vertex buffer object
-	GLuint ebo;	// element buffer object
-	GLuint tex[5]; // textures
+	GLuint shader;		// shader program
+	GLuint grassShader; // grass shader program
+	GLuint vao;			// vertex array object
+	GLuint vbo;			// vertex buffer object
+	GLuint ebo;			// element buffer object
+	GLuint tex[5];		// textures
+	GLuint grassTex[5]; // grass textures
 
 	// Store terrain size and resolution
-	float scale;			// how much to scale terrain down, if terrain is resX by resZ
-	float yOffset;  		// how much to offset the terrain by in the y direction (from 0.0f)
-	int resX;				// number of vertices wide (x-axis)
-	int resZ;				// number of vertices long (z-axis)
-	int noVertices; 		// number of vertices to draw
-	float waterHeight;		// height of the water
-	audio::Source sound;	// source for the terrain ambient sound
+	float scale;		 // how much to scale terrain down, if terrain is resX by resZ
+	float yOffset;		 // how much to offset the terrain by in the y direction (from 0.0f)
+	int resX;			 // number of vertices wide (x-axis)
+	int resZ;			 // number of vertices long (z-axis)
+	int noVertices;		 // number of vertices to draw
+	float waterHeight;   // height of the water
+	audio::Source sound; // source for the terrain ambient sound
 
 	// Store terrain (x,y,z) vector for height detection
 	float **terraVertices;
 
-	float grassHeight; 		// height that the grass starts to grow
+	float grassHeight; // height that the grass starts to grow
 
 	// Precondition:	vertexAtt is number of vertex attributes, maxHeight is maximum height of terrain
 	//					heights is vector of all heights over mesh
@@ -316,7 +369,7 @@ private:
 		//--------------------
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
-		unsigned char *image = SOIL_load_image("terrain/grass.png", &width, &height, 0, SOIL_LOAD_RGB);
+		unsigned char *image = SOIL_load_image("terrain/dirt.png", &width, &height, 0, SOIL_LOAD_RGB);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 
 		// Set the parameters for the grass texture
@@ -383,6 +436,77 @@ private:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		//---------------
+		// GRASS TEXTURES
+		//---------------
+
+		glGenTextures(5, &grassTex[0]); // Generate texture
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, grassTex[0]);
+
+		image = SOIL_load_image("terrain/normalmap.png", &width, &height, 0, SOIL_LOAD_RGB);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+		// Set the parameters for the normal texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// GRASS CARD TEXTURES
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, grassTex[1]);
+
+		image = SOIL_load_image("terrain/grass/grasses-1.png", &width, &height, 0, SOIL_LOAD_RGBA);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+		// Set the parameters for the normal texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, grassTex[2]);
+
+		image = SOIL_load_image("terrain/grass/grasses-2.png", &width, &height, 0, SOIL_LOAD_RGBA);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+		// Set the parameters for the normal texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, grassTex[3]);
+
+		image = SOIL_load_image("terrain/grass/grasses-3.png", &width, &height, 0, SOIL_LOAD_RGBA);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+		// Set the parameters for the normal texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, grassTex[4]);
+
+		image = SOIL_load_image("terrain/grass/grasses-4.png", &width, &height, 0, SOIL_LOAD_RGBA);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+		// Set the parameters for the normal texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
 	// Precondition:	Vertices is populated, contains point (i,j), vertex attributes

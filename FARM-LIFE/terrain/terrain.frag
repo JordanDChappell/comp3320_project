@@ -43,7 +43,7 @@ void main()
 	vec3 normal = vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b, normalMapColour.g * 2.0 - 1.0);
 	normal = normalize(normal);
 
-	float slope = acos(dot(normal, vec3(0, 1, 0)));
+	float slope = acos(dot(normal, vec3(0.0, 1.0, 0.0)));
 
 	//------------
 	// GET TEXTURE
@@ -54,7 +54,7 @@ void main()
 	vec4 rockTexture = texture(texRock, TexCoord);
 	vec4 sandTexture = texture(texSand, TexCoord);
 
-	// Texture will just be rock
+	// Texture will just be sand
 	if (height < (grassHeight - 1)) {
 		colTexture = sandTexture;
 	}
@@ -70,7 +70,7 @@ void main()
 	} 
 
 	// Add rocks to areas that slope a lot
-	if (slope > M_PI/6) {
+	if (abs(slope) > M_PI/6) {
 		colTexture = rockTexture;
 	}
 
