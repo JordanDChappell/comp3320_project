@@ -37,8 +37,8 @@
 #include "particles/CubeEmitter.hpp"
 
 // Initialise particle emitters and effects
-particle::SphereEmitter g_ParticleEmitter;
-particle::CubeEmitter g_CubeEmitter;
+particle::SphereEmitter g_ParticleEmitter(glm::vec3(0, 10, 0));
+particle::CubeEmitter g_CubeEmitter(glm::vec3(0, 30, 0));
 particle::ParticleEffect g_ParticleEffect(1000); // 1000 particles
 
 // Initial width and height of the window

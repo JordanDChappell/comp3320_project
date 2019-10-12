@@ -25,7 +25,7 @@ namespace particle
 		float MinLifetime, MaxLifetime;
 		glm::vec3 Origin;
     
-        SphereEmitter()
+        SphereEmitter(glm::vec3 origin)
 		{
             MinimumRadius = 0;
             MaximumRadius = 1;
@@ -37,7 +37,7 @@ namespace particle
             MaxSpeed = 20;
             MinLifetime = 3;
             MaxLifetime = 5;
-            Origin = glm::vec3(0);
+            Origin = origin;
         }
 
         ~SphereEmitter() {}

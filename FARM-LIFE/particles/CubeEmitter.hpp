@@ -22,7 +22,7 @@ namespace particle
 		float MinLifetime, MaxLifetime;
 		glm::vec3 Origin;
 
-		CubeEmitter()
+		CubeEmitter(glm::vec3 origin)
 		{
 			MinWidth = -1;
 			MaxWidth = 1;
@@ -34,7 +34,7 @@ namespace particle
 			MaxSpeed = 20;
 			MinLifetime = 3;
 			MaxLifetime = 5;
-			Origin = glm::vec3(0);
+			Origin = origin;
 		}
 
 		~CubeEmitter() {}
