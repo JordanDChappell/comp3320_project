@@ -363,6 +363,35 @@ int main(void)
 	int cameraOffsetX = tresX / 2;
 	int cameraOffsetY = tresY / 2;
 
+	//----------------------------
+	// INITIALISE PARTICLE EFFECTS
+	//----------------------------
+	if (g_ParticleEffect.LoadTexture("fire/Particle-Texture.png"))
+	{
+		std::cout << "Successfully loaded particle texture." << std::endl;
+	}
+	else
+	{
+		std::cerr << "Failed to load particle texture!" << std::endl;
+	}
+
+	// Set the colour interpolator to be used for the particle effects 
+	particle::ParticleEffect::ColourInterpolator colours;
+
+	colours.addValue(0.0f,  glm::vec4(1, 0, 0, 1));     // red 
+	colours.addValue(0.15f, glm::vec4(1, 0, 1, 1));     // magenta 
+	colours.addValue(0.33f, glm::vec4(0, 0, 1, 1));     // blue 
+	colours.addValue(0.5f,  glm::vec4(0, 1, 1, 1));     // cyan 
+	colours.addValue(0.67f, glm::vec4(0, 1, 0, 0.75));  // green 
+	colours.addValue(0.84f, glm::vec4(1, 1, 0, 0.5));   // yellow 
+	colours.addValue(1.0f,  glm::vec4(1, 0, 0, 0));     // red 
+
+	g_ParticleEffect.SetColourInterplator(colours);
+
+	g_ParticleEffect.SetParticleEmitter(&g_ParticleEmitter);
+	g_ParticleEffect.EmitParticles();
+	g_ParticleEffect.SetCamera(&camera);
+
 	//--------------
 	// CREATE MODELS
 	//--------------
