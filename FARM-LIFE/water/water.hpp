@@ -48,6 +48,10 @@ namespace water {
 			glEnableVertexAttribArray(posAttrib);
 			glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE,
 				vertexAtt * sizeof(float), 0);
+
+			// Initialise sound
+			sound = audio::Source();
+			sound.setLooping(true);
 		}
 
 		// Destructor
@@ -60,12 +64,20 @@ namespace water {
 			glDeleteBuffers(1, &ebo);
 			glDeleteVertexArrays(1, &vao);
 			glDeleteTextures(5, &tex[0]);
+			sound.cleanup();
+		}
+
+		// Precondition:	file is an audio file in wav format
+		// Postcondition:	sound is played from the source on this model
+		void playSound(const char* file) {
+			GLuint buffer = audio::loadAudio(file);
+			sound.play(buffer);
 		}
 
 		// Precondition:	Water object has been constructed
 		// Postcondition:	Water is drawn
 		void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec3 &camPos,
-				  float time, glm::vec3 lightPosition, glm::vec3 lightColour)
+				  float time, glm::vec3 lightPosition, glm::vec3 lightColour, bool isCameraAbove)
 		{
 			// Initalise variables needed for drawing the water
 			float waveHeight = 0.5;
@@ -119,6 +131,7 @@ namespace water {
 			glUniform1f(glGetUniformLocation(shader, "waveHeight"), waveHeight);
 			glUniform1f(glGetUniformLocation(shader, "near"), NEAR_PLANE);
 			glUniform1f(glGetUniformLocation(shader, "far"), FAR_PLANE);
+			glUniform1i(glGetUniformLocation(shader, "isCameraAbove"), isCameraAbove ? 1 : 0);
 
 			// Set light uniforms
 			glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
@@ -133,7 +146,10 @@ namespace water {
 
 			// Draw the elements
 			glDrawElements(GL_TRIANGLES, noVertices, GL_UNSIGNED_INT, 0);
-			
+
+			// Update source location
+			sound.setPosition(camPos);
+
 			// Unbind vertex array
 			glBindVertexArray(0);
 			glDisable(GL_BLEND);
@@ -152,14 +168,15 @@ namespace water {
 		GLuint vbo;			// vertex buffer object
 		GLuint ebo;			// element buffer object
 		GLuint tex[5];		// textures
-
+		
 		// Store terrain size and resolution
 		float scale;		// how much to scale water, if water is resX by resZ
 		int resX;			// number of vertices wide (x-axis)
 		int resZ;			// number of vertices long (z-axis)
 		int noVertices;		// number of vertices to draw
         float height;       // height of the water
-		
+		audio::Source sound;		// sound source
+
 		// Precondition:	vertexAtt is number of vertex attributes, height is height of the water
 		// Postcondition:	Mesh is created and loaded into VAO, VBO, EBO
 		void createMesh(int vertexAtt, float height) {
