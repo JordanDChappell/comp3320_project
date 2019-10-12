@@ -5,102 +5,6 @@
 	* GLM - OpenGL Mathematics
 	* OpenAL - Open Audio Library
 	*/
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-	#include <windows.h>	
-	#include <sdl.h>
-	#include <SOIL.h>
-    #include <GL/glew.h>  
-	#include <GLFW/glfw3.h>  
-	#include "glm/glm.hpp"
-	#include "glm/gtc/matrix_transform.hpp"
-	#include "glm/gtc/type_ptr.hpp"
-
-	// Include the standard C++ headers  
-	#include <iostream> 
-	#include <fstream> 
-    #include <stdio.h>  
-    #include <stdlib.h>  
-	#include <vector>
-
-	// Include project files
-	#include "util/mainUtil.hpp"
-	#include "util/camera.hpp"
-	#include "terrain/terrain.hpp"
-	#include "models/model.hpp"
-	#include "skybox/skybox.hpp"
-	#include "water/water.hpp"
-	#include "water/WaterFrameBuffers.hpp"
-=======
-#include <windows.h>
-#include <sdl.h>
-#include <SOIL.h>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
-#include "al.h"
-#include "alc.h"
-
-// Include the standard C++ headers
-#include <iostream>
-#include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <vector>
-
-// Include project files
-#include "util/mainUtil.hpp"
-#include "util/camera.hpp"
-#include "audio/audio.hpp"
-#include "terrain/terrain.hpp"
-#include "models/model.hpp"
-#include "skybox/skybox.hpp"
-#include "water/water.hpp"
-#include "water/WaterFrameBuffers.hpp"
->>>>>>> cfe9a3dcf3df3be84a3e0a09b307b7fccb8a26b4
-#include "tree.hpp"
-
-// Initial width and height of the window
-GLuint SCREEN_WIDTH = 1200;
-GLuint SCREEN_HEIGHT = 800;
-
-// Distances to the near and the far plane. Used for the camera to clip space transform.
-static constexpr float NEAR_PLANE = 0.1f;
-static constexpr float FAR_PLANE = 1000.0f;
-
-std::vector<model::Model> models;	// vector of all models to render
-std::vector<model::HitBox> hitBoxes; // vector of all hitboxes in the scene for collision detections
-static int debounceCounter = 0;		 // simple counter to debounce keyboard inputs
-
-void process_input(GLFWwindow *window, const float &delta_time, utility::camera::Camera &camera, float terrainHeight)
-{
-	// Movement sensitivity is updated base on the delta_time and not framerate, gravity accelleration is also based on delta_time
-	camera.set_movement_sensitivity(30.0f * delta_time);
-	camera.gravity(delta_time, terrainHeight); // apply gravity, giving the floor of the current (x,y) position
-
-<<<<<<< HEAD
-		// Process movement inputs
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-			glfwSetWindowShouldClose(window, true);
-		}
-		else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			camera.move_forward(hitBoxes);
-		}
-		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			camera.move_backward(hitBoxes);
-		}
-		else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			camera.move_left(hitBoxes);
-		}
-		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			camera.move_right(hitBoxes);
-		}
-		
-		// Process debounced inputs - this ensures we won't have 5 jump events triggering before we leave the ground etc.
-		if (debounceCounter == 0)
-=======
 #include <windows.h>
 #include <sdl.h>
 #include <SOIL.h>
@@ -148,8 +52,6 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 	camera.set_movement_sensitivity(30.0f * delta_time);
 	camera.gravity(delta_time, terrainHeight); // apply gravity, giving the floor of the current (x,y) position
 
-=======
->>>>>>> cfe9a3dcf3df3be84a3e0a09b307b7fccb8a26b4
 	// Process movement inputs
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
@@ -176,10 +78,6 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 	if (debounceCounter == 0)
 	{
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> cfe9a3dcf3df3be84a3e0a09b307b7fccb8a26b4
 		{
 			camera.jump(delta_time, terrainHeight);
 		}
@@ -324,151 +222,11 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-		// Create a window and create its OpenGL context, creates a fullscreen window using glfwGetPrimaryMonitor(), requires a monitor for fullscreen
-		//window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", glfwGetPrimaryMonitor(), NULL);
-=======
-	alcMakeContextCurrent(context);
-	alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
-
-	//--------------------------------------------------------
-	//-----------COMPLETED DEPENDENCY INITITIALISATION--------
-	//------------------INITIALISE SCENE----------------------
-	//--------------------------------------------------------
-
-	// Draw screen while waiting for the main program to load
-	addLoadingScreen();
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glfwSwapBuffers(window);
-
-	//---------------------
-	// SET BACKGROUND MUSIC
-	//---------------------
-	audio::setListener(camera.get_position());
-	audio::Source camSource = audio::Source();
-	camSource.setLooping(true);
-	camSource.setPosition(camera.get_position());
-	camSource.setVolume(0.07);
-	GLuint mainMusic = audio::loadAudio("audio/bensound-acousticbreeze.wav");
-	camSource.play(mainMusic);
-
-	// Enable depth test
-	glEnable(GL_DEPTH_TEST);
-
-	//---------------
-	// CREATE TERRAIN
-	//---------------
-	// Set up variables and initialize a terrain instance
-	int tresX = 1000; // x and y resolutions for the terrain, keep in a variable for use in other calculations
-	int tresY = 1000;
-	float terraScale = 1.0;
-	int terraMaxHeight = 30;
-	float terraYOffset = -20.0f; // the terrain is offset in the y by terraYOffset
-	// Create main terrain
-	terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight, terraYOffset, terraMaxHeight / 2.5);
-	// Create water frame buffers for reflection and refraction
-	water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
-	// Create water
-	water::Water water = water::Water(tresX, tresY, terraScale, terraMaxHeight / 2.5, fbos);
-	water.playSound("audio/river.wav");
-
-	// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
-	int cameraOffsetX = tresX / 2;
-	int cameraOffsetY = tresY / 2;
-
-	//--------------
-	// CREATE MODELS
-	//--------------
-
-	// Load the shaders to be used in the scene
-	//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
-	GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
-
-	// Load a model using model class
-	model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
-	// Locate the model in the scene, simply give x and y coordinates (technically x and z in openGL)
-	int modelXCoord = 100;
-	int modelYCoord = 0;
-	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add half the models height to get to ground level
-	// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
-	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe.hitBox.size.y / 2);
-	giraffe.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
-	models.push_back(giraffe);												 // push the model to the render vector
-	hitBoxes.push_back(giraffe.hitBox);										 // push the model's hitbox to the hitBox vector
-
-	model::Model barn = model::Model("models/barn/barn.obj");
-	modelXCoord = 10;
-	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn.hitBox.size.y / 2);
-	barn.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
-	models.push_back(barn);
-	hitBoxes.push_back(barn.hitBox);
-
-	model::Model cat = model::Model("models/cat/cat.obj");
-	modelXCoord = 100;
-	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat.hitBox.size.y / 2);
-	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
-	models.push_back(cat);
-	hitBoxes.push_back(cat.hitBox);
-
-	model::Model fence = model::Model("models/fence/fence.obj");
-	fence.MoveTo(glm::vec3(-10, 0, -4));
-	models.push_back(fence);
-
-	tree::Tree tree = tree::Tree("re", "models/bucket/bucket.obj");
-	for (int i = 0; i < 50; i++) {
-		models.push_back(tree.placeTree(i));
-	};
-
-	model::Model bucket = model::Model("models/bucket/bucket.obj");
-	bucket.MoveTo(glm::vec3(-10, 0, 10));
-	models.push_back(bucket);
-
-	model::Model trough = model::Model("models/trough/watertrough.obj");
-	trough.MoveTo(glm::vec3(-10, -4, 9));
-
-	//--------------
-	// CREATE SKYBOX
-	//--------------
-	skybox::Skybox skybox = skybox::Skybox();
-	skybox.getInt();
-
-	// Init before the main loop
-	float last_frame = glfwGetTime();
-	float current_frame = 0.0f;
-	float delta_time = 0.0f;
-	//Set a background color
-	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
-
-	// Sounds
-	cat.playSound("audio/cat-purring.wav", true, 0.2);
-	terra.playSound("audio/meadow-birds.wav");
-
-	// Main Loop
-	do
-	{
-		audio::setListener(camera.get_position());
-		camSource.setPosition(camera.get_position());
-		/* PROCESS INPUT */
-		current_frame = glfwGetTime();
-		delta_time = current_frame - last_frame;
-		last_frame = current_frame;
-
-		// find the current rough terrain height at the camera position
-		int cameraX = (int)camera.get_position().x + cameraOffsetX;
-		int cameraY = (int)camera.get_position().z + cameraOffsetY;
-		float terrainHeight = terra.getHeightAt(cameraX, cameraY) + terraYOffset + 5.0f; // using the offset down 20.0f units and adding some height for the camera
-		process_input(window, delta_time, camera, terrainHeight);
->>>>>>> Stashed changes
-=======
 	//Set the GLFW window creation hints - these are optional
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);				   //Request a specific OpenGL version
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);				   //Request a specific OpenGL version
 	glfwWindowHint(GLFW_SAMPLES, 4);							   //Request 4x antialiasing
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //modern opengl
->>>>>>> cfe9a3dcf3df3be84a3e0a09b307b7fccb8a26b4
 
 	//Declare a window object
 	GLFWwindow *window;
@@ -626,9 +384,9 @@ int main(void)
 	models.push_back(barn);
 	hitBoxes.push_back(barn.hitBox);
 
-		model::Model fence = model::Model("models/fence/fence.obj");
-		fence.MoveTo(glm::vec3(-10, 0, -4));
-		models.push_back(fence);
+	model::Model fence = model::Model("models/fence/fence.obj");
+	fence.MoveTo(glm::vec3(-10, 0, -4));
+	models.push_back(fence);
 
 	model::Model cat = model::Model("models/cat/cat.obj");
 	modelXCoord = 100;
@@ -637,24 +395,19 @@ int main(void)
 	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
-		tree::Tree trees = tree::Tree("ebkezjkb", "models/fence/fence.obj");
-		for (int i = 0; i < 5; i++) {
-			models.push_back(trees.placeTree(i));
-			//models.push_back(fenceTab[i]);
-		}
-		
 
-		model::Model bucket = model::Model("models/bucket/bucket.obj");
-		bucket.MoveTo(glm::vec3(-10, 0, 10));
-		models.push_back(bucket);
+	tree::Tree trees = tree::Tree("ebkezjkb", "models/fence/fence.obj");
+	for (int i = 0; i < 5; i++)
+	{
+		models.push_back(trees.placeTree(i));
+		//models.push_back(fenceTab[i]);
+	}
 
-	model::Model fence = model::Model("models/fence/fence.obj");
-	fence.MoveTo(glm::vec3(-10, 0, -4));
-	models.push_back(fence);
-
-	model::Model bucket = model::Model("models/bucket/bucket.obj");
-	bucket.MoveTo(glm::vec3(-10, 0, 10));
-	models.push_back(bucket);
+	tree::Tree tree = tree::Tree("re", "models/bucket/bucket.obj");
+	for (int i = 0; i < 50; i++)
+	{
+		models.push_back(tree.placeTree(i));
+	};
 
 	model::Model trough = model::Model("models/trough/watertrough.obj");
 	trough.MoveTo(glm::vec3(-10, -4, 9));
