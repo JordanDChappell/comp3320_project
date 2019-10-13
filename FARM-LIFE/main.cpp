@@ -128,6 +128,11 @@ void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<
 
 	// NOTE: Draw all other objects before the skybox
 
+	//----------------------
+	// DRAW PARTICLE EFFECTS
+	//----------------------
+	g_ParticleEffect.Render();
+
 	// Draw the models
 	glDepthFunc(GL_LESS);
 
