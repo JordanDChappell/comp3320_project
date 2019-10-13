@@ -157,7 +157,10 @@ namespace model {
 			glActiveTexture(GL_TEXTURE0);
 		}
 
-		void SetRotationTransform(float minRotation, float maxRotation, float angle, glm::vec3 axis)
+		///<summary>Set a rotation transform loop for the mesh, takes a minimum angle, maximum angle,
+		///			an incremental angle between frames and an axis of rotation usually about the Y axis.
+		///</summary>
+		void SetRotationTransformLoop(float minRotation, float maxRotation, float angle, glm::vec3 axis)
 		{
 			this->angleOfRotation = angle;
 			this->axisOfRotation = axis;
@@ -263,13 +266,17 @@ namespace model {
 			hitBox.origin = hitBox.origin + coordinates;
 		}
 
-		void SetRotationAnimation(std::string meshName, float minRotation, float maxRotation, float angleOfRotation, glm::vec3 axisOfRotation) 
+		///<summary>
+		/// Sets a Rotation animation loop on a specific mesh in the model, takes a meshName (corresponding to a value in the model.obj file -> blender mesh layer name)
+		/// takes a minimum/maximum rotation angle (before the loop reverses), takes an incrementing angle, and an axis to rotate about.
+		///</summary>
+		void SetRotationAnimationLoop(std::string meshName, float minRotation, float maxRotation, float angleOfRotation, glm::vec3 axisOfRotation) 
 		{
 			for (int i = 0; i < meshes.size(); i++) 
 			{
 				if (meshName.compare(meshes[i].meshName) == 0)
 				{
-					meshes[i].SetRotationTransform(minRotation, maxRotation, angleOfRotation, axisOfRotation);
+					meshes[i].SetRotationTransformLoop(minRotation, maxRotation, angleOfRotation, axisOfRotation);
 				}
 			}
 		}
