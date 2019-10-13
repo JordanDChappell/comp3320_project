@@ -82,7 +82,7 @@ namespace model {
 			this->axisOfRotation = glm::vec3(0.0f, 1.0f, 0.0f);
 
 			// Find center of the mesh
-			this->centerOfMesh = maxVertices - minVertices;
+			this->centerOfMesh = glm::vec3(((minVertices.x + maxVertices.x) / 2.0f), ((minVertices.y + maxVertices.y) / 2.0f), ((minVertices.z + maxVertices.z) / 2.0f));
 			
 			// Initialize the mesh buffer objects/arrays
 			initializeMesh();
@@ -126,7 +126,7 @@ namespace model {
 			glBindVertexArray(VAO);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, &view[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, &projection[0][0]);
-			
+
 			// Apply movement transform to the mesh
 			model = glm::translate(model, position);
 
