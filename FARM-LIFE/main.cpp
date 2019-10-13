@@ -346,10 +346,10 @@ int main(void)
 	// Create main terrain
 	terrain::Terrain terra = terrain::Terrain(tresX, tresY, terraScale, terraMaxHeight, terraYOffset, terraMaxHeight / 2.5);
 	// Create water frame buffers for reflection and refraction
-	//water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
-	//// Create water
-	//water::Water water = water::Water(tresX, tresY, terraScale, terraMaxHeight / 2.5, fbos);
-	//water.playSound("audio/river.wav");
+	water::WaterFrameBuffers fbos = water::WaterFrameBuffers();
+	// Create water
+	water::Water water = water::Water(tresX, tresY, terraScale, terraMaxHeight / 2.5, fbos);
+	water.playSound("audio/river.wav");
 
 	// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
 	int cameraOffsetX = tresX / 2;
@@ -372,36 +372,36 @@ int main(void)
 	// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
 	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe->hitBox.size.y / 2);
 	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
-	giraffe->SetRotationAnimation("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));	// set an animation loop on the giraffes head
 	models.push_back(giraffe);												 // push the model to the render vector
 	hitBoxes.push_back(giraffe->hitBox);										 // push the model's hitbox to the hitBox vector
 
-	/*model::Model barn = model::Model("models/barn/barn.obj");
+	model::Model* barn = new model::Model("models/barn/barn.obj");
 	modelXCoord = 10;
 	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn.hitBox.size.y / 2);
-	barn.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn->hitBox.size.y / 2);
+	barn->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(barn);
-	hitBoxes.push_back(barn.hitBox);
+	hitBoxes.push_back(barn->hitBox);
 
-	model::Model cat = model::Model("models/cat/cat.obj");
+	model::Model* cat = new model::Model("models/cat/cat.obj");
 	modelXCoord = 100;
 	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat.hitBox.size.y / 2);
-	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat->hitBox.size.y / 2);
+	cat->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
-	hitBoxes.push_back(cat.hitBox);
+	hitBoxes.push_back(cat->hitBox);
 
-	model::Model fence = model::Model("models/fence/fence.obj");
-	fence.MoveTo(glm::vec3(-10, 0, -4));
+	model::Model* fence = new model::Model("models/fence/fence.obj");
+	fence->MoveTo(glm::vec3(-10, 0, -4));
 	models.push_back(fence);
 
-	model::Model bucket = model::Model("models/bucket/bucket.obj");
-	bucket.MoveTo(glm::vec3(-10, 0, 10));
+	model::Model* bucket = new model::Model("models/bucket/bucket.obj");
+	bucket->MoveTo(glm::vec3(-10, 0, 10));
 	models.push_back(bucket);
 
-	model::Model trough = model::Model("models/trough/watertrough.obj");
-	trough.MoveTo(glm::vec3(-10, -4, 9));*/
+	model::Model* trough = new model::Model("models/trough/watertrough.obj");
+	trough->MoveTo(glm::vec3(-10, -4, 9));
 
 	//--------------
 	// CREATE SKYBOX
@@ -417,7 +417,7 @@ int main(void)
 	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
 
 	// Sounds
-	//cat.playSound("audio/cat-purring.wav", true, 0.2);
+	cat->playSound("audio/cat-purring.wav", true, 0.2);
 	terra.playSound("audio/meadow-birds.wav");
 
 	// Main Loop
@@ -443,52 +443,52 @@ int main(void)
 		// RENDER REFLECTION AND REFRACTION TEXTURES
 		//------------------------------------------
 		// If camera is above the water, do reflection and refraction as you would expect
-		//if (camera.get_position().y > water.getHeight() - 0.5)
-		//{
-		//	// Allow clipping
-		//	glEnable(GL_CLIP_DISTANCE0);
+		if (camera.get_position().y > water.getHeight() - 0.5)
+		{
+			// Allow clipping
+			glEnable(GL_CLIP_DISTANCE0);
 
-		//	// Bind the reflection frame buffer
-		//	fbos.bindReflectionFrameBuffer();
+			// Bind the reflection frame buffer
+			fbos.bindReflectionFrameBuffer();
 
-		//	// Move the camera
-		//	float distance = 2 * (camera.get_position().y - water.getHeight());
-		//	camera.move_y_position(-distance);
-		//	camera.invert_pitch();
+			// Move the camera
+			float distance = 2 * (camera.get_position().y - water.getHeight());
+			camera.move_y_position(-distance);
+			camera.invert_pitch();
 
-		//	// Render the scene
-		//	render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			// Render the scene
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
 
-		//	// Move the camera back
-		//	camera.move_y_position(distance);
-		//	camera.invert_pitch();
+			// Move the camera back
+			camera.move_y_position(distance);
+			camera.invert_pitch();
 
-		//	// Bind the refraction frame buffer
-		//	fbos.bindRefractionFrameBuffer();
+			// Bind the refraction frame buffer
+			fbos.bindRefractionFrameBuffer();
 
-		//	// Render the scene
-		//	render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
-		//}
-		//// If the camera is below the water, dont need reflection only refraction
-		//else
-		//{
-		//	// Allow clipping
-		//	glEnable(GL_CLIP_DISTANCE0);
+			// Render the scene
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+		}
+		// If the camera is below the water, dont need reflection only refraction
+		else
+		{
+			// Allow clipping
+			glEnable(GL_CLIP_DISTANCE0);
 
-		//	// Bind the reflection frame buffer
-		//	fbos.bindReflectionFrameBuffer();
+			// Bind the reflection frame buffer
+			fbos.bindReflectionFrameBuffer();
 
-		//	// Render the scene, don't bother changing since this is refraction
-		//	render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			// Render the scene, don't bother changing since this is refraction
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
 
-		//	// Bind the refraction frame buffer
-		//	fbos.bindRefractionFrameBuffer();
-		//	// Render the scene
-		//	render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
-		//}
+			// Bind the refraction frame buffer
+			fbos.bindRefractionFrameBuffer();
+			// Render the scene
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+		}
 
 		// Unbind the frame buffer before rendering the scene
-		//fbos.unbindCurrentFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+		fbos.unbindCurrentFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 		//-----------------
 		// RENDER THE SCENE
@@ -499,8 +499,8 @@ int main(void)
 		glDisable(GL_CLIP_DISTANCE0);
 		// TODO: Send in a light when lights are done
 		// Render water
-		/*water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
-				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));*/
+		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
+				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
 
 		//Swap buffers
 		glfwSwapBuffers(window);
@@ -512,7 +512,7 @@ int main(void)
 
 	// Cleanup (delete buffers etc)
 	terra.cleanup();
-	//fbos.cleanup();
+	fbos.cleanup();
 	camSource.cleanup();
 	alDeleteBuffers(1, &mainMusic);
 
