@@ -45,16 +45,44 @@ namespace model {
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
 		std::vector<Texture> textures;		// need multiple textures for certain meshes, should keep all in memory rather than loading
+		std::string meshName;
+		
+		// Mesh local minimum and maximum vertices values, can be useful for transforms (find center of mesh for a transform)
+		glm::vec3 minVertices;
+		glm::vec3 maxVertices;
+		glm::vec3 centerOfMesh;
+
+		// Animation transform values
+		float maxRotation;
+		float minRotation;
+		float currentRotation;
+		float angleOfRotation;
+		glm::vec3 axisOfRotation;
+
 		GLuint VAO;
 
 		// Public functions
 
 		// Constructor
-		Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures)
+		Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures, std::string meshName, glm::vec3 minVertices, glm::vec3 maxVertices)
 		{
+			// Initialize input parameters
 			this->vertices = vertices;
 			this->indices = indices;
 			this->textures = textures;
+			this->minVertices = minVertices;
+			this->maxVertices = maxVertices;
+			this->meshName = meshName;
+
+			// Initialize the default rotation transform (no rotation)
+			this->maxRotation = 0.0f;
+			this->minRotation = 0.0f;
+			this->currentRotation = 0.0f;
+			this->angleOfRotation = 0.0f;
+			this->axisOfRotation = glm::vec3(0.0f, 1.0f, 0.0f);
+
+			// Find center of the mesh
+			this->centerOfMesh = maxVertices - minVertices;
 			
 			// Initialize the mesh buffer objects/arrays
 			initializeMesh();
@@ -91,15 +119,33 @@ namespace model {
 				glUniform1i(glGetUniformLocation(shader, (name + number).c_str()), i);
 				glBindTexture(GL_TEXTURE_2D, textures[i].id);
 			}
-			
+
+			// ------------- TRANSFORMS ---------------- //
 
 			// draw mesh - apply view transformations from the camera
 			glBindVertexArray(VAO);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, &view[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, &projection[0][0]);
-
-			// Apply the movement transform to the model
+			
+			// Apply movement transform to the mesh
 			model = glm::translate(model, position);
+
+			// Rotation animation bounds
+			if (currentRotation > maxRotation)
+			{
+				angleOfRotation = -angleOfRotation;
+			}
+			else if (currentRotation < minRotation)
+			{
+				angleOfRotation = -angleOfRotation;
+			}
+				
+			// Apply rotation transform
+			currentRotation += angleOfRotation;
+			model = glm::translate(model, centerOfMesh);
+			model = glm::rotate(model, currentRotation, axisOfRotation);
+			model = glm::translate(model, -centerOfMesh);
+
 			glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &model[0][0]);
 			// Add the clipping plane to the shader to clip parts of the scene if needed
 			glUniform4f(glGetUniformLocation(shader, "clippingPlane"), clippingPlane[0], clippingPlane[1], clippingPlane[2], clippingPlane[3]);
@@ -109,6 +155,14 @@ namespace model {
 			// cleanup
 			glBindVertexArray(0);
 			glActiveTexture(GL_TEXTURE0);
+		}
+
+		void SetRotationTransform(float minRotation, float maxRotation, float angle, glm::vec3 axis)
+		{
+			this->angleOfRotation = angle;
+			this->axisOfRotation = axis;
+			this->minRotation = minRotation;
+			this->maxRotation = maxRotation;
 		}
 
 	private:
@@ -160,6 +214,7 @@ namespace model {
 		std::string directory;
 		glm::vec3 position = glm::vec3(0, 0, 0);
 		HitBox hitBox;
+		std::vector<std::string> nodeNames;
 
 		// Public functions
 
@@ -208,12 +263,24 @@ namespace model {
 			hitBox.origin = hitBox.origin + coordinates;
 		}
 
+		void SetRotationAnimation(std::string meshName, float minRotation, float maxRotation, float angleOfRotation, glm::vec3 axisOfRotation) 
+		{
+			for (int i = 0; i < meshes.size(); i++) 
+			{
+				if (meshName.compare(meshes[i].meshName) == 0)
+				{
+					meshes[i].SetRotationTransform(minRotation, maxRotation, angleOfRotation, axisOfRotation);
+				}
+			}
+		}
+
 	private:
 		// Private model data
 		glm::vec3 maxVertices;	// keeps a record of the models overall max(x,y,z) coordinates
 		glm::vec3 minVertices;	// as above for the minimum vertices
 		bool verticesSet = false;	// flag that enables the vertices to be initialized on first loop over the mesh
 		audio::Source sound;
+		aiNode rootNode;		// stores the root node of the model
 
 		///<summary>
 		/// Load a model using assimp library.
@@ -246,30 +313,29 @@ namespace model {
 		///</summary>
 		void processNode(aiNode* node, const aiScene* scene)
 		{
+			std::cout << "Process Node: " << node->mName.C_Str() << std::endl;
 			// process each mesh located at the current node
 			for (unsigned int i = 0; i < node->mNumMeshes; i++)
 			{
-				// the node object only contains indices to index the actual objects in the scene. 
-				// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 				aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-
-				// SOMETHING WRONG HERE??
-				Mesh madeMesh = processMesh(mesh, scene);
+				Mesh madeMesh = processMesh(mesh, scene, node->mName.C_Str());
 				meshes.push_back(madeMesh);
 			}
-			// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
+			// after processing meshes, check for children nodes of thc current node, recursively process the children.
 			for (unsigned int i = 0; i < node->mNumChildren; i++)
 			{
 				processNode(node->mChildren[i], scene);
 			}
 		}
 
-		Mesh processMesh(aiMesh* mesh, const aiScene* scene)
+		Mesh processMesh(aiMesh* mesh, const aiScene* scene, std::string meshName)
 		{
 			// data to fill
 			std::vector<Vertex> vertices;
 			std::vector<GLuint> indices;
 			std::vector<Texture> textures;
+			glm::vec3 localMinVertices = glm::vec3(0.0f, 0.0f, 0.0f);	//used to keep track of each meshes local miniumum/maximum vertices for local center calculation in transforms.
+			glm::vec3 localMaxVertices = glm::vec3(0.0f, 0.0f, 0.0f);
 
 			// loop through each of the mesh's vertices
 			for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -301,7 +367,7 @@ namespace model {
 					vertex.TexCoords = glm::vec2(0.0f, 0.0f);
 				vertices.push_back(vertex);
 
-				// find the min and max vertices for the hitbox
+				// find the global min and max vertices for the hitbox
 				// TODO: can this be optimized? probably...but it's not that slow
 				if (!verticesSet)		// edge case, initialize all min and max values first
 				{
@@ -340,13 +406,39 @@ namespace model {
 						maxVertices.z = mesh->mVertices[i].z;
 					}
 				}
+
+				// Store local min and max vertices
+				if (mesh->mVertices[i].x < localMinVertices.x)
+				{
+					localMinVertices.x = mesh->mVertices[i].x;
+				}
+				if (mesh->mVertices[i].y < localMinVertices.y)
+				{
+					localMinVertices.y = mesh->mVertices[i].y;
+				}
+				if (mesh->mVertices[i].z < localMinVertices.z)
+				{
+					localMinVertices.z = mesh->mVertices[i].z;
+				}
+				if (mesh->mVertices[i].x > localMaxVertices.x)
+				{
+					localMaxVertices.x = mesh->mVertices[i].x;
+				}
+				if (mesh->mVertices[i].y > localMaxVertices.y)
+				{
+					localMaxVertices.y = mesh->mVertices[i].y;
+				}
+				if (mesh->mVertices[i].z > localMaxVertices.z)
+				{
+					localMaxVertices.z = mesh->mVertices[i].z;
+				}
 			}
 
-			// now loop through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+			// now loop through each of the mesh's faces (a face is a mesh its triangle), retrieve any indices
 			for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 			{
 				aiFace face = mesh->mFaces[i];
-				// retrieve all indices of the face and store them in the indices vector
+				// retrieve indices and store them in a vector
 				for (unsigned int j = 0; j < face.mNumIndices; j++)
 					indices.push_back(face.mIndices[j]);
 			}
@@ -370,7 +462,7 @@ namespace model {
 			// Sample found at at: https://www.lighthouse3d.com/cg-topics/code-samples/importing-3d-models-with-assimp/
 
 			// return a mesh object created from the extracted mesh data
-			return Mesh(vertices, indices, textures);
+			return Mesh(vertices, indices, textures, meshName, localMinVertices, localMaxVertices);
 		}
 
 		std::vector<Texture> loadMaterialTextures(aiMaterial * mat, aiTextureType type, std::string typeName)
