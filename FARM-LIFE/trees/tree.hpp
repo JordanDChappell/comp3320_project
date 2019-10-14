@@ -22,10 +22,10 @@ namespace tree
 class Tree {
 public:
     //Tree constructor
-	Tree(const std::string map, const std::string treemodel)
+	Tree(const std::string map, const std::string treemodel, terrain::Terrain terra)
 	{
 		placemap = map;
-		readHeightMap("trees/heightmap.bmp", treemodel);
+		readHeightMap("trees/heightmap.bmp", treemodel, terra);
 	}
 	model::Model placeTree(int i) {
 		return treeVect[i];
@@ -41,7 +41,7 @@ private:
 			treeVect.push_back(modeltree);
 	}*/
 
-    void readHeightMap(std::string placemap, std::string treemodel){
+    void readHeightMap(std::string placemap, std::string treemodel, terrain::Terrain terrain){
         // Load in the height map
         SDL_Surface *img = SDL_LoadBMP(placemap.c_str());
 
@@ -66,15 +66,15 @@ private:
                 {
                     //modeltree.MoveTo(glm::vec3(i, (float)r / 255.0, j));
 					model::Model modeltree = model::Model(treemodel);
-                    modeltree.MoveTo(glm::vec3(i - 500, ((float)r1 + (float)r2)/255.0 + 1, j - 500));
+                    modeltree.MoveTo(glm::vec3(i - 500, terrain.getHeightAt(i,j), j - 500));
                     treeVect.push_back(modeltree);
                     //std::cout << "Found a red pixel\n";
-					std::cout << (float)r;
+					/*std::cout << (float)r;
 					std::cout << ",";
                     std::cout << (float)r1;
                     std::cout << ",";
                     std::cout << (float)r2;
-                    std::cout << "\n";
+                    std::cout << "\n";*/
                 }
             }
         }
