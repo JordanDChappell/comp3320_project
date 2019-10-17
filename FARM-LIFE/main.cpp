@@ -26,12 +26,14 @@
 // Include project files
 #include "util/mainUtil.hpp"
 #include "util/camera.hpp"
+#include "lights/lights.hpp"
 #include "audio/audio.hpp"
 #include "terrain/terrain.hpp"
 #include "models/model.hpp"
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
+
 
 // Initial width and height of the window
 GLuint SCREEN_WIDTH = 1200;
@@ -44,6 +46,9 @@ static constexpr float FAR_PLANE = 1000.0f;
 std::vector<model::Model> models;	// vector of all models to render
 std::vector<model::HitBox> hitBoxes; // vector of all hitboxes in the scene for collision detections
 static int debounceCounter = 0;		 // simple counter to debounce keyboard inputs
+
+//Lamp/lighting position
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 void process_input(GLFWwindow *window, const float &delta_time, utility::camera::Camera &camera, float terrainHeight)
 {
@@ -108,13 +113,13 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 	}
 }
 
-void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model> models, skybox::Skybox skybox, GLuint modelShader, glm::vec4 clippingPlane)
+void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model> models, GLuint modelShader, glm::vec4 clippingPlane)
 {
-	// get the camera transforms
+	// get the camera transforms and position
 	glm::mat4 Hvw = camera.get_view_transform();
 	glm::mat4 Hcv = camera.get_clip_transform();
 	glm::mat4 Hwm = glm::mat4(1.0f);
-
+	glm::vec3 CamPos = camera.get_position();
 	// Clear color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -122,23 +127,17 @@ void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<
 
 	// Draw the models
 	glDepthFunc(GL_LESS);
-
+	glm::vec3 Forward = camera.get_view_direction();
 	for (int i = 0; i < models.size(); i++)
 	{
-		models.at(i).Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane);
+		models.at(i).Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane, CamPos, Forward);
 	}
-
-	// Render skybox last, disable clipping for skybox
-	glDisable(GL_CLIP_DISTANCE0);
-	glm::mat4 skybox_Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
-	skybox.render(skybox_Hvw, Hcv);
-	glEnable(GL_CLIP_DISTANCE0);
 
 	//-------------
 	// DRAW TERRAIN
 	//-------------
 	terra.draw(Hvw, Hcv, clippingPlane, camera.get_position(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0),
-			   glfwGetTime());
+			   glfwGetTime(), Forward);
 }
 
 // Loads a loading screen for FARM-LIFE: GAME OF THE YEAR EDITION
@@ -174,6 +173,7 @@ void addLoadingScreen()
 
 	// Create shader program
 	GLuint shader1 = LoadShaders("shaders/loading.vert", "shaders/loading.frag");
+	
 	glUseProgram(shader1);
 
 	// Create and bind texture
@@ -288,22 +288,20 @@ int main(void)
 	}
 
 	// Initialise AL
-	ALCdevice *device = alcOpenDevice(NULL);
+	ALCdevice* device = alcOpenDevice(NULL);
 	if (device == NULL)
 	{
 		std::cout << "cannot open sound card" << std::endl;
 	}
-	if (!device)
-	{
+	if (!device) {
 		std::cout << "not device" << std::endl;
 	}
-	ALCcontext *context = alcCreateContext(device, NULL);
+	ALCcontext* context = alcCreateContext(device, NULL);
 	if (context == NULL)
 	{
 		std::cout << "cannot open context" << std::endl;
 	}
-	if (!context)
-	{
+	if (!context) {
 		std::cout << "not context" << std::endl;
 	}
 
@@ -354,6 +352,10 @@ int main(void)
 	// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
 	int cameraOffsetX = tresX / 2;
 	int cameraOffsetY = tresY / 2;
+	//Enable lighting
+
+	glEnable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING); To disable the lighting for the skybox later
 
 	//--------------
 	// CREATE MODELS
@@ -361,8 +363,79 @@ int main(void)
 
 	// Load the shaders to be used in the scene
 	//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
+	GLuint lightShader = LoadShaders("shaders/light.vert", "shaders/light.frag");
 	GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
+	GLuint lampShader = LoadShaders("shaders/lampLight.vert", "shaders/lampLight.frag");
+	
 
+	//******************************************************************************************************************************************
+	/*
+
+	GLfloat vertices[] = {
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+	};
+	*/
+	// light box-------------------------------------------------------------------------
+	/*
+	GLuint lightVAO, lightVBO;
+
+	glGenVertexArrays(1, &lightVAO);
+	
+	glGenBuffers(1, &lightVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBindVertexArray(lightVAO);
+	
+	// only position data for lamp object
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	//glBindVertexArray(0);
+
+	*/
+
+
+	//******************************************************************************************************************************************
 	// Load a model using model class
 	model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
 	// Locate the model in the scene, simply give x and y coordinates (technically x and z in openGL)
@@ -390,6 +463,7 @@ int main(void)
 	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
+	
 
 	model::Model fence = model::Model("models/fence/fence.obj");
 	fence.MoveTo(glm::vec3(-10, 0, -4));
@@ -421,7 +495,8 @@ int main(void)
 
 	// Main Loop
 	do
-	{
+	{	
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		audio::setListener(camera.get_position());
 		camSource.setPosition(camera.get_position());
 		/* PROCESS INPUT */
@@ -435,8 +510,65 @@ int main(void)
 		float terrainHeight = terra.getHeightAt(cameraX, cameraY) + terraYOffset + 5.0f; // using the offset down 20.0f units and adding some height for the camera
 		process_input(window, delta_time, camera, terrainHeight);
 
-		glm::mat4 Hvw = camera.get_view_transform();
-		glm::mat4 Hcv = camera.get_clip_transform();
+		glm::mat4 Hvw = camera.get_view_transform(); //view
+		glm::mat4 Hcv = camera.get_clip_transform(); //projection
+
+		/*
+		//******************************************************************************************************************************************
+
+		GLint lightPosLoc = glGetAttribLocation(modelShader, "light.position");
+		GLint viewPosLoc = glGetAttribLocation(modelShader, "viewPos");
+
+		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(viewPosLoc, camera.get_position().x, camera.get_position().y, camera.get_position().z);
+
+		glUniform3f(glGetAttribLocation(modelShader, "light.direction"), -0.2f, -1.0f, -0.3f);
+
+		//Light properties, can be adjust for accuracy
+		glUniform3f(glGetUniformLocation(modelShader, "light.ambient"), 0.2f, 0.2f, 0.2f);
+		glUniform3f(glGetUniformLocation(modelShader, "light.diffuse"), 0.5f, 0.5f, 0.5f);
+		glUniform3f(glGetUniformLocation(modelShader, "light.specular"), 0.0f, 0.0f, 0.0f);
+
+		// Set material properties
+		glUniform1f(glGetUniformLocation(modelShader, "material.shininess"), 5.0f);
+		
+		
+		//*******************************************************************************************
+		// lamp object
+
+		// Also draw the lamp object, again binding the appropriate shader
+		glUseProgram(lampShader);
+		// Get location objects for the matrices on the lamp shader 
+		GLint modelLoc = glGetUniformLocation(lampShader, "model");
+		GLint viewLoc = glGetUniformLocation(lampShader, "view");
+		GLint projLoc = glGetUniformLocation(lampShader, "projection");
+
+		// Set matrices
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(Hvw));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(Hcv));
+		glm::mat4 lampModel = glm::mat4(1.0f);
+		lampModel = glm::mat4(1.0f);
+		//lampModel = glm::translate(lampModel, lightPos);
+		//lampModel = glm::scale(lampModel, glm::vec3(0.2f)); // Make it a smaller cube
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(lampModel));
+		// Draw the light object (using light's vertex attributes)
+		glBindVertexArray(lightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+
+
+		//*******************************************************************************************
+		*/
+
+
+
+
+
+
+
+
+		//******************************************************************************************************************************************
+
 
 		//------------------------------------------
 		// RENDER REFLECTION AND REFRACTION TEXTURES
@@ -456,7 +588,13 @@ int main(void)
 			camera.invert_pitch();
 
 			// Render the scene
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			render(terra, camera, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+
+			// Render skybox last, disable clipping for skybox
+			glDisable(GL_CLIP_DISTANCE0);
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
+			skybox.render(Hvw, Hcv);
+			glEnable(GL_CLIP_DISTANCE0);
 
 			// Move the camera back
 			camera.move_y_position(distance);
@@ -466,7 +604,11 @@ int main(void)
 			fbos.bindRefractionFrameBuffer();
 
 			// Render the scene
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+			render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+			// Render skybox last
+			glDisable(GL_CLIP_DISTANCE0);
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
+			skybox.render(Hvw, Hcv);
 		}
 		// If the camera is below the water, dont need reflection only refraction
 		else
@@ -478,12 +620,21 @@ int main(void)
 			fbos.bindReflectionFrameBuffer();
 
 			// Render the scene, don't bother changing since this is refraction
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			render(terra, camera, models, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			// Render skybox last, disable clipping for skybox
+			glDisable(GL_CLIP_DISTANCE0);
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
+			skybox.render(Hvw, Hcv);
+			glEnable(GL_CLIP_DISTANCE0);
 
 			// Bind the refraction frame buffer
 			fbos.bindRefractionFrameBuffer();
 			// Render the scene
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+			render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+			// Render skybox last
+			glDisable(GL_CLIP_DISTANCE0);
+			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
+			skybox.render(Hvw, Hcv);
 		}
 
 		// Unbind the frame buffer before rendering the scene
@@ -493,13 +644,15 @@ int main(void)
 		// RENDER THE SCENE
 		//-----------------
 		// Render terrain, skybox and models
-		glEnable(GL_CLIP_DISTANCE0);
-		render(terra, camera, models, skybox, modelShader, glm::vec4(0, 0, 0, 0));
-		glDisable(GL_CLIP_DISTANCE0);
+		render(terra, camera, models, modelShader, glm::vec4(0, 0, 0, 0));
+
 		// TODO: Send in a light when lights are done
 		// Render water
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
 				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
+		// Render skybox last
+		Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
+		skybox.render(Hvw, Hcv);
 
 		//Swap buffers
 		glfwSwapBuffers(window);
