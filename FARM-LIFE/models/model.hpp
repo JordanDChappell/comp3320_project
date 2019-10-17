@@ -2,6 +2,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include "../audio/audio.hpp"
+#include "lights/lights.hpp"
 
 #ifndef A1_MODEL_HPP
 #define A1_MODEL_HPP
@@ -14,6 +15,10 @@ namespace model {
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;	// Texture coordinates
+		// tangent
+		glm::vec3 Tangent;
+		// bitangent
+		glm::vec3 Bitangent;
 	};
 
 	// Data structure for the texture of a model
@@ -66,18 +71,19 @@ namespace model {
 		/// mesh shader appropriately.
 		/// Source: learnopengl.com
 		///</summary>
-		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model, glm::vec3 position, glm::vec4 clippingPlane)
+		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model, glm::vec3 position, glm::vec4 clippingPlane, glm::vec3 CamPos, glm::vec3 Forward)
 		{
 			unsigned int diffuseNr = 1;	// number to assign to diffuse texture
 			unsigned int specularNr = 1;	// number to assign to specular texture
 			unsigned int normalNr = 1;
 			unsigned int heightNr = 1;
-			for (unsigned int i = 0; i < textures.size(); i++)
+			for (unsigned int i = 0; i < this->textures.size(); i++)
 			{
 				glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
 				// retrieve texture number (using our counters initialized above)
 				std::string number;
 				std::string name = textures[i].type;
+				std::string mater = "material.";
 				if (name == "texture_diffuse")
 					number = std::to_string(diffuseNr++);
 				else if (name == "texture_specular")
@@ -88,15 +94,26 @@ namespace model {
 					number = std::to_string(heightNr++); // transfer unsigned int to stream
 
 				// Set the shader sampler to the current texture and bind it
-				glUniform1i(glGetUniformLocation(shader, (name + number).c_str()), i);
+				glUniform1i(glGetUniformLocation(shader, (mater + name + number).c_str()), i); //needs to be material.2DSampler *********Error here I think
 				glBindTexture(GL_TEXTURE_2D, textures[i].id);
+				//std::cout << " " << mater << name << number << " "; //--Indicates we only have diffuse maps for our models
 			}
 			
+			//******************************************************************************************************************************************
+			
+			lights::light lighting(shader);
+			shader = lighting.setup(CamPos, Forward);
+			// Set material properties
+			
+			glUniform1f(glGetUniformLocation(shader, "material.shininess"), 5.0f);
 
+
+			//*******************************************************************************************
 			// draw mesh - apply view transformations from the camera
 			glBindVertexArray(VAO);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE, &view[0][0]);
 			glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, GL_FALSE, &projection[0][0]);
+
 
 			// Apply the movement transform to the model
 			model = glm::translate(model, position);
@@ -145,7 +162,12 @@ namespace model {
 			// vertex texture coords
 			glEnableVertexAttribArray(2);
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-
+			// vertex tangent
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+			// vertex bitangent
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 			// cleanup
 			glBindVertexArray(0);
 		}
@@ -186,13 +208,13 @@ namespace model {
 		/// Draw the model to the open gl window.
 		/// Simply loop over the meshes in our vector and call the draw function of each.
 		///</summary>
-		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model, glm::vec4 clippingPlane)
+		void Draw(GLuint shader, glm::mat4 view, glm::mat4 projection, glm::mat4 model, glm::vec4 clippingPlane, glm::vec3 CamPos, glm::vec3 Forward)
 		{
 			// Draw the model using it's shader
 			glUseProgram(shader);	// use the shader before drawing all the meshes.
 			for (unsigned int i = 0; i < meshes.size(); i++)
 			{
-				meshes[i].Draw(shader, view, projection, model, position, clippingPlane);
+				meshes[i].Draw(shader, view, projection, model, position, clippingPlane, CamPos, Forward);
 			}
 
 			// Update the sound source position
@@ -367,6 +389,7 @@ namespace model {
 			textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 			// TODO: load a simple material color, rather than textures.
+
 			// Sample found at at: https://www.lighthouse3d.com/cg-topics/code-samples/importing-3d-models-with-assimp/
 
 			// return a mesh object created from the extracted mesh data
@@ -397,6 +420,7 @@ namespace model {
 					Texture texture;
 					texture.id = TextureFromFile(str.C_Str(), this->directory);
 					texture.type = typeName;
+					std::cout << typeName; //The texture maps don't seem to have a specular type, possibly
 					texture.path = str.C_Str();
 					textures.push_back(texture);
 					loadedTextures.push_back(texture); 
@@ -412,15 +436,18 @@ namespace model {
 
 			mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 			material.Diffuse = glm::vec3(color.r, color.b, color.g);
-
+			std::cout << "Diffuse: " << material.Diffuse.r << ", " << material.Diffuse.b << ", " << material.Diffuse.g << " ."; //The texture maps don't seem to have a specular type, possibly
 			mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
 			material.Ambient = glm::vec3(color.r, color.b, color.g);
-
+			std::cout << "Ambient: " << material.Ambient.r << ", " << material.Ambient.b << ", " << material.Ambient.g << " ."; //The texture maps don't seem to have a specular type, possibly
 			mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
 			material.Specular = glm::vec3(color.r, color.b, color.g);
-
+			std::cout << "Specular: " << material.Specular.r << ", " << material.Specular.b << ", " << material.Specular.g << " ."; //The texture maps don't seem to have a specular type, possibly
 			mat->Get(AI_MATKEY_SHININESS, shininess);
 			material.Shininess = shininess;
+
+
+
 
 			return material;
 		}
@@ -454,7 +481,7 @@ namespace model {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+			glBindTexture(GL_TEXTURE_2D, 0);
 			SOIL_free_image_data(data);
 		}
 		else
