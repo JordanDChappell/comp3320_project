@@ -8,7 +8,8 @@ out vec2 TexCoord;					// tex coordinates for tiling
 out vec2 normalTexCoord;			// tex coordinates for the normals
 out float height;					// height of the terrain at this vertex
 out vec3 toCameraVector;			// vector from vertex to camera
-out vec3 fromLightVector;			// vector from vertex to light
+//out vec3 fromLightVector;			// vector from vertex to light
+out vec3 FragPos;					// Fragment Position
 
 // Transformation matrices
 uniform mat4 Hwm;					// model to world transform
@@ -18,7 +19,7 @@ uniform mat4 Hcv;					// view to clip transform
 // Other uniforms
 uniform float scale;				// scale the terrain
 uniform vec4 clippingPlane;			// clipping plane
-uniform vec3 lightPosition;			// position of the light
+//uniform vec3 lightPosition;			// position of the light
 uniform vec3 cameraPosition;		// camera position vector
 uniform float resolutionX;			// resolution of terrain
 uniform float resolutionZ;			// resolution of terrain
@@ -35,6 +36,7 @@ void main()
 	gl_Position = Hcv * Hvw * worldPos;
 
 	height = position[1];
+	FragPos = vec3(position[0] * scale, position[1], position[2] * scale);
 
 	// Find texture coordinates for both the normal (one texture across whole terrain) 
 	// and tiling texture coordinates
@@ -45,5 +47,5 @@ void main()
 	toCameraVector = cameraPosition - worldPos.xyz;
 
 	// Get vertex to light vector
-	fromLightVector = worldPos.xyz - lightPosition;
+	//fromLightVector = worldPos.xyz - lightPosition;
 }
