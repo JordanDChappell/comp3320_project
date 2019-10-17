@@ -630,11 +630,7 @@ int main(void)
 			// Bind the refraction frame buffer
 			fbos.bindRefractionFrameBuffer();
 			// Render the scene
-			render(terra, camera, models, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
-			// Render skybox last
-			glDisable(GL_CLIP_DISTANCE0);
-			Hvw = glm::mat4(glm::mat3(camera.get_view_transform())); // remove translation from the view matrix. Keeps the skybox centered on camera.
-			skybox.render(Hvw, Hcv);
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, -water.getHeight()));
 		}
 
 		// Unbind the frame buffer before rendering the scene
