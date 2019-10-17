@@ -37,7 +37,6 @@ const float reflectivity = 0.6;		// adjust reflectivity
 
 struct DirLight {
     vec3 direction;
-	
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -70,22 +69,17 @@ struct SpotLight {
     vec3 specular;       
 };
 
-
 #define NR_POINT_LIGHTS 4
-
-
 
 uniform vec3 viewPos;
 uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 
-
 // function prototypes
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
-
 
 // calculates the color when using a directional light.
 vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec4 colTexture)
@@ -223,7 +217,7 @@ void main()
 	//-----------
 	// GET NORMAL
 	//-----------
-	// Get normal from map for distorted texture coordinates to match the texture distortions
+	// Get normal from map for terrain normals
 	vec4 normalMapColour = texture(normalMap, normalTexCoord);
 	// Texture is only between 0-1, so adjust to get negative values in X-Z
 	vec3 normal = vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b, normalMapColour.g * 2.0 - 1.0);
@@ -261,7 +255,7 @@ void main()
 	}
 
 	// properties
-    vec3 norm = vec3(normalMapColour.x, normalMapColour.y, normalMapColour.z);
+    //vec3 norm = vec3(normalMapColour.x, normalMapColour.y, normalMapColour.z);
     vec3 viewDir = normalize(viewPos - FragPos);
     
     // lighting set up in 3 phases directional, point lights and an optional flashlight
@@ -271,7 +265,7 @@ void main()
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
         result += CalcPointLight(pointLights[i], normal, FragPos, viewDir, colTexture);    
     // phase 3: spot light
-    result += CalcSpotLight(spotLight, normal, FragPos, viewDir,colTexture);    
+    result += CalcSpotLight(spotLight, normal, FragPos, viewDir, colTexture);    
     
     outColor = result;
 	

@@ -36,7 +36,7 @@ void main()
 	gl_Position = Hcv * Hvw * worldPos;
 
 	height = position[1];
-	FragPos = vec3(position[0] * scale, position[1], position[2] * scale);
+	FragPos = worldPos.xyz;
 
 	// Find texture coordinates for both the normal (one texture across whole terrain) 
 	// and tiling texture coordinates
