@@ -377,9 +377,9 @@ int main(void)
 	hitBoxes.push_back(giraffe->hitBox);										 // push the model's hitbox to the hitBox vector
 
 	model::Model* barn = new model::Model("models/barn/barn.obj");
-	modelXCoord = 10;
-	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn->hitBox.size.y / 2);
+	modelXCoord = 100;
+	modelYCoord = 100;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn->hitBox.size.y / 2) - 3;
 	barn->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(barn);
 	hitBoxes.push_back(barn->hitBox);
