@@ -484,7 +484,7 @@ int main(void)
 			// Bind the refraction frame buffer
 			fbos.bindRefractionFrameBuffer();
 			// Render the scene
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, -water.getHeight()));
 		}
 
 		// Unbind the frame buffer before rendering the scene
