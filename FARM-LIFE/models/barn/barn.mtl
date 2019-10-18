@@ -1,5 +1,16 @@
 # Blender MTL File: 'barn.blend'
-# Material Count: 4
+# Material Count: 5
+
+newmtl Colorbond
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\gutter-colour.png
 
 newmtl Concrete.002
 Ns 0.000000
@@ -23,7 +34,7 @@ d 1.000000
 illum 2
 map_Kd textures\\red-wood-paint.jpg
 
-newmtl Material.002
+newmtl Material.003
 Ns 225.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -32,12 +43,14 @@ Ke 0.0 0.0 0.0
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures\\iron-roofing.jpg
 
-newmtl None
-Ns 500
-Ka 0.8 0.8 0.8
-Kd 0.8 0.8 0.8
-Ks 0.8 0.8 0.8
-d 1
+newmtl Material.005
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
 illum 2
+map_Kd textures\\roof-color.png
