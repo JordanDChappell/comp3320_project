@@ -627,7 +627,7 @@ int main(void)
 		// Render water
 		glDisable(GL_CLIP_DISTANCE0);
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
-				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
+				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5), camera.get_view_direction());
 
 		//Swap buffers
 		glfwSwapBuffers(window);

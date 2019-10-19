@@ -6,19 +6,19 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+namespace lights
+{
 
-namespace lights {
-
-	class light
+class light
+{
+public:
+	light(GLuint shader)
 	{
-	public:
-		
-		light(GLuint shader) {
-			this->shader = shader;
-		};
-		
-		
-		GLuint setup(glm::vec3 CamPos, glm::vec3 Forward) {
+		this->shader = shader;
+	};
+
+	GLuint setup(glm::vec3 CamPos, glm::vec3 Forward)
+	{
 
 		/*
 		Here we set all the uniforms for the 5/6 types of lights we have. We have to set them manually and index
@@ -31,8 +31,8 @@ namespace lights {
 		// directional light
 		glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), -0.2f, -1.0f, -0.3f);
 		glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
-		glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.4f, 0.4f, 0.4f);
-		glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.5f, 0.5f, 0.5f);
+		glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.6f, 0.6f, 0.6f);
+		glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.2f, 0.2f, 0.2f);
 		// point light 1
 		glUniform3f(glGetUniformLocation(shader, "pointLights[0].position"), 0.7f, 0.2f, 2.0f);
 		glUniform3f(glGetUniformLocation(shader, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f);
@@ -49,7 +49,7 @@ namespace lights {
 		glUniform1f(glGetUniformLocation(shader, "pointLights[1].constant"), 1.0f);
 		glUniform1f(glGetUniformLocation(shader, "pointLights[1].linear"), 0.09);
 		glUniform1f(glGetUniformLocation(shader, "pointLights[1].quadratic"), 0.032);
-		
+
 		// point light 3
 		glUniform3f(glGetUniformLocation(shader, "pointLights[2].position"), -4.0f, 2.0f, -12.0f);
 		glUniform3f(glGetUniformLocation(shader, "pointLights[2].ambient"), 0.05f, 0.05f, 0.05f);
@@ -76,16 +76,12 @@ namespace lights {
 		glUniform1f(glGetUniformLocation(shader, "spotLight.cutOff"), glm::cos(glm::radians(12.5f)));
 		glUniform1f(glGetUniformLocation(shader, "spotLight.outerCutOff"), glm::cos(glm::radians(15.0f)));
 		return shader;
-		
-		};
-
-	private:
-		GLuint shader;
-
 	};
 
+private:
+	GLuint shader;
+};
 
-}
+} // namespace lights
 
-
-#endif  // LIGHTS_LIGHTS_HPP
+#endif // LIGHTS_LIGHTS_HPP

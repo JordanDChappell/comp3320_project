@@ -81,7 +81,7 @@ public:
 
 	// Precondition:	Water object has been constructed
 	// Postcondition:	Water is drawn
-	void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec3 &camPos, float time, glm::vec3 lightPosition, glm::vec3 lightColour, bool isCameraAbove)
+	void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec3 &camPos, float time, glm::vec3 lightPosition, glm::vec3 lightColour, bool isCameraAbove, glm::vec3 Forward)
 	{
 		// Initalise variables needed for drawing the water
 		float waveHeight = 0.5;
@@ -140,6 +140,9 @@ public:
 		// Set light uniforms
 		glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
 		glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
+
+		lights::light lighting(shader);
+		shader = lighting.setup(camPos, Forward);
 
 		//-----------
 		// DRAW WATER

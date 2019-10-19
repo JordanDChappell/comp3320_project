@@ -143,8 +143,8 @@ public:
 	void play(GLuint buffer)
 	{
 		stop();
-		alSourcei(sourceid, AL_BUFFER, buffer);
-		continuePlaying();
+		//alSourcei(sourceid, AL_BUFFER, buffer);
+		//continuePlaying();
 	}
 
 	// Sets the volume of the sound to volume

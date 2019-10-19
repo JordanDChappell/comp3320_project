@@ -115,7 +115,6 @@ vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec4 colTexture)
 		result = result + vec4(waterSpecularHighlights, 1.0);
 	}
 
-
     return result;
 }
 
@@ -159,7 +158,6 @@ vec4 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, v
 		// Add the specular highlights to the colour
 		result = result + vec4(waterSpecularHighlights, 1.0);
 	}
-
 
     return result;
 }
@@ -208,7 +206,6 @@ vec4 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec
 		result = result + vec4(waterSpecularHighlights, 1.0);
 	}
 
-
     return result;
 }
 
@@ -224,6 +221,9 @@ void main()
 	normal = normalize(normal);
 
 	float slope = acos(dot(normal, vec3(0, 1, 0)));
+
+    normal = vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b * 0.5, normalMapColour.g * 2.0 - 1.0);
+	normal = normalize(normal);
 
 	//------------
 	// GET TEXTURE
@@ -268,6 +268,5 @@ void main()
     result += CalcSpotLight(spotLight, normal, FragPos, viewDir, colTexture);    
     
     outColor = result;
-	
-	
+		
 }
