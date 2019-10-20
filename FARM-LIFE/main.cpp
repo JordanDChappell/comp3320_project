@@ -496,7 +496,6 @@ int main(void)
 		// Render terrain, skybox and models
 		glEnable(GL_CLIP_DISTANCE0);
 		render(terra, camera, models, skybox, modelShader, glm::vec4(0, 0, 0, 0));
-		glDisable(GL_CLIP_DISTANCE0);
 		// TODO: Send in a light when lights are done
 		// Render water
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),

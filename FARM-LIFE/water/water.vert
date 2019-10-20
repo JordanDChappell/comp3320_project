@@ -20,11 +20,21 @@ uniform float scale;			// scale the water (should match Terrain)
 uniform float time;				// program time (to move the water)
 uniform float waveHeight;		// height of the waves	
 uniform vec3 lightPosition;		// position of the light
+uniform sampler2D terrainHeight;
+uniform float terraMaxHeight;
 
 void main()
 {
 	// Transform the height to create waves
 	float yPosition = position[1] + ((cos(position[0] + (time * 1.5)) * 0.15) * cos((position[2] + (time * 1.5)) * 0.15) * waveHeight) - waveHeight;
+
+	float terraHeight = texture(terrainHeight, vec2(position[0] / 1000, position[2] / 1000)).r / 255 * terraMaxHeight;
+	if (terraHeight > yPosition) {
+		gl_ClipDistance[0] = -1;
+	}
+	else {
+		gl_ClipDistance[0] = 0;
+	}
 
 	// Get the world position of the vertex
 	vec4 worldPos = Hwm * vec4(position[0] * scale, yPosition, position[2] * scale, 1.0);

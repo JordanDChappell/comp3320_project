@@ -63,7 +63,7 @@ namespace water {
 			glDeleteBuffers(1, &vbo);
 			glDeleteBuffers(1, &ebo);
 			glDeleteVertexArrays(1, &vao);
-			glDeleteTextures(5, &tex[0]);
+			glDeleteTextures(6, &tex[0]);
 			sound.cleanup();
 		}
 
@@ -113,6 +113,10 @@ namespace water {
 			glBindTexture(GL_TEXTURE_2D, tex[4]);
 			glUniform1i(glGetUniformLocation(shader, "depthMap"), 4);
 
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, tex[5]);
+			glUniform1i(glGetUniformLocation(shader, "terrainHeight"), 5);
+
 			//--------------------------------
 			// SET CAMERA IN MIDDLE OF WATER
 			//--------------------------------
@@ -136,6 +140,8 @@ namespace water {
 			// Set light uniforms
 			glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
 			glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
+
+			glUniform1f(glGetUniformLocation(shader, "terraMaxHeight"), height * 2.5);
 
 			//-----------
 			// DRAW WATER
@@ -167,7 +173,7 @@ namespace water {
 		GLuint vao;			// vertex array object
 		GLuint vbo;			// vertex buffer object
 		GLuint ebo;			// element buffer object
-		GLuint tex[5];		// textures
+		GLuint tex[6];		// textures
 		
 		// Store terrain size and resolution
 		float scale;		// how much to scale water, if water is resX by resZ
@@ -252,7 +258,7 @@ namespace water {
 		void loadTextures(water::WaterFrameBuffers fbos) {
 			// Initialise textures
 			int width, height; 			// variables for the width and height of image being loaded
-			glGenTextures(5, &tex[0]);	// requires 5 textures
+			glGenTextures(6, &tex[0]);	// requires 5 textures
 
 			//-------------------
 			// REFRACTION TEXTURE
@@ -304,6 +310,21 @@ namespace water {
 			glActiveTexture(GL_TEXTURE4);
 			glBindTexture(GL_TEXTURE_2D, tex[4]);
 			tex[4] = fbos.getRefractionDepthTexture();
+
+			//---------------
+			// TERRAIN HEIGHT
+			//---------------
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, tex[5]);
+			unsigned char *image2 = SOIL_load_image("terrain/heightmap.bmp", &width, &height, 0, SOIL_LOAD_RGB);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+						 GL_UNSIGNED_BYTE, image1);
+			// Set the parameters for the height map
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 		}
     };
 
