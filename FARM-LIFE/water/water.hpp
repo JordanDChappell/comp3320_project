@@ -318,13 +318,12 @@ namespace water {
 			glBindTexture(GL_TEXTURE_2D, tex[5]);
 			unsigned char *image2 = SOIL_load_image("terrain/heightmap.bmp", &width, &height, 0, SOIL_LOAD_RGB);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-						 GL_UNSIGNED_BYTE, image1);
+						 GL_UNSIGNED_BYTE, image2);
 			// Set the parameters for the height map
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 		}
     };
 

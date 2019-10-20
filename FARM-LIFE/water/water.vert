@@ -28,7 +28,7 @@ void main()
 	// Transform the height to create waves
 	float yPosition = position[1] + ((cos(position[0] + (time * 1.5)) * 0.15) * cos((position[2] + (time * 1.5)) * 0.15) * waveHeight) - waveHeight;
 
-	float terraHeight = texture(terrainHeight, vec2(position[0] / 1000, position[2] / 1000)).r / 255 * terraMaxHeight;
+	float terraHeight = (texture(terrainHeight, vec2(position[0] / 1000, position[2] / 1000)).r) * terraMaxHeight;
 	if (terraHeight > yPosition) {
 		gl_ClipDistance[0] = -1;
 	}
