@@ -320,7 +320,7 @@ namespace model {
 		///</summary>
 		void processNode(aiNode* node, const aiScene* scene)
 		{
-			std::cout << "Process Node: " << node->mName.C_Str() << std::endl;
+			//std::cout << "Process Node: " << node->mName.C_Str() << std::endl;
 			// process each mesh located at the current node
 			for (unsigned int i = 0; i < node->mNumMeshes; i++)
 			{
