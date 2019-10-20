@@ -78,17 +78,19 @@ void main()
         gl_ClipDistance[0] = 1;
     }
 
-    mat4 Hcm = Hcv * Hvw * Hwm;
-    mat4 rotationAround[4];
-    rotationAround[0] = rotationMatrix(vec3(0.0, 1.0, 0.0), 0);
-    rotationAround[1] = rotationMatrix(vec3(0.0, 1.0, 0.0), M_PI / 2);
-    rotationAround[2] = rotationMatrix(vec3(0.0, 1.0, 0.0), M_PI / 4);
-    rotationAround[3] = rotationMatrix(vec3(0.0, 1.0, 0.0), -M_PI / 4);
-
     grassType = int(mod(int(rand(vec2(positions[0]))), 4));
 
+    mat4 Hcm = Hcv * Hvw * Hwm;
+    mat4 rotationAround[2];
+    rotationAround[0] = rotationMatrix(vec3(0.0, 1.0, 0.0), 0);
+    rotationAround[1] = rotationMatrix(vec3(0.0, 1.0, 0.0), (M_PI / 2) + (grassType / 6));
+
+	if (int(mod(int(rand(vec2(grassType, grassType))), 4)) < 3) {
+		gl_ClipDistance[0] = -1;
+	}
+
     // CREATE SQUARES
-    for (int i = 0; i < 4 ; i++) {
+    for (int i = 0; i < 2 ; i++) {
         // Bottom left
         gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(-0.5, 0.0, 0.0, 0.0) * grassScale));
         gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
