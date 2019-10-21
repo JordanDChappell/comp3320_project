@@ -63,13 +63,16 @@ void main()
     // Find the angle and axis to rotate around
     float angle = acos(dot(normal, vec3(0.0, 1.0, 0.0)));
 
+    vec4 worldPosition = Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0);
+    bool farAway = length(worldPosition.xyz - cameraPosition) > 120;
+
     // DETERMINE CLIPPING
     // Check if need to clip vertex based on clipping plane
-    float clip = dot(Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0), clippingPlane);
+    float clip = dot(worldPosition, clippingPlane);
 
     grassType = int(mod(int(rand(vec2(positions[0]))), 4));
 
-    if (clip < 0 || (pointPosition[1] < grassHeight || (abs(angle) > M_PI/6)) || int(mod(int(rand(vec2(grassType, grassType))), 4)) < 2) {
+    if (clip < 0 || (pointPosition[1] < grassHeight || (abs(angle) > M_PI/6)) || int(mod(int(rand(vec2(grassType, grassType))), 4)) < 2 || farAway) {
 
     }
     else {
