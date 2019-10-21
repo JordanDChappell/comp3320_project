@@ -308,8 +308,7 @@ namespace model {
 			// retrieve the directory path of the filepath
 			directory = path.substr(0, path.find_last_of('/'));
 
-			scene->mRootNode->mTransformation = scene->mRootNode->mTransformation.Rotation(initialRotation, aiVector3t(axisOfRotation), scene->mRootNode->mTransformation);
-				convertToAiMat(glm::rotate(glm::mat4(1.0f), initialRotation, axisOfRotation)) * scene->mRootNode->mTransformation;
+			scene->mRootNode->mTransformation = scene->mRootNode->mTransformation.Rotation(initialRotation, aiVector3t<float>(axisOfRotation.x, axisOfRotation.y, axisOfRotation.z), scene->mRootNode->mTransformation);
 
 			// process ASSIMP's root node recursively
 			processNode(scene->mRootNode, scene);
@@ -318,34 +317,6 @@ namespace model {
 			hitBox.origin = glm::vec3((maxVertices.x + minVertices.x) / 2,
 				(maxVertices.y + minVertices.y) / 2, (maxVertices.z + minVertices.z) / 2);
 			hitBox.size = (maxVertices - minVertices) / glm::vec3(2, 2, 2);	// size is just the max - min
-		}
-
-		///<summary>
-		/// Transposed aiMat to work with glm::mat4
-		///</summary>
-		glm::mat4 convertToMat4(const aiMatrix4x4& aiMat)
-		{
-			return {
-				aiMat.a1, aiMat.b1, aiMat.c1, aiMat.d1,
-				aiMat.a2, aiMat.b2, aiMat.c2, aiMat.d2,
-				aiMat.a3, aiMat.b3, aiMat.c3, aiMat.d3,
-				aiMat.a4, aiMat.b4, aiMat.c4, aiMat.d4
-			};
-		}
-
-		///<summary>
-		/// Transposed aiMat to work with glm::mat4
-		///</summary>
-		aiMatrix4x4 convertToAiMat(const glm::mat4& mat)
-		{
-			const float* pSource = (const float*)glm::value_ptr(mat);
-			return aiMatrix4x4(
-				pSource[0], pSource[4], pSource[8], pSource[12],
-				pSource[1], pSource[5], pSource[9], pSource[13],
-				pSource[2], pSource[6], pSource[10], pSource[14],
-				pSource[3], pSource[7], pSource[11], pSource[15]
-			);
-				
 		}
 
 		///<summary>
