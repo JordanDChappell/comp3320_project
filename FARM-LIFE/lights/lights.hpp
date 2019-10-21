@@ -29,10 +29,62 @@ public:
 
 		glUniform3f(glGetUniformLocation(shader, "viewPos"), CamPos.x, CamPos.y, CamPos.z);
 		// directional light
+		glm::vec3 lightDirection(0.0f, 0.0f, 0.0f);
+		float daytime = glfwGetTime()/240;
+		daytime = daytime - floor(daytime);
+		std::cout << " " << daytime << " ";
+		if (daytime<0.49) { //daytime
+			if(daytime<0.2499 && daytime<0.05){ //sun rising starting
+				glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), (-1.0f+(-daytime * 4)), (-daytime * 4), -0.1f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.0005f, 0.0005f, 0.0005f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), daytime, daytime, daytime);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.2f, 0.2f, 0.2f);
+			}
+			else if (daytime < 0.2499 && daytime < 0.1) { //sun rising slowly
+				glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), (-1.0f + (daytime * 4)), (-daytime * 4), -0.1f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.0005f, 0.0005f, 0.0005f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), daytime * 2, daytime * 2, daytime * 2);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.2f, 0.2f, 0.2f);
+			}
+			else if (daytime < 0.2499) { //sun rising fully
+				glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), (-1.0f + (daytime * 4)), (-daytime * 4), -0.1f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.005f, 0.005f, 0.005f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), daytime * 3, daytime * 3, daytime * 3);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.2f, 0.2f, 0.2f);
+			}
+			else if (daytime > 0.2498 && daytime <0.4){ //sun setting
+				glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), (-1.0f + (daytime * 4)), -(2.0f-(daytime * 4)), -0.1f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.005f, 0.005f, 0.005f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 1-(daytime * 2), 1- (daytime * 2), 1- (daytime * 2));
+				glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.2f, 0.2f, 0.2f);
+			}
+			else if (daytime > 0.2498 && daytime < 0.45) { //sun setting lighting lowering
+				glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), (-1.0f + (daytime * 4)), -(2.0f - (daytime * 4)), -0.1f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.005f, 0.005f, 0.005f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 1 - (daytime * 2), 1 - (daytime * 2), 1 - (daytime * 2));
+				glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.2f, 0.2f, 0.2f);
+			}
+			else { //sun setting lighting lowering to final amount
+				glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), (-1.0f + (daytime * 4)), -(2.0f - (daytime * 4)), -0.1f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.0005f, 0.0005f, 0.0005f);
+				glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 1 - (daytime*2), 1 - (daytime*2), 1 - (daytime*2));
+				glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.1f, 0.1f, 0.1f);
+			}
+
+		}
+		else { //nighttime
+			glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), -0.2f, -1.0f, -0.1f);
+			glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.00005f, 0.00005f, 0.00005f);
+			glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
+			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.0f, 0.0f, 0.0f);
+		}
+
+		/*
 		glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), -0.2f, -1.0f, -0.3f);
 		glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
 		glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.6f, 0.6f, 0.6f);
-		glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.2f, 0.2f, 0.2f);
+		glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), c);
+		*/
 		// point light 1
 		glUniform3f(glGetUniformLocation(shader, "pointLights[0].position"), 0.7f, 0.2f, 2.0f);
 		glUniform3f(glGetUniformLocation(shader, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f);
