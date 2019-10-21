@@ -396,7 +396,7 @@ int main(void)
 	fence->MoveTo(glm::vec3(-10, 0, 40));
 	models.push_back(fence);
 	hitBoxes.push_back(fence->hitBox);
-	model::Model* fence1 = new model::Model("models/fence/fence.obj");
+	model::Model* fence1 = new model::Model("models/fence/fence.obj", glm::vec3(0.0f, 1.0f, 0.0f), -90.0f);
 	fence1->MoveTo(glm::vec3(-10 + (fence->hitBox.size.x * 2), 0, 40));
 	models.push_back(fence1);
 	hitBoxes.push_back(fence1->hitBox);

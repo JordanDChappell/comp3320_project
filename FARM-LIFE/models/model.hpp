@@ -1,5 +1,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <assimp/vector3.h>
 #include <assimp/scene.h>
 #include "../audio/audio.hpp"
 
@@ -139,9 +140,10 @@ namespace model {
 			{
 				angleOfRotation = -angleOfRotation;
 			}
-				
+
 			// Apply rotation transform
 			currentRotation += angleOfRotation;
+			
 			model = glm::translate(model, centerOfMesh);
 			model = glm::rotate(model, currentRotation, axisOfRotation);
 			model = glm::translate(model, -centerOfMesh);
@@ -222,10 +224,10 @@ namespace model {
 		// Public functions
 
 		// Constructor
-		Model(std::string const& path)
+		Model(std::string const& path, glm::vec3 axisOfRotation = glm::vec3(0.0), float initialRotation = 0.0f)
 		{
 			// Load the model using ASSIMP library with the path to the model
-			loadModel(path);
+			loadModel(path, axisOfRotation, initialRotation);
 			// Initialise the source
 			sound = audio::Source();
 		}
@@ -292,7 +294,7 @@ namespace model {
 		///<summary>
 		/// Load a model using assimp library.
 		///</summary>
-		void loadModel(std::string const& path)
+		void loadModel(std::string const& path, glm::vec3 axisOfRotation, float initialRotation)
 		{
 			Assimp::Importer importer;
 			// read file via ASSIMP
@@ -306,6 +308,9 @@ namespace model {
 			// retrieve the directory path of the filepath
 			directory = path.substr(0, path.find_last_of('/'));
 
+			scene->mRootNode->mTransformation = scene->mRootNode->mTransformation.Rotation(initialRotation, aiVector3t(axisOfRotation), scene->mRootNode->mTransformation);
+				convertToAiMat(glm::rotate(glm::mat4(1.0f), initialRotation, axisOfRotation)) * scene->mRootNode->mTransformation;
+
 			// process ASSIMP's root node recursively
 			processNode(scene->mRootNode, scene);
 
@@ -316,11 +321,43 @@ namespace model {
 		}
 
 		///<summary>
+		/// Transposed aiMat to work with glm::mat4
+		///</summary>
+		glm::mat4 convertToMat4(const aiMatrix4x4& aiMat)
+		{
+			return {
+				aiMat.a1, aiMat.b1, aiMat.c1, aiMat.d1,
+				aiMat.a2, aiMat.b2, aiMat.c2, aiMat.d2,
+				aiMat.a3, aiMat.b3, aiMat.c3, aiMat.d3,
+				aiMat.a4, aiMat.b4, aiMat.c4, aiMat.d4
+			};
+		}
+
+		///<summary>
+		/// Transposed aiMat to work with glm::mat4
+		///</summary>
+		aiMatrix4x4 convertToAiMat(const glm::mat4& mat)
+		{
+			const float* pSource = (const float*)glm::value_ptr(mat);
+			return aiMatrix4x4(
+				pSource[0], pSource[4], pSource[8], pSource[12],
+				pSource[1], pSource[5], pSource[9], pSource[13],
+				pSource[2], pSource[6], pSource[10], pSource[14],
+				pSource[3], pSource[7], pSource[11], pSource[15]
+			);
+				
+		}
+
+		///<summary>
 		/// Recursive function to process all children nodes of a model.
 		/// Source: learnopengl.com
 		///</summary>
 		void processNode(aiNode* node, const aiScene* scene)
 		{
+			if (node->mParent != NULL)
+			{
+				node->mTransformation = node->mParent->mTransformation * node->mTransformation;
+			}
 			//std::cout << "Process Node: " << node->mName.C_Str() << std::endl;
 			// process each mesh located at the current node
 			for (unsigned int i = 0; i < node->mNumMeshes; i++)
