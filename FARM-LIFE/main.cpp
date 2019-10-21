@@ -370,7 +370,7 @@ int main(void)
 	int modelYCoord = 0;
 	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add half the models height to get to ground level
 	// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
-	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe->hitBox.size.y / 2);
+	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe->hitBox.size.y);
 	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
 	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));	// set an animation loop on the giraffes head
 	models.push_back(giraffe);												 // push the model to the render vector
@@ -379,7 +379,7 @@ int main(void)
 	model::Model* barn = new model::Model("models/barn/barn.obj");
 	modelXCoord = 100;
 	modelYCoord = 100;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn->hitBox.size.y / 2) - 3;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn->hitBox.size.y) - 3;
 	barn->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(barn);
 	hitBoxes.push_back(barn->hitBox);
@@ -387,14 +387,19 @@ int main(void)
 	model::Model* cat = new model::Model("models/cat/cat.obj");
 	modelXCoord = 100;
 	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat->hitBox.size.y / 2);
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat->hitBox.size.y);
 	cat->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat->hitBox);
 
 	model::Model* fence = new model::Model("models/fence/fence.obj");
-	fence->MoveTo(glm::vec3(-10, 0, -4));
+	fence->MoveTo(glm::vec3(-10, 0, 40));
 	models.push_back(fence);
+	hitBoxes.push_back(fence->hitBox);
+	model::Model* fence1 = new model::Model("models/fence/fence.obj");
+	fence1->MoveTo(glm::vec3(-10 + (fence->hitBox.size.x * 2), 0, 40));
+	models.push_back(fence1);
+	hitBoxes.push_back(fence1->hitBox);
 
 	model::Model* bucket = new model::Model("models/bucket/bucket.obj");
 	bucket->MoveTo(glm::vec3(-10, 0, 10));
