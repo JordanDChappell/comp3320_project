@@ -43,7 +43,7 @@ mat4 rotationMatrix(vec3 axis, float angle)
 
 float rand(vec2 co)
 {
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453) * 103 + co.x + co.y;
+    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453) * 103 + co.x + co.y;
 }
 
 void main()
@@ -72,7 +72,7 @@ void main()
 
     grassType = int(mod(int(rand(vec2(positions[0]))), 4));
 
-    if (clip < 0 || (pointPosition[1] < grassHeight || (abs(angle) > M_PI/6)) || int(mod(int(rand(vec2(grassType, grassType))), 50)) < 40 || farAway) {
+    if (clip < 0 || (pointPosition[1] < grassHeight || (abs(angle) > M_PI/6)) || int(mod(int(rand(vec2(grassType, grassType)) * 100), 50)) < 45 || farAway) {
 
     }
     else {
