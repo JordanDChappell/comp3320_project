@@ -26,6 +26,7 @@ uniform float grassHeight;
 uniform vec4 clippingPlane;			// clipping plane
 uniform float grassScale;
 uniform vec3 cameraPosition;	// camera position vector
+uniform float time;
 
 // http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
 mat4 rotationMatrix(vec3 axis, float angle)
@@ -88,6 +89,28 @@ void main()
         rotationAround[0] = rotationMatrix(vec3(0.0, 1.0, 0.0), 0);
         rotationAround[1] = rotationMatrix(vec3(0.0, 1.0, 0.0), (M_PI / 2) + (grassType / 6));
 
+        float windFactor = int(mod(int(rand(vec2(positions[0] * 20))), 15)) + 5;
+
+        float angleTime = time / windFactor;
+
+        while (angleTime > M_PI / 3) {
+            angleTime -= M_PI / 3;
+        }
+
+        vec3 wavingVector;
+
+        if (int(mod((time / windFactor) / (M_PI / 3), 2)) == 0) {
+            wavingVector = vec3(-1.0, 0.0, 0.0);
+        }
+        else {
+            wavingVector = vec3(1.0, 0.0, 0.0);
+            angleTime -= M_PI / 3;
+        }
+
+        mat4 beginWave = rotationMatrix(vec3(1.0, 0.0, 0.0), M_PI / 6);
+
+        mat4 waving = rotationMatrix(wavingVector, angleTime);
+
         // CREATE SQUARES
         for (int i = 0; i < 2 ; i++) {
             // Bottom left
@@ -103,13 +126,13 @@ void main()
             EmitVertex();
 
             // Top left
-            gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(-0.5, 1.0, 0.0, 0.0) * grassScale));
+            gl_Position = pointPosition + ( rotationAround[i] * upRotate * waving * beginWave * (vec4(-0.5, 1.0, 0.0, 0.0) * grassScale));
             gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
             texCoords = vec2(1.0, 0.0);
             EmitVertex();
             
             // Top right
-            gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(0.5, 1.0, 0.0, 0.0) * grassScale));
+            gl_Position = pointPosition + ( rotationAround[i] * upRotate * waving * beginWave * (vec4(0.5, 1.0, 0.0, 0.0) * grassScale));
             gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
             texCoords = vec2(0.0, 0.0);
             EmitVertex();
