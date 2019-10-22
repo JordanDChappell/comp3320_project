@@ -44,7 +44,7 @@ void main()
 	normal = normalize(normal);
 
 	float slope = acos(dot(normal, vec3(0.0, 1.0, 0.0)));
-
+	
 	//------------
 	// GET TEXTURE
 	//------------

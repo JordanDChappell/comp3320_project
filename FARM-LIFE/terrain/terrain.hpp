@@ -193,6 +193,8 @@ public:
 		glUniform1f(glGetUniformLocation(grassShader, "grassScale"), 5.0);
 		glUniform3f(glGetUniformLocation(grassShader, "cameraPosition"), cameraPosition[0], cameraPosition[1], cameraPosition[2]);
 
+		glUniform1f(glGetUniformLocation(grassShader, "time"), time);
+
 		// Draw grass
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
