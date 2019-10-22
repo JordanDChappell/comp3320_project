@@ -23,7 +23,7 @@ uniform vec3 cameraPosition;		// camera position vector
 uniform float resolutionX;			// resolution of terrain
 uniform float resolutionZ;			// resolution of terrain
 
-const float tilingFactor = 250.0;	// tiling factor
+const float tilingFactor = 50.0;	// tiling factor
 
 void main()
 {

@@ -501,12 +501,12 @@ int main(void)
 		// Render terrain, skybox and models
 		glEnable(GL_CLIP_DISTANCE0);
 		render(terra, camera, models, skybox, modelShader, glm::vec4(0, 0, 0, 0));
-		glDisable(GL_CLIP_DISTANCE0);
 		// TODO: Send in a light when lights are done
 		// Render water
+		glEnable(GL_CLIP_DISTANCE0);
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
 				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
-
+		glDisable(GL_CLIP_DISTANCE0);
 		//Swap buffers
 		glfwSwapBuffers(window);
 		//Get and organize events, like keyboard and mouse input, window resizing, etc...
