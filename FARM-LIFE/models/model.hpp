@@ -310,8 +310,9 @@ namespace model {
 			processNode(scene->mRootNode, scene);
 
 			// initialize the models hitbox, origin is the minimum vertex in each axis
-			hitBox.origin = minVertices;
-			hitBox.size = maxVertices - minVertices;	// size is just the max - min
+			hitBox.origin = glm::vec3((maxVertices.x + minVertices.x) / 2,
+				(maxVertices.y + minVertices.y) / 2, (maxVertices.z + minVertices.z) / 2);
+			hitBox.size = (maxVertices - minVertices) / glm::vec3(2, 2, 2);	// size is just the max - min
 		}
 
 		///<summary>
