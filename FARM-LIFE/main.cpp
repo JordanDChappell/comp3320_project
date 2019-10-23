@@ -396,7 +396,7 @@ int main(void)
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
 
-	tree::Tree tree = tree::Tree("re", "models/bucket/bucket.obj", terra);
+	tree::Tree tree = tree::Tree("re", terra);
 	for (int i = 0; i < 50; i++)
 	{
 		models.push_back(tree.placeTree(i));

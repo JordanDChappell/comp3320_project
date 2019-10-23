@@ -1,8 +1,7 @@
 /* Tree.hpp
- * This Terrain class creates a terrain with the specified resolution, scale and maximum height.
- * The Terrain is a mesh of triangles. It uses a BMP image to generate the height of the Terrain.
- * The Terrain is drawn so that the camera is on top of the center of the Terrain.
- * This Terrain is textured with lower vertices the rock texture, and the highest vertices the grass texture.
+ * This Tree class places trees in specified locations
+ * It reads a placemap bmp file and places the trees on the right position
+ * The models are randomlu chosen in a pool of 10 different tree models
  */
 
 #include <vector>
@@ -22,26 +21,22 @@ namespace tree
 class Tree {
 public:
     //Tree constructor
-	Tree(const std::string map, const std::string treemodel, terrain::Terrain terra)
+	Tree(const std::string map, terrain::Terrain terra)
 	{
 		placemap = map;
-		readHeightMap("trees/heightmap.bmp", treemodel, terra);
+		readPlaceMap("trees/placemap.bmp", terra);
 	}
 	model::Model placeTree(int i) {
 		return treeVect[i];
 	}
-    /*int gettreevectlength() {
-			return (int)treeVect.size;
-	}*/
+
 private:
     std::string placemap;
     std::vector<model::Model> treeVect;
 
-    /*void addtreeVect() {
-			treeVect.push_back(modeltree);
-	}*/
 
-    void readHeightMap(std::string placemap, std::string treemodel, terrain::Terrain terrain){
+    void readPlaceMap(std::string placemap, terrain::Terrain terrain){
+		std::string treemodel;
         // Load in the height map
         SDL_Surface *img = SDL_LoadBMP(placemap.c_str());
 
@@ -50,7 +45,7 @@ private:
         {
             for (int j = 0; j < img->w; j++)
             {
-                // Get the pixel at the right coordinate
+                // Get the pixel at the right coordinates
                 Uint32 pixel = ((Uint32 *)img->pixels)[i * img->pitch / 4 + j];
 
                 // Get red, green and blue values for this pixel
@@ -59,22 +54,35 @@ private:
 				SDL_GetRGB(pixel, img->format, &r1, &g1, &b1); 
 				SDL_GetRGB(pixel, img->format, &r2, &g2, &b2);
 
-                // Get a number between 0 and 1 relating to how white/black the pixel is
-                //heights->push_back((float)r / 255.0);
-
+				//if the pixel is only red, put the model with the right coordinates in a vector
                 if ((r == 255 && g == 0) && (r == 255 && b == 0))
                 {
-                    //modeltree.MoveTo(glm::vec3(i, (float)r / 255.0, j));
+					//Up to 10 different trees with this method
+					int random = rand();
+					if (random % 10 == 0)
+						treemodel = "models/tree/tree0/tree0.obj";
+					else if (random % 10 == 1)
+						treemodel = "models/tree/tree1.obj";
+					else if (random % 10 == 2)
+						treemodel = "models/tree/tree2/tree2.obj";
+					else if (random % 10 == 3)
+						treemodel = "models/tree/tree0/tree0.obj";
+					else if (random % 10 == 4)
+						treemodel = "models/tree/tree1.obj";
+					else if (random % 10 == 5)
+						treemodel = "models/tree/tree2/tree2.obj";
+					else if (random % 10 == 6)
+						treemodel = "models/tree/tree0/tree0.obj";
+					else if (random % 10 == 7)
+						treemodel = "models/tree/tree1.obj";
+					else if (random % 10 == 8)
+						treemodel = "models/tree/tree2/tree2.obj";
+					else if (random % 10 == 9)
+						treemodel = "models/tree/tree1.obj";
+
 					model::Model modeltree = model::Model(treemodel);
-                    modeltree.MoveTo(glm::vec3(i - 500, terrain.getHeightAt(i,j), j - 500));
+                    modeltree.MoveTo(glm::vec3(i - 500, terrain.getHeightAt(i,j) - 20, j - 500));
                     treeVect.push_back(modeltree);
-                    //std::cout << "Found a red pixel\n";
-					/*std::cout << (float)r;
-					std::cout << ",";
-                    std::cout << (float)r1;
-                    std::cout << ",";
-                    std::cout << (float)r2;
-                    std::cout << "\n";*/
                 }
             }
         }
