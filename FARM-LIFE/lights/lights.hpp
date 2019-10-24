@@ -38,34 +38,29 @@ public:
 		//EXPERIMENTAL
 		float time = glfwGetTime() / 240;
 		time = (time - floor(time)) * 2 * M_PI;
-		lightDirection.x = 500 * cos(time);
-		lightDirection.y = 500 * sin(time);
+		lightDirection.x = cos(time);
+		lightDirection.y = sin(time);
+		float diffuse = (1 -(lightDirection.y / 0.05f)) * 0.6f;
+		float specular = (1 - (lightDirection.y / 0.05f)) * 0.2f;
+		float ambient = (1 - (lightDirection.y / 0.05f)) * 0.05f;
 
 		glUniform3f(glGetUniformLocation(shader, "dirLight.direction"), lightDirection.x, lightDirection.y, lightDirection.z);
 		
 		if (lightDirection.y>0.05) {
 			glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.005f, 0.005f, 0.005f);
 			glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
-			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.1f, 0.1f, 0.1f);
+			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.01f, 0.01f, 0.01f);
 		}else if (lightDirection.y < 0.05 && lightDirection.y>0) {
-			std::cout << " " << time << " ";
-			glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.005f, 0.005f, 0.005f);
-			glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.2f, 0.2f, 0.2f);
-			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.1f, 0.1f, 0.1f);
+			std::cout << " " << diffuse << " ";
+			glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), ambient, ambient, ambient);
+			glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), diffuse, diffuse, diffuse);
+			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), specular, specular, specular);
 		}else if (lightDirection.y < 0) {
-			std::cout << " " << time << " ";
-			glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.005f, 0.005f, 0.005f);
+			glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
 			glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.6f, 0.6f, 0.6f);
-			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.1f, 0.1f, 0.1f);
+			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.2f, 0.2f, 0.2f);
 		}
-		else {
-			std::cout << " " << time << " ";
-			glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), 0.005f, 0.005f, 0.005f);
-			glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.6f, 0.6f, 0.6f);
-			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.1f, 0.1f, 0.1f);
-		}
-
-		// END EXPERIMENTAL
+		
 
 		//daytime = daytime - floor(daytime);
 		//std::cout << " " << daytime << " ";
