@@ -29,6 +29,7 @@
 #include "audio/audio.hpp"
 #include "terrain/terrain.hpp"
 #include "models/model.hpp"
+#include "models/paddock/paddock.hpp"
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
