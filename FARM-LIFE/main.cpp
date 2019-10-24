@@ -369,8 +369,7 @@ int main(void)
 	// Locate the model in the scene, simply give x and y coordinates (technically x and z in openGL)
 	int modelXCoord = 100;
 	int modelYCoord = 0;
-	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add half the models height to get to ground level
-	// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
+	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add the models height to get to ground level
 	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe->hitBox.size.y);
 	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
 	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));	// set an animation loop on the giraffes head
