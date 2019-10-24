@@ -106,6 +106,7 @@
   <ItemGroup>
     <ClInclude Include="audio\audio.hpp" />
     <ClInclude Include="models\model.hpp" />
+    <ClInclude Include="models\paddock\paddock.hpp" />
     <ClInclude Include="skybox\skybox.hpp" />
     <ClInclude Include="terrain\terrain.hpp" />
     <ClInclude Include="util\camera.hpp" />

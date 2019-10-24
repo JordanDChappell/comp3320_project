@@ -29,6 +29,7 @@
 #include "audio/audio.hpp"
 #include "terrain/terrain.hpp"
 #include "models/model.hpp"
+#include "models/paddock/paddock.hpp"
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
@@ -368,8 +369,7 @@ int main(void)
 	// Locate the model in the scene, simply give x and y coordinates (technically x and z in openGL)
 	int modelXCoord = 100;
 	int modelYCoord = 0;
-	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add half the models height to get to ground level
-	// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
+	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add the models height to get to ground level
 	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe->hitBox.size.y);
 	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
 	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));	// set an animation loop on the giraffes head
@@ -392,14 +392,17 @@ int main(void)
 	models.push_back(cat);
 	hitBoxes.push_back(cat->hitBox);
 
-	model::Model* fence = new model::Model("models/fence/fence.obj");
-	fence->MoveTo(glm::vec3(-10, 0, 40));
-	models.push_back(fence);
-	hitBoxes.push_back(fence->hitBox);
-	model::Model* fence1 = new model::Model("models/fence/fence.obj");
-	fence1->MoveTo(glm::vec3(-10 + (fence->hitBox.size.x * 2), 0, 40));
-	models.push_back(fence1);
-	hitBoxes.push_back(fence1->hitBox);
+	int paddockXCoord = 0, paddockYCoord = 70;
+	model::Paddock* paddock = new model::Paddock(2, 2);
+	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddock->PushModels(models);
+	paddock->PushHitBoxes(hitBoxes);
+
+	paddockXCoord = 0, paddockYCoord = 90;
+	model::Paddock* paddock2 = new model::Paddock(4, 3);
+	paddock2->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddock2->PushModels(models);
+	paddock2->PushHitBoxes(hitBoxes);
 
 	model::Model* bucket = new model::Model("models/bucket/bucket.obj");
 	bucket->MoveTo(glm::vec3(-10, 0, 10));
