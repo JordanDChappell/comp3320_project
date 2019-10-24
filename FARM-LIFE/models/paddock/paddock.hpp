@@ -22,12 +22,18 @@ namespace model
 			ProduceFenceNodes();
 		}
 
+		///<summary>
+		/// Include fence nodes in models to be drawn
+		///</summary>
 		void PushModels(std::vector<model::Model*> &models)
 		{
 			for (model::Model* fenceNode : fenceNodes)
 				models.push_back(fenceNode);
 		}
 
+		///<summary>
+		/// Make program aware of fence node hitboxes
+		///</summary>
 		void PushHitBoxes(std::vector<model::HitBox> &hitBoxes)
 		{
 			for (model::Model* fenceNode : fenceNodes)
@@ -35,7 +41,8 @@ namespace model
 		}
 
 		///<summary>
-		/// Move paddock by addition of inputted offset
+		/// Move paddock by addition of inputted offset.
+		/// Snap fence nodes to terrain.
 		///</summary>
 		void MovePaddock(glm::vec2 location
 					   , terrain::Terrain &terra
@@ -56,14 +63,21 @@ namespace model
 		// "Length" refers to X direction, "Width" refers to Z direction
 		int length;
 		int width;
+
 		// (X,Y) coordinates of paddock origin point
 		glm::vec2 origin;
+
 		std::vector<model::Model*> fenceNodes;
 
+		///<summary>
+		/// Create fence nodes and position them, starting at the origin
+		///</summary>
 		void ProduceFenceNodes()
 		{
 			// Offsets for placing fences sequentially along boundaries
 			float xOffset, zOffset;
+
+			// Length side of paddock
 			for (float i = 0; i < length; ++i)
 			{
 				// Length side connected to the origin
@@ -75,11 +89,13 @@ namespace model
 				model::Model* fenceX2 = new model::Model("models/fence/fence.obj");
 				fenceX2->MoveTo(glm::vec3(origin.x, 0, origin.y) + glm::vec3((fenceX2->hitBox.size.x * 1.3f) + xOffset
 											, 0
-											, (2 * fenceX2->hitBox.size.x) * width));
+											, (fenceX2->hitBox.size.x * 2) * width));
 
 				fenceNodes.push_back(fenceX1);
 				fenceNodes.push_back(fenceX2);
 			}
+
+			// Width side of paddock
 			for (float j = 0; j < width; ++j)
 			{
 				// Width side connected to the origin
