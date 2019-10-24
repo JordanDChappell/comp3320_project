@@ -394,9 +394,14 @@ int main(void)
 	hitBoxes.push_back(cat->hitBox);
 
 	model::Paddock* paddock = new model::Paddock(2, 2);
-	paddock->MovePaddockTo(glm::vec3(0, 6, 70));
+	paddock->MovePaddock(glm::vec3(0, 6, 70));
 	paddock->PushModels(models);
 	paddock->PushHitBoxes(hitBoxes);
+
+	model::Paddock* paddock2 = new model::Paddock(4, 3);
+	paddock2->MovePaddock(glm::vec3(0, 6, 90));
+	paddock2->PushModels(models);
+	paddock2->PushHitBoxes(hitBoxes);
 
 	model::Model* bucket = new model::Model("models/bucket/bucket.obj");
 	bucket->MoveTo(glm::vec3(-10, 0, 10));
