@@ -13,7 +13,7 @@ namespace model
 	class Paddock
 	{
 	public:
-		Paddock(int length, int width, glm::vec3 origin = glm::vec3(0))
+		Paddock(int length, int width, glm::vec2 origin = glm::vec2(0))
 		{
 			this->length = length;
 			this->width = width;
@@ -37,7 +37,7 @@ namespace model
 		///<summary>
 		/// Move paddock by addition of inputted offset
 		///</summary>
-		void MovePaddock(glm::vec3 location
+		void MovePaddock(glm::vec2 location
 					   , terrain::Terrain &terra
 		               , int cameraOffsetX
 					   , int cameraOffsetY
@@ -47,8 +47,8 @@ namespace model
 			float modelHeightInWorld;
 			for (model::Model* fence : fenceNodes)
 			{
-				modelHeightInWorld = terra.getHeightAt(location.x + cameraOffsetX, location.z + cameraOffsetY) + terraYOffset + fence->hitBox.size.y;
-				fence->MoveTo(glm::vec3(location.x, modelHeightInWorld, location.z));
+				modelHeightInWorld = terra.getHeightAt(location.x + cameraOffsetX, location.y + cameraOffsetY) + terraYOffset + fence->hitBox.size.y;
+				fence->MoveTo(glm::vec3(location.x, modelHeightInWorld, location.y));
 			}
 		}
 	private:
@@ -56,7 +56,8 @@ namespace model
 		// "Length" refers to X direction, "Width" refers to Z direction
 		int length;
 		int width;
-		glm::vec3 origin;
+		// (X,Y) coordinates of paddock origin point
+		glm::vec2 origin;
 		std::vector<model::Model*> fenceNodes;
 
 		void ProduceFenceNodes()
@@ -70,11 +71,11 @@ namespace model
 				// Length side connected to the origin
 				model::Model* fenceX1 = new model::Model("models/fence/fence.obj");
 				xOffset = i * fenceX1->hitBox.size.x * 2.0f;
-				fenceX1->MoveTo(origin + glm::vec3((fenceX1->hitBox.size.x * 1.3f) + xOffset, 0, 0));
+				fenceX1->MoveTo(glm::vec3(origin.x, 0, origin.y) + glm::vec3((fenceX1->hitBox.size.x * 1.3f) + xOffset, 0, 0));
 
 				// Length side opposite to the origin
 				model::Model* fenceX2 = new model::Model("models/fence/fence.obj");
-				fenceX2->MoveTo(origin + glm::vec3((fenceX2->hitBox.size.x * 1.3f) + xOffset
+				fenceX2->MoveTo(glm::vec3(origin.x, 0, origin.y) + glm::vec3((fenceX2->hitBox.size.x * 1.3f) + xOffset
 											, 0
 											, (2 * fenceX2->hitBox.size.x) * width));
 
@@ -86,11 +87,11 @@ namespace model
 				// Width side connected to the origin
 				model::Model* fenceZ1 = new model::Model("models/fence/fence2.obj");
 				zOffset = j * fenceZ1->hitBox.size.z * 2.0f;
-				fenceZ1->MoveTo(origin + glm::vec3(0, 0, (fenceZ1->hitBox.size.z / 1.5f) + zOffset));
+				fenceZ1->MoveTo(glm::vec3(origin.x, 0, origin.y) + glm::vec3(0, 0, (fenceZ1->hitBox.size.z / 1.5f) + zOffset));
 				
 				// Width side opposite the origin
 				model::Model* fenceZ2 = new model::Model("models/fence/fence2.obj");
-				fenceZ2->MoveTo(origin + glm::vec3((2.0f * fenceZ2->hitBox.size.z) * length
+				fenceZ2->MoveTo(glm::vec3(origin.x, 0, origin.y) + glm::vec3((2.0f * fenceZ2->hitBox.size.z) * length
 											, 0
 											, (fenceZ2->hitBox.size.z / 1.5f) + zOffset));
 

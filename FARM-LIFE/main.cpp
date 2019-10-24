@@ -392,13 +392,15 @@ int main(void)
 	models.push_back(cat);
 	hitBoxes.push_back(cat->hitBox);
 
+	int paddockXCoord = 0, paddockYCoord = 70;
 	model::Paddock* paddock = new model::Paddock(2, 2);
-	paddock->MovePaddock(glm::vec3(0, 6, 70));
+	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
 	paddock->PushModels(models);
 	paddock->PushHitBoxes(hitBoxes);
 
+	paddockXCoord = 0, paddockYCoord = 90;
 	model::Paddock* paddock2 = new model::Paddock(4, 3);
-	paddock2->MovePaddock(glm::vec3(0, 6, 90));
+	paddock2->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
 	paddock2->PushModels(models);
 	paddock2->PushHitBoxes(hitBoxes);
 
