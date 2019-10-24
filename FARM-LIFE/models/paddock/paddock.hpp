@@ -34,7 +34,10 @@ namespace model
 				hitBoxes.push_back(fenceNode->hitBox);
 		}
 
-		void MovePaddockTo(glm::vec3 location)
+		///<summary>
+		/// Move paddock by addition of inputted offset
+		///</summary>
+		void MovePaddock(glm::vec3 location)
 		{
 			//TODO: Move all fence nodes
 			this->origin = this->origin + location;
