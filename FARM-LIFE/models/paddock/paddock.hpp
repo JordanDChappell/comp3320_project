@@ -62,8 +62,6 @@ namespace model
 
 		void ProduceFenceNodes()
 		{
-			std::cout << "Origin:" << glm::to_string(origin) << std::endl;
-
 			// Offsets for placing fences sequentially along boundaries
 			float xOffset, zOffset;
 			for (float i = 0; i < length; ++i)
