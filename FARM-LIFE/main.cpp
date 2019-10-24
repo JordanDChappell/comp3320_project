@@ -393,6 +393,11 @@ int main(void)
 	models.push_back(cat);
 	hitBoxes.push_back(cat->hitBox);
 
+	model::Paddock* paddock = new model::Paddock(4, 3);
+	paddock->MovePaddockTo(glm::vec3(0, 20, 70));
+	paddock->PushModels(models);
+	paddock->PushHitBoxes(hitBoxes);
+
 	model::Model* fence = new model::Model("models/fence/fence.obj");
 	fence->MoveTo(glm::vec3(-10, 0, 40));
 	models.push_back(fence);
