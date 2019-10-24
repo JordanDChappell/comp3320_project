@@ -37,11 +37,19 @@ namespace model
 		///<summary>
 		/// Move paddock by addition of inputted offset
 		///</summary>
-		void MovePaddock(glm::vec3 location)
+		void MovePaddock(glm::vec3 location
+					   , terrain::Terrain &terra
+		               , int cameraOffsetX
+					   , int cameraOffsetY
+		               , float terraYOffset)
 		{
 			this->origin = this->origin + location;
+			float modelHeightInWorld;
 			for (model::Model* fence : fenceNodes)
-				fence->MoveTo(location);
+			{
+				modelHeightInWorld = terra.getHeightAt(location.x + cameraOffsetX, location.z + cameraOffsetY) + terraYOffset + fence->hitBox.size.y;
+				fence->MoveTo(glm::vec3(location.x, modelHeightInWorld, location.z));
+			}
 		}
 	private:
 		// Length and Width are multiples of fences; length=2 => two fence-nodes long
