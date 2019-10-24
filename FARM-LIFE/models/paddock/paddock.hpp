@@ -39,7 +39,6 @@ namespace model
 		///</summary>
 		void MovePaddock(glm::vec3 location)
 		{
-			//TODO: Move all fence nodes
 			this->origin = this->origin + location;
 			for (model::Model* fence : fenceNodes)
 				fence->MoveTo(location);
