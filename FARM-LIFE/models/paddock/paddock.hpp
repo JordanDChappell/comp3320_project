@@ -84,17 +84,18 @@ namespace model
 		///</summary>
 		void ToggleGate(std::vector<model::Model*> &models)
 		{
-			int id = fenceNodes.at(0)->GetUid();
+			// Find gate pointer in models vector
+			int id = fenceNodes.front()->GetUid();
 			std::vector<model::Model*>::iterator it = std::find(models.begin(), models.end(), fenceNodes.front());
 
 			if (it != models.end())
 			{
+				// Gate pointer has been found
 				int index = std::distance(models.begin(), it);
 
 				try
 				{
 					model::Model* gate;
-					// Gate found
 					if (gateOpen)
 						gate = new model::Model("models/fence/fence.obj");
 					else
@@ -103,6 +104,7 @@ namespace model
 					ToggleGateLocation(gate);
 
 					gateOpen = !gateOpen;
+					// Set the fence in the models vector to the updated position
 					models.at(index) = gate;
 				}
 				catch (const std::out_of_range & ex)
@@ -192,6 +194,7 @@ namespace model
 
 			try
 			{
+				// Move gate relative to reference fence defined above
 				model::Model* referenceFence = fenceNodes.at(referenceOffset);
 				gate->MoveTo(referenceFence->position - gateOffset);
 			}
