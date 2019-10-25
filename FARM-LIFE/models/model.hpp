@@ -299,6 +299,17 @@ namespace model {
 			}
 		}
 
+		///<summary>
+		/// Overload equals operator
+		///</summary>
+		bool Model::operator==(Model& obj2)
+		{
+			if (this->GetUid() == obj2.GetUid())
+				return true;
+			else
+				return false;
+		}
+
 	private:
 		// Private model data
 
