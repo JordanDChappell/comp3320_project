@@ -407,14 +407,17 @@ int main(void)
 	model::Model* bucket = new model::Model("models/bucket/bucket.obj");
 	bucket->MoveTo(glm::vec3(-10, 0, 10));
 	models.push_back(bucket);
+	hitBoxes.push_back(bucket->hitBox);
 
 	model::Model* bucket2 = new model::Model("models/bucket/bucket2.obj");
 	bucket2->MoveTo(glm::vec3(-10, 0, 30));
 	models.push_back(bucket2);
+	hitBoxes.push_back(bucket2->hitBox);
 
 	model::Model* trough = new model::Model("models/trough/watertrough.obj");
 	trough->MoveTo(glm::vec3(-10, -4, 9));
 	models.push_back(trough);
+	hitBoxes.push_back(trough->hitBox);
 
 	//--------------
 	// CREATE SKYBOX
