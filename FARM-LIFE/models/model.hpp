@@ -2,6 +2,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include "../audio/audio.hpp"
+#include "../terrain/terrain.hpp"
 
 #ifndef A1_MODEL_HPP
 #define A1_MODEL_HPP
@@ -264,6 +265,17 @@ namespace model {
 		{
 			position = position + coordinates;
 			hitBox.origin = hitBox.origin + coordinates;
+		}
+
+		///<summary>
+		/// Returns the appropriate terrain height to snap the model to
+		///</summary>
+		float GetModelTerrainHeight(terrain::Terrain& terra
+							   , int modelXCoord, int modelYCoord
+							   , int cameraOffsetX, int cameraOffsetY
+			                   , float terraYOffset)
+		{
+			return terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + this->hitBox.size.y;
 		}
 
 		///<summary>
