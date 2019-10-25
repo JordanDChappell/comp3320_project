@@ -26,13 +26,13 @@ public:
 		std::string placemap = map;
 		readPlaceMap(placemap, terra);
 	}
-	model::Model placeTree(int i) {
+	model::Model* placeTree(int i) {
 		return treeVect[i];
 	}
 	
 private:
     std::string placemap;
-    std::vector<model::Model> treeVect;
+    std::vector<model::Model*> treeVect;
 
     void readPlaceMap(std::string placemap, terrain::Terrain terrain){
 		std::string treemodel;
@@ -79,8 +79,9 @@ private:
 					else if (random % 10 == 9)
 						treemodel = "models/tree/tree2/tree2.obj";
 
-					model::Model modeltree = model::Model(treemodel);
-                    modeltree.MoveTo(glm::vec3(i - 500, terrain.getHeightAt(i,j) - 20, j - 500));
+					model::Model* modeltree = new model::Model(treemodel);
+					//float modelHeightInWorld = modeltree->GetModelTerrainHeight(terrain, i-500, j - 500, 500, 500, -20.0f);
+                    modeltree->MoveTo(glm::vec3(i - 500, terrain.getHeightAt(i,j) - 20, j - 500));
                     treeVect.push_back(modeltree);
                 }
             }

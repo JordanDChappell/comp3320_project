@@ -442,6 +442,7 @@ int main(void)
 	{
 		models.push_back(tree.placeTree(i));
 	};
+
 	int paddockXCoord = 0, paddockYCoord = 70;
 	model::Paddock* paddock = new model::Paddock(2, 2);
 	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
