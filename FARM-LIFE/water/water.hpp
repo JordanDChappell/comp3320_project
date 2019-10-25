@@ -81,7 +81,7 @@ public:
 
 	// Precondition:	Water object has been constructed
 	// Postcondition:	Water is drawn
-	void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec3 &camPos, float time, glm::vec3 lightPosition, glm::vec3 lightColour, bool isCameraAbove, glm::vec3 Forward)
+	void draw(const glm::mat4& Hvw, const glm::mat4& Hcv, const glm::vec3& camPos, float time, glm::vec3 lightPosition, glm::vec3 lightColour, bool isCameraAbove, glm::vec3 Forward)
 	{
 		// Initalise variables needed for drawing the water
 		float waveHeight = 0.5;
@@ -116,15 +116,9 @@ public:
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, tex[4]);
 		glUniform1i(glGetUniformLocation(shader, "depthMap"), 4);
-			glActiveTexture(GL_TEXTURE5);
-			glBindTexture(GL_TEXTURE_2D, tex[5]);
-			glUniform1i(glGetUniformLocation(shader, "terrainHeight"), 5);
-
-			//--------------------------------
-			// SET CAMERA IN MIDDLE OF WATER
-			//--------------------------------
-			glm::mat4 Hwm = glm::mat4(1.0f);
-			Hwm[3] = glm::vec4(-(resX * scale) / 2, -20.0, -(resZ * scale) / 2, 1.0);
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, tex[5]);
+		glUniform1i(glGetUniformLocation(shader, "terrainHeight"), 5);
 
 		//--------------------------------
 		// SET CAMERA IN MIDDLE OF WATER
@@ -166,7 +160,15 @@ public:
 
 		// Update source location
 		sound.setPosition(camPos);
-
+	}
+	
+	// Precondition:	Has a height value
+	// Postcondition:	Returns the height value
+	float getHeight()
+	{
+		return height - 20;
+	}
+	
 	private:
 		// Store shader program and buffers
 		GLuint shader;		// shader program
@@ -182,29 +184,6 @@ public:
 		int noVertices;		// number of vertices to draw
         float height;       // height of the water
 		audio::Source sound;		// sound source
-
-	// Precondition:	Has a height value
-	// Postcondition:	Returns the height value
-	float getHeight()
-	{
-		return height - 20;
-	}
-
-private:
-	// Store shader program and buffers
-	GLuint shader; // shader program
-	GLuint vao;	// vertex array object
-	GLuint vbo;	// vertex buffer object
-	GLuint ebo;	// element buffer object
-	GLuint tex[5]; // textures
-
-	// Store terrain size and resolution
-	float scale;		 // how much to scale water, if water is resX by resZ
-	int resX;			 // number of vertices wide (x-axis)
-	int resZ;			 // number of vertices long (z-axis)
-	int noVertices;		 // number of vertices to draw
-	float height;		 // height of the water
-	audio::Source sound; // sound source
 
 	// Precondition:	vertexAtt is number of vertex attributes, height is height of the water
 	// Postcondition:	Mesh is created and loaded into VAO, VBO, EBO
@@ -283,7 +262,7 @@ private:
 		// Precondition: 	fbos is populated with textures
 		// Postcondition: 	Generates and binds textures for reflection, refraction,
 		// 					du/dv map, normal map, and depth map.
-		void loadTextures(water::WaterFrameBuffers fbos) {
+	void loadTextures(water::WaterFrameBuffers fbos) {
 			// Initialise textures
 			int width, height; 			// variables for the width and height of image being loaded
 			glGenTextures(6, &tex[0]);	// requires 5 textures

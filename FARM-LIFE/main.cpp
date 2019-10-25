@@ -130,7 +130,7 @@ void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<
 	glm::vec3 Forward = camera.get_view_direction();
 	for (int i = 0; i < models.size(); i++)
 	{
-		models[i]->Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane);
+		models[i]->Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane, CamPos, Forward);
 	}
 
 	// Render skybox last, disable clipping for skybox
@@ -643,7 +643,7 @@ int main(void)
 		// Render water
 		glEnable(GL_CLIP_DISTANCE0);
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
-				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
+				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5), camera.get_view_direction());
 		glDisable(GL_CLIP_DISTANCE0);
 		//Swap buffers
 		glfwSwapBuffers(window);

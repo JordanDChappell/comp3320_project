@@ -81,18 +81,11 @@ void main()
     else {
         gl_ClipDistance[0] = 1;
 
-	fragPos = (Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0)).xyz;
+		fragPos = (Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0)).xyz;
 
-    mat4 Hcm = Hcv * Hvw * Hwm;
-    mat4 rotationAround[4];
-    rotationAround[0] = rotationMatrix(vec3(0.0, 1.0, 0.0), 0);
-    rotationAround[1] = rotationMatrix(vec3(0.0, 1.0, 0.0), M_PI / 2);
-    rotationAround[2] = rotationMatrix(vec3(0.0, 1.0, 0.0), M_PI / 4);
-    rotationAround[3] = rotationMatrix(vec3(0.0, 1.0, 0.0), -M_PI / 4);
         vec3 axis = cross(normal, vec3(0.0, 1.0, 0.0));
 
         mat4 upRotate = rotationMatrix(axis, -angle);
-
 
         mat4 Hcm = Hcv * Hvw * Hwm;
         mat4 rotationAround[2];

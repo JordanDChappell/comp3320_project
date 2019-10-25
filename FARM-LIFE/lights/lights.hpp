@@ -54,7 +54,7 @@ public:
 			glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
 			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), 0.01f, 0.01f, 0.01f);
 		}else if (lightDirection.y < 0.05 && lightDirection.y>0) {
-			std::cout << " " << diffuse << " ";
+			//std::cout << " " << diffuse << " ";
 			glUniform3f(glGetUniformLocation(shader, "dirLight.ambient"), ambient, ambient, ambient);
 			glUniform3f(glGetUniformLocation(shader, "dirLight.diffuse"), diffuse, diffuse, diffuse);
 			glUniform3f(glGetUniformLocation(shader, "dirLight.specular"), specular, specular, specular);
