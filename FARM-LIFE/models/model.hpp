@@ -224,11 +224,17 @@ namespace model {
 
 		// Constructor
 		Model(std::string const& path)
+			: uid(newUID++)
 		{
 			// Load the model using ASSIMP library with the path to the model
 			loadModel(path);
 			// Initialise the source
 			sound = audio::Source();
+		}
+
+		int GetUid()
+		{
+			return uid;
 		}
 
 		// Precondition:	file is an audio file in wav format. Reference distance is the
@@ -295,6 +301,13 @@ namespace model {
 
 	private:
 		// Private model data
+
+		// Increment unique identifers
+		static int newUID;
+
+		// Unique identifier for model
+		const int uid;
+
 		glm::vec3 maxVertices;	// keeps a record of the models overall max(x,y,z) coordinates
 		glm::vec3 minVertices;	// as above for the minimum vertices
 		bool verticesSet = false;	// flag that enables the vertices to be initialized on first loop over the mesh
@@ -537,6 +550,9 @@ namespace model {
 			return material;
 		}
 	};
+
+	// Initialise unique identifier incrementer
+	int Model::newUID = 0;
 
 	GLuint TextureFromFile(const char* path, const std::string& directory)
 	{
