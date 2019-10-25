@@ -370,7 +370,7 @@ int main(void)
 	int modelXCoord = 100;
 	int modelYCoord = 0;
 	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add the models height to get to ground level
-	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe->hitBox.size.y);
+	float modelHeightInWorld = giraffe->ModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
 	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
 	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));	// set an animation loop on the giraffes head
 	models.push_back(giraffe);												 // push the model to the render vector
@@ -379,7 +379,7 @@ int main(void)
 	model::Model* barn = new model::Model("models/barn/barn.obj");
 	modelXCoord = 100;
 	modelYCoord = 100;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn->hitBox.size.y) - 3;
+	modelHeightInWorld = barn->ModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) - 3;
 	barn->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(barn);
 	hitBoxes.push_back(barn->hitBox);
@@ -387,7 +387,7 @@ int main(void)
 	model::Model* cat = new model::Model("models/cat/cat.obj");
 	modelXCoord = 100;
 	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat->hitBox.size.y);
+	modelHeightInWorld = cat->ModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
 	cat->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
 	hitBoxes.push_back(cat->hitBox);
@@ -405,17 +405,26 @@ int main(void)
 	paddock2->PushHitBoxes(hitBoxes);
 
 	model::Model* bucket = new model::Model("models/bucket/bucket.obj");
-	bucket->MoveTo(glm::vec3(-10, 0, 10));
+	modelXCoord = 80;
+	modelYCoord = 80;
+	modelHeightInWorld = bucket->ModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
+	bucket->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(bucket);
 	hitBoxes.push_back(bucket->hitBox);
 
 	model::Model* bucket2 = new model::Model("models/bucket/bucket2.obj");
-	bucket2->MoveTo(glm::vec3(-10, 0, 30));
+	modelXCoord = 80;
+	modelYCoord = 83;
+	modelHeightInWorld = bucket2->ModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
+	bucket2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(bucket2);
 	hitBoxes.push_back(bucket2->hitBox);
 
 	model::Model* trough = new model::Model("models/trough/watertrough.obj");
-	trough->MoveTo(glm::vec3(-10, -4, 9));
+	modelXCoord = 100;
+	modelYCoord = 120;
+	modelHeightInWorld = trough->ModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
+	trough->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(trough);
 	hitBoxes.push_back(trough->hitBox);
 
