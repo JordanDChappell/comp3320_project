@@ -1,6 +1,6 @@
 # Blender v2.80 (sub 75) OBJ File: 'pigCompleted.blend'
 # www.blender.org
-mtllib pigCompletedBetterSkin.mtl
+mtllib pig.mtl
 o Plane
 v 0.572239 0.765912 0.168444
 v 0.409999 0.832997 0.196847

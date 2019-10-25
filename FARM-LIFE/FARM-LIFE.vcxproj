@@ -104,6 +104,8 @@
     <None Include="shaders\model.vert" />
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
+    <None Include="shaders\SLmodel.frag" />
+    <None Include="shaders\SLmodel.vert" />
     <None Include="skybox\shaders\skybox.frag" />
     <None Include="skybox\shaders\skybox.vert" />
     <None Include="terrain\terrain.frag" />
