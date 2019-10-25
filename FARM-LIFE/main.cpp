@@ -33,6 +33,7 @@
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
+#include "trees/tree.hpp"
 
 // Initial width and height of the window
 GLuint SCREEN_WIDTH = 1200;
@@ -436,6 +437,11 @@ int main(void)
 	models.push_back(cat);
 	hitBoxes.push_back(cat->hitBox);
 
+	tree::Tree tree = tree::Tree("trees/placemap.bmp", terra);
+	for (int i = 0; i < 30; i++)
+	{
+		models.push_back(tree.placeTree(i));
+	};
 	int paddockXCoord = 0, paddockYCoord = 70;
 	model::Paddock* paddock = new model::Paddock(2, 2);
 	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
