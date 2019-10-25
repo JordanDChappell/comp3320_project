@@ -79,6 +79,43 @@ namespace model
 			return gateOpen;
 		}
 
+		///<summary>
+		/// Open gate if it is closed, and vice-versa
+		///</summary>
+		void ToggleGate(std::vector<model::Model*> &models)
+		{
+			int id = fenceNodes.at(0)->GetUid();
+			std::vector<model::Model*>::iterator it = std::find(models.begin(), models.end(), fenceNodes.front());
+
+			if (it != models.end())
+			{
+				int index = std::distance(models.begin(), it);
+
+				try
+				{
+					model::Model* gate;
+					// Gate found
+					if (gateOpen)
+						gate = new model::Model("models/fence/fence.obj");
+					else
+						gate = new model::Model("models/fence/fence2.obj");
+
+					ToggleGateLocation(gate);
+
+					gateOpen = !gateOpen;
+					models.at(index) = gate;
+				}
+				catch (const std::out_of_range & ex)
+				{
+					std::cout << "out_of_range Exception Caught :: " << ex.what() << std::endl;
+				}
+			}
+			else
+			{
+				std::cout << "ID not found" << std::endl;
+			}
+		}
+
 	private:
 		// Length and Width are multiples of fences; length=2 => two fence-nodes long
 		// "Length" refers to X direction, "Width" refers to Z direction
@@ -134,6 +171,36 @@ namespace model
 				fenceNodes.push_back(fenceZ1);
 				fenceNodes.push_back(fenceZ2);
 			}
+		}
+
+		void ToggleGateLocation(model::Model* gate)
+		{
+			int referenceOffset;	// Position of fence we place gate next to
+			glm::vec3 gateOffset;   // Target position of gate relative to reference
+			if (gateOpen)
+			{
+				// Return gate to closed position
+				referenceOffset = 1;			// Use fence opposite to gate
+				gateOffset = glm::vec3(0, 0, width * (2 * gate->hitBox.size.x));
+			}
+			else
+			{
+				// Move gate to opened position
+				referenceOffset = 2 * length;	// Use fence adjacent to gate
+				gateOffset = glm::vec3(0, 0, 2 * gate->hitBox.size.z);
+			}
+
+			try
+			{
+				model::Model* referenceFence = fenceNodes.at(referenceOffset);
+				gate->MoveTo(referenceFence->position - gateOffset);
+			}
+			catch (const std::out_of_range & ex)
+			{
+				std::cout << "out_of_range Exception Caught :: " << ex.what() << std::endl;
+			}
+			
+			fenceNodes.front() = gate;
 		}
 	};
 }
