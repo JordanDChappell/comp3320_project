@@ -42,8 +42,9 @@ GLuint SCREEN_HEIGHT = 800;
 static constexpr float NEAR_PLANE = 0.1f;
 static constexpr float FAR_PLANE = 1000.0f;
 
-std::vector<model::Model *> models;	// vector of all models to render
-std::vector<model::HitBox> hitBoxes; // vector of all hitboxes in the scene for collision detections
+std::vector<model::Model*> models;		// vector of all models to render
+std::vector<model::HitBox> hitBoxes;	// vector of all hitboxes in the scene for collision detections
+std::vector<model::Paddock*> paddocks;  // vector of all paddocks for use with moveable gates
 static int debounceCounter = 0;		 // simple counter to debounce keyboard inputs
 
 void process_input(GLFWwindow *window, const float &delta_time, utility::camera::Camera &camera, float terrainHeight)
@@ -395,12 +396,14 @@ int main(void)
 	int paddockXCoord = 0, paddockYCoord = 70;
 	model::Paddock* paddock = new model::Paddock(2, 2);
 	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddocks.push_back(paddock);
 	paddock->PushModels(models);
 	paddock->PushHitBoxes(hitBoxes);
 
-	paddockXCoord = 0, paddockYCoord = 90;
+	paddockXCoord = 0, paddockYCoord = 100;
 	model::Paddock* paddock2 = new model::Paddock(4, 3);
 	paddock2->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddocks.push_back(paddock2);
 	paddock2->PushModels(models);
 	paddock2->PushHitBoxes(hitBoxes);
 
