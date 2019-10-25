@@ -408,8 +408,13 @@ int main(void)
 	bucket->MoveTo(glm::vec3(-10, 0, 10));
 	models.push_back(bucket);
 
+	model::Model* bucket2 = new model::Model("models/bucket/bucket2.obj");
+	bucket2->MoveTo(glm::vec3(-10, 0, 30));
+	models.push_back(bucket2);
+
 	model::Model* trough = new model::Model("models/trough/watertrough.obj");
 	trough->MoveTo(glm::vec3(-10, -4, 9));
+	models.push_back(trough);
 
 	//--------------
 	// CREATE SKYBOX
