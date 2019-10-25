@@ -270,7 +270,7 @@ namespace model {
 		///<summary>
 		/// Returns the appropriate terrain height to snap the model to
 		///</summary>
-		float ModelTerrainHeight(terrain::Terrain& terra
+		float GetModelTerrainHeight(terrain::Terrain& terra
 							   , int modelXCoord, int modelYCoord
 							   , int cameraOffsetX, int cameraOffsetY
 			                   , float terraYOffset)
