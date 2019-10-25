@@ -2,9 +2,8 @@
 
 in vec2 texCoords;
 flat in int grassType;
-//in vec3 FragPos;
-in vec3 norm;
-in vec3 toCameraVector;
+in vec3 fragPos;
+in vec3 normal;
 
 // out variables
 out vec4 outColour;					// colour of the fragment
@@ -141,11 +140,6 @@ vec4 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec
 
 void main()
 {
-	//-----------
-	// GET NORMAL
-	//-----------
-	vec3 normal = norm;
-
 	vec4 texColour;
      if (grassType == 0) {
          texColour = texture(grassTex1, texCoords);
@@ -165,52 +159,19 @@ void main()
         discard;
     }
 
-
-    //outColour = texColour;
-
-	vec4 pointPosition = gl_FragCoord;
-	vec3 FragPos = pointPosition.xyz; 
-
 	// properties
 
-    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 viewDir = normalize(viewPos - fragPos);
     
     // lighting set up in 3 phases directional, point lights and an optional flashlight
     // phase 1: directional lighting
     vec4 result = CalcDirLight(dirLight, normal, viewDir, texColour);
     // phase 2: point lights
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
-        result += CalcPointLight(pointLights[i], normal, FragPos, viewDir, texColour);    
+        result += CalcPointLight(pointLights[i], normal, fragPos, viewDir, texColour);    
     // phase 3: spot light
-    result += CalcSpotLight(spotLight, normal, FragPos, viewDir, texColour);    
+    result += CalcSpotLight(spotLight, normal, fragPos, viewDir, texColour);    
     //result = result * vec4(0.1f,0.1f,0.1f,1.0f)
     outColour = result;
 		
 }
-
-/*
-void main()
-{
-    vec4 texColour;
-     if (grassType == 0) {
-         texColour = texture(grassTex1, texCoords);
-     }
-     else if (grassType == 1) {
-         texColour = texture(grassTex2, texCoords);
-     }
-     else if (grassType == 2) {
-         texColour = texture(grassTex3, texCoords);
-     }
-     else {
-         texColour = texture(grassTex4, texCoords);
-     }
-    //vec4 texColour = texture(grassTex1, texCoords);
-    
-    if(texColour[3] < 0.5) {
-        discard;
-    }
-
-
-    outColour = texColour;
-}  
-*/
