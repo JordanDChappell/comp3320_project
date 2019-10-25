@@ -113,9 +113,9 @@
     <ClInclude Include="audio\audio.hpp" />
     <ClInclude Include="lights\lights.hpp" />
     <ClInclude Include="models\model.hpp" />
+    <ClInclude Include="models\paddock\paddock.hpp" />
     <ClInclude Include="skybox\skybox.hpp" />
     <ClInclude Include="terrain\terrain.hpp" />
-    <ClInclude Include="util\audio.hpp" />
     <ClInclude Include="util\camera.hpp" />
     <ClInclude Include="util\mainUtil.hpp" />
     <ClInclude Include="water\WaterFrameBuffers.hpp" />

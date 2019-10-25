@@ -30,6 +30,7 @@
 #include "audio/audio.hpp"
 #include "terrain/terrain.hpp"
 #include "models/model.hpp"
+#include "models/paddock/paddock.hpp"
 #include "skybox/skybox.hpp"
 #include "water/water.hpp"
 #include "water/WaterFrameBuffers.hpp"
@@ -42,7 +43,7 @@ GLuint SCREEN_HEIGHT = 800;
 static constexpr float NEAR_PLANE = 0.1f;
 static constexpr float FAR_PLANE = 1000.0f;
 
-std::vector<model::Model> models;	// vector of all models to render
+std::vector<model::Model *> models;	// vector of all models to render
 std::vector<model::HitBox> hitBoxes; // vector of all hitboxes in the scene for collision detections
 static int debounceCounter = 0;		 // simple counter to debounce keyboard inputs
 
@@ -112,7 +113,7 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 	}
 }
 
-void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model> models, skybox::Skybox skybox, GLuint modelShader, glm::vec4 clippingPlane)
+void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model *> models, skybox::Skybox skybox, GLuint modelShader, glm::vec4 clippingPlane)
 {
 	// get the camera transforms and position
 	glm::mat4 Hvw = camera.get_view_transform();
@@ -129,7 +130,7 @@ void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<
 	glm::vec3 Forward = camera.get_view_direction();
 	for (int i = 0; i < models.size(); i++)
 	{
-		models.at(i).Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane, CamPos, Forward);
+		models[i]->Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane);
 	}
 
 	// Render skybox last, disable clipping for skybox
@@ -442,43 +443,59 @@ int main(void)
 
 	//******************************************************************************************************************************************
 	// Load a model using model class
-	model::Model giraffe = model::Model("models/giraffe/giraffe.obj");
+	model::Model* giraffe = new model::Model("models/giraffe/giraffe-split.obj");
 	// Locate the model in the scene, simply give x and y coordinates (technically x and z in openGL)
 	int modelXCoord = 100;
 	int modelYCoord = 0;
-	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add half the models height to get to ground level
-	// need to fix the hitboxes for this to work effectively, currently models aren't stuck to the ground nicely
-	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe.hitBox.size.y / 2);
-	giraffe.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
+	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add the models height to get to ground level
+	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe->hitBox.size.y);
+	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
+	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));	// set an animation loop on the giraffes head
 	models.push_back(giraffe);												 // push the model to the render vector
-	hitBoxes.push_back(giraffe.hitBox);										 // push the model's hitbox to the hitBox vector
+	hitBoxes.push_back(giraffe->hitBox);										 // push the model's hitbox to the hitBox vector
 
-	model::Model barn = model::Model("models/barn/barn.obj");
-	modelXCoord = 10;
-	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn.hitBox.size.y / 2);
-	barn.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	model::Model* barn = new model::Model("models/barn/barn.obj");
+	modelXCoord = 100;
+	modelYCoord = 100;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (barn->hitBox.size.y) - 3;
+	barn->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(barn);
-	hitBoxes.push_back(barn.hitBox);
+	hitBoxes.push_back(barn->hitBox);
 
-	model::Model cat = model::Model("models/cat/cat.obj");
+	model::Model* cat = new model::Model("models/cat/cat.obj");
 	modelXCoord = 100;
 	modelYCoord = 10;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat.hitBox.size.y / 2);
-	cat.MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (cat->hitBox.size.y);
+	cat->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat);
-	hitBoxes.push_back(cat.hitBox);
+	hitBoxes.push_back(cat->hitBox);
 
-	model::Model fence = model::Model("models/fence/fence.obj");
-	fence.MoveTo(glm::vec3(-10, 0, -4));
-	models.push_back(fence);
+	int paddockXCoord = 0, paddockYCoord = 70;
+	model::Paddock* paddock = new model::Paddock(2, 2);
+	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddock->PushModels(models);
+	paddock->PushHitBoxes(hitBoxes);
 
-	model::Model bucket = model::Model("models/bucket/bucket.obj");
-	bucket.MoveTo(glm::vec3(-10, 0, 10));
+	paddockXCoord = 0, paddockYCoord = 90;
+	model::Paddock* paddock2 = new model::Paddock(4, 3);
+	paddock2->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddock2->PushModels(models);
+	paddock2->PushHitBoxes(hitBoxes);
+
+	model::Model* bucket = new model::Model("models/bucket/bucket.obj");
+	bucket->MoveTo(glm::vec3(-10, 0, 10));
 	models.push_back(bucket);
+	hitBoxes.push_back(bucket->hitBox);
 
-	model::Model trough = model::Model("models/trough/watertrough.obj");
-	trough.MoveTo(glm::vec3(-10, -4, 9));
+	model::Model* bucket2 = new model::Model("models/bucket/bucket2.obj");
+	bucket2->MoveTo(glm::vec3(-10, 0, 30));
+	models.push_back(bucket2);
+	hitBoxes.push_back(bucket2->hitBox);
+
+	model::Model* trough = new model::Model("models/trough/watertrough.obj");
+	trough->MoveTo(glm::vec3(-10, -4, 9));
+	models.push_back(trough);
+	hitBoxes.push_back(trough->hitBox);
 
 	//--------------
 	// CREATE SKYBOX
@@ -494,7 +511,7 @@ int main(void)
 	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
 
 	// Sounds
-	cat.playSound("audio/cat-purring.wav", true, 0.2);
+	cat->playSound("audio/cat-purring.wav", true, 0.2);
 	terra.playSound("audio/meadow-birds.wav");
 
 	// Main Loop
@@ -622,13 +639,12 @@ int main(void)
 		//-----------------
 		// Render terrain, skybox and models
 		render(terra, camera, models, skybox, modelShader, glm::vec4(0, 0, 0, 0));
-
 		// TODO: Send in a light when lights are done
 		// Render water
-		glDisable(GL_CLIP_DISTANCE0);
+		glEnable(GL_CLIP_DISTANCE0);
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
-				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5), camera.get_view_direction());
-
+				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
+		glDisable(GL_CLIP_DISTANCE0);
 		//Swap buffers
 		glfwSwapBuffers(window);
 		//Get and organize events, like keyboard and mouse input, window resizing, etc...

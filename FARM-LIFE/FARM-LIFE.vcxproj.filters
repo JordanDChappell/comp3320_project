@@ -12,8 +12,8 @@
     </ClInclude>
     <ClInclude Include="models\model.hpp" />
     <ClInclude Include="water\WaterFrameBuffers.hpp" />
-    <ClInclude Include="util\audio.hpp" />
     <ClInclude Include="audio\audio.hpp" />
+    <ClInclude Include="models\paddock\paddock.hpp" />
     <ClInclude Include="lights\lights.hpp" />
   </ItemGroup>
   <ItemGroup>

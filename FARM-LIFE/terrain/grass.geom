@@ -28,6 +28,7 @@ uniform float grassHeight;
 uniform vec4 clippingPlane;			// clipping plane
 uniform float grassScale;
 uniform vec3 cameraPosition;	// camera position vector
+uniform float time;
 
 // http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
 mat4 rotationMatrix(vec3 axis, float angle)
@@ -45,7 +46,7 @@ mat4 rotationMatrix(vec3 axis, float angle)
 
 float rand(vec2 co)
 {
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453) * 103 + co.x + co.y;
+    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453) * 103 + co.x + co.y;
 }
 
 void main()
@@ -64,21 +65,21 @@ void main()
 
     // Find the angle and axis to rotate around
     float angle = acos(dot(normal, vec3(0.0, 1.0, 0.0)));
-    vec3 axis = cross(normal, vec3(0.0, 1.0, 0.0));
 
-    mat4 upRotate = rotationMatrix(axis, -angle);
+    vec4 worldPosition = Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0);
+    bool farAway = length(worldPosition.xyz - cameraPosition) > 120;
 
     // DETERMINE CLIPPING
     // Check if need to clip vertex based on clipping plane
-    float clip = dot(Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0), clippingPlane);
+    float clip = dot(worldPosition, clippingPlane);
 
-    // Clip if on wrong side of clipping plane, or if not on grass (ie on sand or rock)
-    if(clip < 0 || (pointPosition[1] < grassHeight || (abs(angle) > M_PI/6))) {
-        gl_ClipDistance[0] = -1;
+    grassType = int(mod(int(rand(vec2(positions[0]))), 4));
+
+    if (clip < 0 || (pointPosition[1] < grassHeight || (abs(angle) > M_PI/6)) || int(mod(int(rand(vec2(grassType, grassType)) * 100), 50)) < 45 || farAway) {
+
     }
     else {
         gl_ClipDistance[0] = 1;
-    }
 
 	fragPos = (Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0)).xyz;
 
@@ -88,35 +89,65 @@ void main()
     rotationAround[1] = rotationMatrix(vec3(0.0, 1.0, 0.0), M_PI / 2);
     rotationAround[2] = rotationMatrix(vec3(0.0, 1.0, 0.0), M_PI / 4);
     rotationAround[3] = rotationMatrix(vec3(0.0, 1.0, 0.0), -M_PI / 4);
+        vec3 axis = cross(normal, vec3(0.0, 1.0, 0.0));
 
-    grassType = int(mod(int(rand(vec2(positions[0]))), 4));
+        mat4 upRotate = rotationMatrix(axis, -angle);
 
-    // CREATE SQUARES
-    for (int i = 0; i < 4 ; i++) {
-        // Bottom left
-        gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(-0.5, 0.0, 0.0, 0.0) * grassScale));
-        gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
-        texCoords = vec2(1.0, 1.0);
-        EmitVertex();
 
-        // Bottom right
-        gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(0.5, 0.0, 0.0, 0.0) * grassScale));
-        gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
-        texCoords = vec2(0.0, 1.0);
-        EmitVertex();
+        mat4 Hcm = Hcv * Hvw * Hwm;
+        mat4 rotationAround[2];
+        rotationAround[0] = rotationMatrix(vec3(0.0, 1.0, 0.0), 0);
+        rotationAround[1] = rotationMatrix(vec3(0.0, 1.0, 0.0), (M_PI / 2) + (grassType / 6));
 
-        // Top left
-        gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(-0.5, 1.0, 0.0, 0.0) * grassScale));
-        gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
-        texCoords = vec2(1.0, 0.0);
-        EmitVertex();
-        
-        // Top right
-        gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(0.5, 1.0, 0.0, 0.0) * grassScale));
-        gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
-        texCoords = vec2(0.0, 0.0);
-        EmitVertex();
+        float windFactor = int(mod(int(rand(vec2(positions[0] * 20))), 15)) + 5;
 
-        EndPrimitive();
+        float angleTime = time / windFactor;
+
+        while (angleTime > M_PI / 3) {
+            angleTime -= M_PI / 3;
+        }
+
+        vec3 wavingVector;
+
+        if (int(mod((time / windFactor) / (M_PI / 3), 2)) == 0) {
+            wavingVector = vec3(-1.0, 0.0, 0.0);
+        }
+        else {
+            wavingVector = vec3(1.0, 0.0, 0.0);
+            angleTime -= M_PI / 3;
+        }
+
+        mat4 beginWave = rotationMatrix(vec3(1.0, 0.0, 0.0), M_PI / 6);
+
+        mat4 waving = rotationMatrix(wavingVector, angleTime);
+
+        // CREATE SQUARES
+        for (int i = 0; i < 2 ; i++) {
+            // Bottom left
+            gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(-0.5, 0.0, 0.0, 0.0) * grassScale));
+            gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
+            texCoords = vec2(1.0, 1.0);
+            EmitVertex();
+
+            // Bottom right
+            gl_Position = pointPosition + ( rotationAround[i] * upRotate * (vec4(0.5, 0.0, 0.0, 0.0) * grassScale));
+            gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
+            texCoords = vec2(0.0, 1.0);
+            EmitVertex();
+
+            // Top left
+            gl_Position = pointPosition + ( rotationAround[i] * upRotate * waving * beginWave * (vec4(-0.5, 1.0, 0.0, 0.0) * grassScale));
+            gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
+            texCoords = vec2(1.0, 0.0);
+            EmitVertex();
+            
+            // Top right
+            gl_Position = pointPosition + ( rotationAround[i] * upRotate * waving * beginWave * (vec4(0.5, 1.0, 0.0, 0.0) * grassScale));
+            gl_Position = Hcm * vec4(gl_Position.x * scale, gl_Position.y, gl_Position.z * scale, 1.0);
+            texCoords = vec2(0.0, 0.0);
+            EmitVertex();
+
+            EndPrimitive();
+        }
     }
 }

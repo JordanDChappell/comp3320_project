@@ -57,6 +57,15 @@ public:
 		sound.setLooping(true);
 	}
 
+		// Precondition:	Vertex array, textures and buffers exist.
+		// Postcondition:	Vertex array, textures and buffers deleted.
+		void cleanup() {
+			glDeleteBuffers(1, &vbo);
+			glDeleteBuffers(1, &ebo);
+			glDeleteVertexArrays(1, &vao);
+			glDeleteTextures(6, &tex[0]);
+			sound.cleanup();
+		}
 	// Destructor
 	~Water() {}
 
@@ -116,6 +125,15 @@ public:
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, tex[4]);
 		glUniform1i(glGetUniformLocation(shader, "depthMap"), 4);
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, tex[5]);
+			glUniform1i(glGetUniformLocation(shader, "terrainHeight"), 5);
+
+			//--------------------------------
+			// SET CAMERA IN MIDDLE OF WATER
+			//--------------------------------
+			glm::mat4 Hwm = glm::mat4(1.0f);
+			Hwm[3] = glm::vec4(-(resX * scale) / 2, -20.0, -(resZ * scale) / 2, 1.0);
 
 		//--------------------------------
 		// SET CAMERA IN MIDDLE OF WATER
@@ -137,6 +155,7 @@ public:
 		glUniform1f(glGetUniformLocation(shader, "far"), FAR_PLANE);
 		glUniform1i(glGetUniformLocation(shader, "isCameraAbove"), isCameraAbove ? 1 : 0);
 
+			glUniform1f(glGetUniformLocation(shader, "terraMaxHeight"), height * 2.5);
 		// Set light uniforms
 		glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
 		glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
@@ -157,10 +176,21 @@ public:
 		// Update source location
 		sound.setPosition(camPos);
 
-		// Unbind vertex array
-		glBindVertexArray(0);
-		glDisable(GL_BLEND);
-	}
+	private:
+		// Store shader program and buffers
+		GLuint shader;		// shader program
+		GLuint vao;			// vertex array object
+		GLuint vbo;			// vertex buffer object
+		GLuint ebo;			// element buffer object
+		GLuint tex[6];		// textures
+		
+		// Store terrain size and resolution
+		float scale;		// how much to scale water, if water is resX by resZ
+		int resX;			// number of vertices wide (x-axis)
+		int resZ;			// number of vertices long (z-axis)
+		int noVertices;		// number of vertices to draw
+        float height;       // height of the water
+		audio::Source sound;		// sound source
 
 	// Precondition:	Has a height value
 	// Postcondition:	Returns the height value
@@ -259,14 +289,13 @@ private:
 		std::vector<GLuint>().swap(*triangles); // free memory from triangles
 	}
 
-	// Precondition: 	fbos is populated with textures
-	// Postcondition: 	Generates and binds textures for reflection, refraction,
-	// 					du/dv map, normal map, and depth map.
-	void loadTextures(water::WaterFrameBuffers fbos)
-	{
-		// Initialise textures
-		int width, height;		   // variables for the width and height of image being loaded
-		glGenTextures(5, &tex[0]); // requires 5 textures
+		// Precondition: 	fbos is populated with textures
+		// Postcondition: 	Generates and binds textures for reflection, refraction,
+		// 					du/dv map, normal map, and depth map.
+		void loadTextures(water::WaterFrameBuffers fbos) {
+			// Initialise textures
+			int width, height; 			// variables for the width and height of image being loaded
+			glGenTextures(6, &tex[0]);	// requires 5 textures
 
 		//-------------------
 		// REFRACTION TEXTURE
@@ -312,14 +341,28 @@ private:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		//--------------
-		// DEPTH TEXTURE
-		//--------------
-		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, tex[4]);
-		tex[4] = fbos.getRefractionDepthTexture();
-	}
-};
+			//--------------
+			// DEPTH TEXTURE
+			//--------------
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, tex[4]);
+			tex[4] = fbos.getRefractionDepthTexture();
+
+			//---------------
+			// TERRAIN HEIGHT
+			//---------------
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, tex[5]);
+			unsigned char *image2 = SOIL_load_image("terrain/heightmap.bmp", &width, &height, 0, SOIL_LOAD_RGB);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+						 GL_UNSIGNED_BYTE, image2);
+			// Set the parameters for the height map
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+    };
 
 } // namespace water
 

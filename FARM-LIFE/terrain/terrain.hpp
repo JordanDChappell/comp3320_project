@@ -202,6 +202,8 @@ public:
 		lights::light grassLights(grassShader);
 		grassShader = grassLights.setup(cameraPosition, Forward);
 
+		glUniform1f(glGetUniformLocation(grassShader, "time"), time);
+
 		// Draw grass
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -378,7 +380,7 @@ private:
 		//--------------------
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
-		unsigned char *image = SOIL_load_image("terrain/dirt.png", &width, &height, 0, SOIL_LOAD_RGB);
+		unsigned char *image = SOIL_load_image("terrain/grass.png", &width, &height, 0, SOIL_LOAD_RGB);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 
 		// Set the parameters for the grass texture

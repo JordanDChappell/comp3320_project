@@ -37,9 +37,9 @@ namespace utility {
 				rotation_sensitivity = 0.05f;
 				movement_sensitivity = 10.0f;
 
-				// init the camera hitbox, used for collision detection, currently a 1.0f unit cube
-				hitBox.origin = position - glm::vec3(0.5f, 0.5f, 0.5f);
-				hitBox.size = position + glm::vec3(0.5f, 0.5f, 0.5f) - hitBox.origin;
+				// init the camera hitbox, used for collision detection
+				hitBox.origin = position - glm::vec3(0.0f, 0.5f, 0.0f);
+				hitBox.size = glm::vec3(0.5f, 1.7f, 0.5f);
 
 				noClip = false;
 				downVelocity = 0;

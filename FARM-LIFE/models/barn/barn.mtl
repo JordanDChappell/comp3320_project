@@ -1,5 +1,16 @@
 # Blender MTL File: 'barn.blend'
-# Material Count: 6
+# Material Count: 5
+
+newmtl Colorbond
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\gutter-colour.png
 
 newmtl Concrete.002
 Ns 0.000000
@@ -12,48 +23,6 @@ d 1.000000
 illum 2
 map_Kd textures\\concrete.jpg
 
-newmtl Default.002
-Ns 20.249994
-Ka 1.000000 1.000000 1.000000
-Kd 0.800000 0.800000 0.800000
-Ks 0.500000 0.500000 0.500000
-Ke 0.0 0.0 0.0
-Ni 1.450000
-d 1.000000
-illum 2
-map_Kd textures\\corrugated-iron-texture.jpg
-
-newmtl Default_Roof.002
-Ns 0.000000
-Ka 0.458333 0.458333 0.458333
-Kd 0.195988 0.028461 0.035955
-Ks 0.500000 0.500000 0.500000
-Ke 0.0 0.0 0.0
-Ni 1.450000
-d 1.000000
-illum 3
-map_Kd textures\\gutter-color.png
-
-newmtl Default_Wall.002
-Ns 225.000000
-Ka 1.000000 1.000000 1.000000
-Kd 0.498039 0.498039 0.498039
-Ks 0.500000 0.500000 0.500000
-Ke 0.0 0.0 0.0
-Ni 1.450000
-d 1.000000
-illum 3
-
-newmtl Glass.002
-Ns 323.999994
-Ka 0.559702 0.559702 0.559702
-Kd 1.000000 1.000000 1.000000
-Ks 0.500000 0.500000 0.500000
-Ke 0.0 0.0 0.0
-Ni 1.000000
-d 1.000000
-illum 3
-
 newmtl Material.001
 Ns 20.249994
 Ka 1.000000 1.000000 1.000000
@@ -64,3 +33,24 @@ Ni 1.450000
 d 1.000000
 illum 2
 map_Kd textures\\red-wood-paint.jpg
+
+newmtl Material.003
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Material.005
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\roof-color.png
