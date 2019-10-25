@@ -18,6 +18,7 @@ namespace model
 			this->length = length;
 			this->width = width;
 			this->origin = origin;
+			this->gateOpen = false;
 
 			ProduceFenceNodes();
 		}
@@ -61,6 +62,23 @@ namespace model
 				fence->MoveTo(glm::vec3(location.x, modelHeightInWorld, location.y));
 			}
 		}
+
+		///<summary>
+		/// Return the root fence node to function as a gate
+		///</summary>
+		model::Model* GetGate()
+		{
+			return fenceNodes.front();
+		}
+
+		///<summary>
+		/// Get the open status of the paddock gate
+		///</summary>
+		bool GateOpenStatus()
+		{
+			return gateOpen;
+		}
+
 	private:
 		// Length and Width are multiples of fences; length=2 => two fence-nodes long
 		// "Length" refers to X direction, "Width" refers to Z direction
@@ -70,6 +88,7 @@ namespace model
 		// (X,Y) coordinates of paddock origin point
 		glm::vec2 origin;
 
+		bool gateOpen;
 		std::vector<model::Model*> fenceNodes;
 
 		///<summary>
