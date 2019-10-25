@@ -27,9 +27,9 @@ void main()
 	//experimental
 
 	// Set position of the vertex
-	//vec4 worldPos = Hwm * vec4(position[0] * scale, position[1], position[2] * scale, 1.0);
-
-	//FragPos = worldPos.xyz;
+	
+	FragPos = (Hwm * vec4(position, 1.0)).xyz;
+	
 	//end of exp
 
 
