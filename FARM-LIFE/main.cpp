@@ -396,8 +396,8 @@ int main(void)
 	models.push_back(cat);
 	hitBoxes.push_back(cat.hitBox);
 
-	tree::Tree tree = tree::Tree("re", terra);
-	for (int i = 0; i < 50; i++)
+	tree::Tree tree = tree::Tree("trees/placemap.bmp", terra);
+	for (int i = 0; i < 30; i++)
 	{
 		models.push_back(tree.placeTree(i));
 	};

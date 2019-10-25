@@ -23,17 +23,16 @@ public:
     //Tree constructor
 	Tree(const std::string map, terrain::Terrain terra)
 	{
-		placemap = map;
-		readPlaceMap("trees/placemap.bmp", terra);
+		std::string placemap = map;
+		readPlaceMap(placemap, terra);
 	}
 	model::Model placeTree(int i) {
 		return treeVect[i];
 	}
-
+	
 private:
     std::string placemap;
     std::vector<model::Model> treeVect;
-
 
     void readPlaceMap(std::string placemap, terrain::Terrain terrain){
 		std::string treemodel;
@@ -62,23 +61,23 @@ private:
 					if (random % 10 == 0)
 						treemodel = "models/tree/tree0/tree0.obj";
 					else if (random % 10 == 1)
-						treemodel = "models/tree/tree1.obj";
+						treemodel = "models/tree/tree1/tree1.obj";
 					else if (random % 10 == 2)
 						treemodel = "models/tree/tree2/tree2.obj";
 					else if (random % 10 == 3)
-						treemodel = "models/tree/tree0/tree0.obj";
+						treemodel = "models/tree/tree3/tree3.obj";
 					else if (random % 10 == 4)
-						treemodel = "models/tree/tree1.obj";
-					else if (random % 10 == 5)
-						treemodel = "models/tree/tree2/tree2.obj";
-					else if (random % 10 == 6)
 						treemodel = "models/tree/tree0/tree0.obj";
+					else if (random % 10 == 5)
+						treemodel = "models/tree/tree1/tree1.obj";
+					else if (random % 10 == 6)
+						treemodel = "models/tree/tree2/tree2.obj";
 					else if (random % 10 == 7)
-						treemodel = "models/tree/tree1.obj";
+						treemodel = "models/tree/tree3/tree3.obj";
 					else if (random % 10 == 8)
 						treemodel = "models/tree/tree2/tree2.obj";
 					else if (random % 10 == 9)
-						treemodel = "models/tree/tree1.obj";
+						treemodel = "models/tree/tree2/tree2.obj";
 
 					model::Model modeltree = model::Model(treemodel);
                     modeltree.MoveTo(glm::vec3(i - 500, terrain.getHeightAt(i,j) - 20, j - 500));
