@@ -18,6 +18,7 @@ namespace model
 			this->length = length;
 			this->width = width;
 			this->origin = origin;
+			this->gateOpen = false;
 
 			ProduceFenceNodes();
 		}
@@ -37,7 +38,10 @@ namespace model
 		void PushHitBoxes(std::vector<model::HitBox> &hitBoxes)
 		{
 			for (model::Model* fenceNode : fenceNodes)
+			{
+				if (fenceNode == fenceNodes.front()) continue;
 				hitBoxes.push_back(fenceNode->hitBox);
+			}
 		}
 
 		///<summary>
@@ -58,6 +62,62 @@ namespace model
 				fence->MoveTo(glm::vec3(location.x, modelHeightInWorld, location.y));
 			}
 		}
+
+		///<summary>
+		/// Return the root fence node to function as a gate
+		///</summary>
+		model::Model* GetGate()
+		{
+			return fenceNodes.front();
+		}
+
+		///<summary>
+		/// Get the open status of the paddock gate
+		///</summary>
+		bool GateOpenStatus()
+		{
+			return gateOpen;
+		}
+
+		///<summary>
+		/// Open gate if it is closed, and vice-versa
+		///</summary>
+		void ToggleGate(std::vector<model::Model*> &models)
+		{
+			// Find gate pointer in models vector
+			int id = fenceNodes.front()->GetUid();
+			std::vector<model::Model*>::iterator it = std::find(models.begin(), models.end(), fenceNodes.front());
+
+			if (it != models.end())
+			{
+				// Gate pointer has been found
+				int index = std::distance(models.begin(), it);
+
+				try
+				{
+					model::Model* gate;
+					if (gateOpen)
+						gate = new model::Model("models/fence/fence.obj");
+					else
+						gate = new model::Model("models/fence/fence2.obj");
+
+					ToggleGateLocation(gate);
+
+					gateOpen = !gateOpen;
+					// Set the fence in the models vector to the updated position
+					models.at(index) = gate;
+				}
+				catch (const std::out_of_range & ex)
+				{
+					std::cout << "out_of_range Exception Caught :: " << ex.what() << std::endl;
+				}
+			}
+			else
+			{
+				std::cout << "ID not found" << std::endl;
+			}
+		}
+
 	private:
 		// Length and Width are multiples of fences; length=2 => two fence-nodes long
 		// "Length" refers to X direction, "Width" refers to Z direction
@@ -67,6 +127,7 @@ namespace model
 		// (X,Y) coordinates of paddock origin point
 		glm::vec2 origin;
 
+		bool gateOpen;
 		std::vector<model::Model*> fenceNodes;
 
 		///<summary>
@@ -112,6 +173,37 @@ namespace model
 				fenceNodes.push_back(fenceZ1);
 				fenceNodes.push_back(fenceZ2);
 			}
+		}
+
+		void ToggleGateLocation(model::Model* gate)
+		{
+			int referenceOffset;	// Position of fence we place gate next to
+			glm::vec3 gateOffset;   // Target position of gate relative to reference
+			if (gateOpen)
+			{
+				// Return gate to closed position
+				referenceOffset = 1;			// Use fence opposite to gate
+				gateOffset = glm::vec3(0, 0, width * (2 * gate->hitBox.size.x));
+			}
+			else
+			{
+				// Move gate to opened position
+				referenceOffset = 2 * length;	// Use fence adjacent to gate
+				gateOffset = glm::vec3(0, 0, 2 * gate->hitBox.size.z);
+			}
+
+			try
+			{
+				// Move gate relative to reference fence defined above
+				model::Model* referenceFence = fenceNodes.at(referenceOffset);
+				gate->MoveTo(referenceFence->position - gateOffset);
+			}
+			catch (const std::out_of_range & ex)
+			{
+				std::cout << "out_of_range Exception Caught :: " << ex.what() << std::endl;
+			}
+			
+			fenceNodes.front() = gate;
 		}
 	};
 }

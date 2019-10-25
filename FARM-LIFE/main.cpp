@@ -42,9 +42,48 @@ GLuint SCREEN_HEIGHT = 800;
 static constexpr float NEAR_PLANE = 0.1f;
 static constexpr float FAR_PLANE = 1000.0f;
 
-std::vector<model::Model *> models;	// vector of all models to render
-std::vector<model::HitBox> hitBoxes; // vector of all hitboxes in the scene for collision detections
+std::vector<model::Model*> models;		// vector of all models to render
+std::vector<model::HitBox> hitBoxes;	// vector of all hitboxes in the scene for collision detections
+std::vector<model::Paddock*> paddocks;  // vector of all paddocks for use with moveable gates
 static int debounceCounter = 0;		 // simple counter to debounce keyboard inputs
+
+void checkPaddockGates(utility::camera::Camera& camera)
+{
+	for (model::Paddock* paddock : paddocks)
+	{
+		model::Model* gate = paddock->GetGate();
+
+		bool xCheck, yCheck, zCheck;
+		float xBound, yBound, zBound;
+		if (paddock->GateOpenStatus())
+		{
+			// Gate is currently open
+			xBound = 2 * gate->hitBox.size.z;
+			yBound = 2 * gate->hitBox.size.y;
+			zBound = 3 * gate->hitBox.size.z;
+		}
+		else
+		{
+			// Gate is currently closed
+			xBound = gate->hitBox.size.x;
+			yBound = 2 * gate->hitBox.size.y;
+			zBound = 2 * gate->hitBox.size.x;
+		}
+
+		// Check each axis for sufficient distance between the model hitbox and the camera hitbox
+		xCheck = abs(camera.get_position().x - gate->position.x) < xBound;
+		if (!xCheck) continue;
+		yCheck = abs(camera.get_position().y - gate->position.y) < yBound;
+		if (!yCheck) continue;
+		zCheck = abs(camera.get_position().z - gate->position.z) < zBound;
+		if (!zCheck) continue;
+
+		// Open/Close Gate
+		paddock->ToggleGate(models);
+		// Correct gate has been toggled
+		break;
+	}
+}
 
 void process_input(GLFWwindow *window, const float &delta_time, utility::camera::Camera &camera, float terrainHeight)
 {
@@ -72,6 +111,11 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		camera.move_right(hitBoxes);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+	{
+		// Check if gate should be opened
+		checkPaddockGates(camera);
 	}
 
 	// Process debounced inputs - this ensures we won't have 5 jump events triggering before we leave the ground etc.
@@ -395,12 +439,14 @@ int main(void)
 	int paddockXCoord = 0, paddockYCoord = 70;
 	model::Paddock* paddock = new model::Paddock(2, 2);
 	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddocks.push_back(paddock);
 	paddock->PushModels(models);
 	paddock->PushHitBoxes(hitBoxes);
 
-	paddockXCoord = 0, paddockYCoord = 90;
+	paddockXCoord = 0, paddockYCoord = 100;
 	model::Paddock* paddock2 = new model::Paddock(4, 3);
 	paddock2->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddocks.push_back(paddock2);
 	paddock2->PushModels(models);
 	paddock2->PushHitBoxes(hitBoxes);
 
