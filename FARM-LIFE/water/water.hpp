@@ -57,15 +57,6 @@ public:
 		sound.setLooping(true);
 	}
 
-		// Precondition:	Vertex array, textures and buffers exist.
-		// Postcondition:	Vertex array, textures and buffers deleted.
-		void cleanup() {
-			glDeleteBuffers(1, &vbo);
-			glDeleteBuffers(1, &ebo);
-			glDeleteVertexArrays(1, &vao);
-			glDeleteTextures(6, &tex[0]);
-			sound.cleanup();
-		}
 	// Destructor
 	~Water() {}
 
@@ -76,7 +67,7 @@ public:
 		glDeleteBuffers(1, &vbo);
 		glDeleteBuffers(1, &ebo);
 		glDeleteVertexArrays(1, &vao);
-		glDeleteTextures(5, &tex[0]);
+		glDeleteTextures(6, &tex[0]);
 		sound.cleanup();
 	}
 
@@ -155,7 +146,7 @@ public:
 		glUniform1f(glGetUniformLocation(shader, "far"), FAR_PLANE);
 		glUniform1i(glGetUniformLocation(shader, "isCameraAbove"), isCameraAbove ? 1 : 0);
 
-			glUniform1f(glGetUniformLocation(shader, "terraMaxHeight"), height * 2.5);
+		glUniform1f(glGetUniformLocation(shader, "terraMaxHeight"), height * 2.5);
 		// Set light uniforms
 		glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
 		glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
