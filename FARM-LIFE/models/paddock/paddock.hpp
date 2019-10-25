@@ -37,7 +37,10 @@ namespace model
 		void PushHitBoxes(std::vector<model::HitBox> &hitBoxes)
 		{
 			for (model::Model* fenceNode : fenceNodes)
+			{
+				if (fenceNode == fenceNodes.front()) continue;
 				hitBoxes.push_back(fenceNode->hitBox);
+			}
 		}
 
 		///<summary>
