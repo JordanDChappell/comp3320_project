@@ -58,25 +58,25 @@ void checkPaddockGates(utility::camera::Camera& camera)
 		if (paddock->GateOpenStatus())
 		{
 			// Gate is currently open
-			// Check each axis for sufficient distance between the model hitbox and the camera hitbox
-			bool xCheck = abs(camera.get_position().x - gate->position.x) < 2 * gate->hitBox.size.z;
-			if (!xCheck) continue;
-			bool yCheck = abs(camera.get_position().y - gate->position.y) < 2 * gate->hitBox.size.y;
-			if (!yCheck) continue;
-			bool zCheck = abs(camera.get_position().z - gate->position.z) < 3 * gate->hitBox.size.z;
-			if (!zCheck) continue;
+			xBound = 2 * gate->hitBox.size.z;
+			yBound = 2 * gate->hitBox.size.y;
+			zBound = 3 * gate->hitBox.size.z;
 		}
 		else
 		{
 			// Gate is currently closed
-			// Check each axis for sufficient distance between the model hitbox and the camera hitbox
-			bool xCheck = abs(camera.get_position().x - gate->position.x) < gate->hitBox.size.x;
-			if (!xCheck) continue;
-			bool yCheck = abs(camera.get_position().y - gate->position.y) < 2 * gate->hitBox.size.y;
-			if (!yCheck) continue;
-			bool zCheck = abs(camera.get_position().z - gate->position.z) < 2 * gate->hitBox.size.x;
-			if (!zCheck) continue;
+			xBound = gate->hitBox.size.x;
+			yBound = 2 * gate->hitBox.size.y;
+			zBound = 2 * gate->hitBox.size.x;
 		}
+
+		// Check each axis for sufficient distance between the model hitbox and the camera hitbox
+		xCheck = abs(camera.get_position().x - gate->position.x) < xBound;
+		if (!xCheck) continue;
+		yCheck = abs(camera.get_position().y - gate->position.y) < yBound;
+		if (!yCheck) continue;
+		zCheck = abs(camera.get_position().z - gate->position.z) < zBound;
+		if (!zCheck) continue;
 
 		// Open/Close Gate
 		paddock->ToggleGate(models);
