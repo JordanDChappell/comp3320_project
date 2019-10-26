@@ -441,6 +441,7 @@ int main(void)
 	for (int i = 0; i < 30; i++)
 	{
 		models.push_back(tree.placeTree(i));
+		hitBoxes.push_back(tree.placeTree(i)->hitBox);
 	};
 
 	int paddockXCoord = 0, paddockYCoord = 70;
