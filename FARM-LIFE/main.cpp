@@ -464,6 +464,14 @@ int main(void)
 	models.push_back(cat);
 	hitBoxes.push_back(cat->hitBox);
 
+	model::Model* cat2 = new model::Model("models/cat/cat.obj");
+	modelXCoord = 75, modelYCoord = 160;
+	modelHeightInWorld = cat->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) - 1.0f;
+	cat2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(cat2);
+	hitBoxes.push_back(cat2->hitBox);
+	/* Paddock animals END */
+
 	/* Giraffe Paddock */
 	model::Paddock* paddock = new model::Paddock(5, 7);
 	paddockXCoord = 5, paddockYCoord = 120;
@@ -471,6 +479,27 @@ int main(void)
 	paddocks.push_back(paddock);
 	paddock->PushModels(models);
 	paddock->PushHitBoxes(hitBoxes);
+
+	model::Model* bucket3 = new model::Model("models/bucket/bucket2.obj");
+	modelXCoord = 20, modelYCoord = 118;
+	modelHeightInWorld = bucket3->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
+	bucket3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(bucket3);
+	hitBoxes.push_back(bucket3->hitBox);
+
+	model::Model* bucket4 = new model::Model("models/bucket/bucket2.obj");
+	modelXCoord = 23, modelYCoord = 118;
+	modelHeightInWorld = bucket4->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
+	bucket4->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(bucket4);
+	hitBoxes.push_back(bucket4->hitBox);
+
+	model::Model* trough2 = new model::Model("models/trough/watertrough.obj");
+	modelXCoord = 44, modelYCoord = 132;
+	modelHeightInWorld = trough2->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) + 0.5f;
+	trough2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(trough2);
+	hitBoxes.push_back(trough2->hitBox);
 
 	/* Paddock animals START */
 	model::Model* giraffe = new model::Model("models/giraffe/giraffe-split.obj");
@@ -480,6 +509,30 @@ int main(void)
 	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
 	models.push_back(giraffe);
 	hitBoxes.push_back(giraffe->hitBox);
+
+	model::Model* giraffe2 = new model::Model("models/giraffe/giraffe-split.obj");
+	modelXCoord = 15, modelYCoord = 150;
+	modelHeightInWorld = giraffe->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) + 0.5f;
+	giraffe2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	giraffe2->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+	models.push_back(giraffe2);
+	hitBoxes.push_back(giraffe2->hitBox);
+
+	model::Model* giraffe3 = new model::Model("models/giraffe/giraffe-split.obj");
+	modelXCoord = 20, modelYCoord = 170;
+	modelHeightInWorld = giraffe->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) + 0.5f;
+	giraffe3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	giraffe3->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+	models.push_back(giraffe3);
+	hitBoxes.push_back(giraffe3->hitBox);
+	/* Paddock animals END */
+
+	model::Paddock* paddock3 = new model::Paddock(1, 1);
+	paddockXCoord = 110, paddockYCoord = 110;
+	paddock3->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddocks.push_back(paddock3);
+	paddock3->PushModels(models);
+	paddock3->PushHitBoxes(hitBoxes);
 
 	//--------------
 	// CREATE SKYBOX
