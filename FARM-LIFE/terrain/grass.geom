@@ -8,6 +8,8 @@ layout (triangle_strip, max_vertices = 12) out;      // transform the point into
 flat in vec2 positions[];
 
 out vec2 texCoords;
+out vec3 normal;
+out vec3 fragPos;
 flat out int grassType;
 
 // Transformation matrices
@@ -58,7 +60,7 @@ void main()
     // Get normal from map for distorted texture coordinates to match the texture distortions
 	vec4 normalMapColour = texture(normalMap, normalTexCoord);
 	// Texture is only between 0-1, so adjust to get negative values in X-Z
-	vec3 normal = vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b, normalMapColour.g * 2.0 - 1.0);
+	normal = vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b, normalMapColour.g * 2.0 - 1.0);
 	normal = normalize(normal);
 
     // Find the angle and axis to rotate around
@@ -79,10 +81,11 @@ void main()
     else {
         gl_ClipDistance[0] = 1;
 
+		fragPos = (Hwm * vec4(pointPosition[0] * scale, pointPosition[1], pointPosition[2] * scale, 1.0)).xyz;
+
         vec3 axis = cross(normal, vec3(0.0, 1.0, 0.0));
 
         mat4 upRotate = rotationMatrix(axis, -angle);
-
 
         mat4 Hcm = Hcv * Hvw * Hwm;
         mat4 rotationAround[2];

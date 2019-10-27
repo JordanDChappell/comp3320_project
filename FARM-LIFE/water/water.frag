@@ -4,7 +4,8 @@
 in vec4 clipSpace;						// fragment position in clip space
 in vec2 texCoords;						// texture coordinates (x,y) of this fragment
 in vec3 toCameraVector;					// vector from fragment to camera
-in vec3 fromLightVector; 				// vector from fragment to light vector
+in vec3 FragPos;						// Position of the Fragment
+//in vec3 fromLightVector; 				// vector from fragment to light vector
 
 // out variables
 out vec4 outColour;						// colour of the fragment
@@ -19,14 +20,161 @@ uniform sampler2D depthMap;				// refraction depth map for alpha blending shallo
 // Other uniforms
 uniform float time;						// time for changing ripples
 uniform vec3 colour;					// colour to add blue tint
-uniform vec3 lightColour;				// colour of the light
+//uniform vec3 lightColour;				// colour of the light
 uniform float near;						// near plane of program
 uniform float far;						// far plane of program
 uniform bool isCameraAbove;				// check if we need to do reflectivity or not
 
 // Parameters for specular lighting
-const float shineDamper = 20.0;			// adjust shine
+const float shineDamper = 50.0;			// adjust shine
 const float reflectivity = 0.6;			// adjust reflectivity
+
+struct DirLight {
+    vec3 direction;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+struct PointLight {
+    vec3 position;
+    
+    float constant;
+    float linear;
+    float quadratic;
+	
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    float cutOff;
+    float outerCutOff;
+  
+    float constant;
+    float linear;
+    float quadratic;
+  
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;       
+};
+
+#define NR_POINT_LIGHTS 4
+
+uniform vec3 viewPos;
+uniform DirLight dirLight;
+uniform PointLight pointLights[NR_POINT_LIGHTS];
+uniform SpotLight spotLight;
+
+// function prototypes
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+
+// calculates the color when using a directional light.
+vec4 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec4 colTexture)
+{
+    vec3 lightDir = normalize(-light.direction);
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0.0);
+    // combine results
+    vec4 ambient = vec4(light.ambient, 1.0) * colTexture;
+    vec4 diffuse = vec4(light.diffuse, 1.0) * diff * colTexture;
+    vec4 specular = vec4(light.specular, 1.0) * spec * colTexture;
+
+	vec4 result = ambient + diffuse + specular;
+
+	// Find the specular light value based on the water normal		
+	vec3 reflectedLight = reflect(normalize(lightDir), normal);
+	float specular1 = max(dot(reflectedLight, normalize(toCameraVector)), 0.0);
+	specular1 = pow(specular1, shineDamper);
+	vec3 waterSpecularHighlights = light.ambient * specular1 * reflectivity;
+
+	// Add the specular highlights to the colour
+	result += vec4(waterSpecularHighlights, 1.0);
+
+    return result;
+}
+
+// calculates the color when using a point light.
+vec4 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec4 colTexture)
+{
+    vec3 lightDir = normalize(light.position - fragPos);
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0.0);
+    // attenuation
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
+    // combine results
+    vec4 ambient = vec4(light.ambient, 1.0) * colTexture;
+    vec4 diffuse = vec4(light.diffuse, 1.0) * diff * colTexture;
+    vec4 specular = vec4(light.specular, 1.0) * spec * colTexture;
+    ambient *= attenuation;
+    diffuse *= attenuation;
+    specular *= attenuation;
+
+	vec4 result = ambient + diffuse + specular;
+
+	// Find the specular light value based on the water normal		
+	vec3 reflectedLight = reflect(normalize(lightDir), normal);
+	float specular1 = max(dot(reflectedLight, normalize(toCameraVector)), 0.0);
+	specular1 = pow(specular1, shineDamper);
+	vec3 waterSpecularHighlights = light.ambient * specular1 * reflectivity;
+
+	// Add the specular highlights to the colour
+	result += vec4(waterSpecularHighlights, 1.0);
+
+    return result;
+}
+
+// calculates the color when using a spot light.
+vec4 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec4 colTexture)
+{
+    vec3 lightDir = normalize(light.position - fragPos);
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0.0);
+    // attenuation
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
+    // spotlight intensity
+    float theta = dot(lightDir, normalize(-light.direction)); 
+    float epsilon = light.cutOff - light.outerCutOff;
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+    // combine results
+    vec4 ambient = vec4(light.ambient, 1.0) * colTexture;
+    vec4 diffuse = vec4(light.diffuse, 1.0) * diff * colTexture;
+    vec4 specular = vec4(light.specular, 1.0) * spec * colTexture;
+    ambient *= attenuation * intensity;
+    diffuse *= attenuation * intensity;
+    specular *= attenuation * intensity;
+
+	vec4 result = ambient + diffuse + specular;
+
+	// Find the specular light value based on the water normal		
+	vec3 reflectedLight = reflect(normalize(lightDir), normal);
+	float specular1 = max(dot(reflectedLight, normalize(toCameraVector)), 0.0);
+	specular1 = pow(specular1, shineDamper);
+	vec3 waterSpecularHighlights = light.ambient * specular1 * reflectivity;
+
+	// Add the specular highlights to the colour
+	result += vec4(waterSpecularHighlights, 1.0);
+
+    return result;
+}
+
 
 void main()
 {
@@ -80,7 +228,7 @@ void main()
 	// Get normal from map for distorted texture coordinates to match the texture distortions
 	vec4 normalMapColour = texture(normalMap, distortedTexCoords);
 	// Texture is only between 0-1, so adjust to get negative values in X-Z
-	vec3 normal = vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b, normalMapColour.g * 2.0 - 1.0);
+	vec3 normal = vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b * 2, normalMapColour.g * 2.0 - 1.0);
 	normal = normalize(normal);
 
 	//---------------------
@@ -92,14 +240,6 @@ void main()
 	float refractiveFactor = dot(viewVector, vec3(0.0, 1.0, 0.0));
 	refractiveFactor = pow(refractiveFactor, 0.7);
 
-	//---------------------
-	// APPLY SPECULAR LIGHT
-	//---------------------
-	vec3 reflectedLight = reflect(normalize(fromLightVector), normal);
-	float specular = max(dot(reflectedLight, viewVector), 0.0);
-	specular = pow(specular, shineDamper);
-	vec3 specularHighlights = lightColour * specular * reflectivity * clamp(waterDepth/2, 0.0, 1.0);
-
 	//-----------------------
 	// SET COLOUR OF FRAGMENT
 	//-----------------------
@@ -108,8 +248,25 @@ void main()
 	if (!isCameraAbove) {
 		outColour = refractColour;
 	}
-	// Add colour tint and add specular highlights
-	outColour = mix(outColour, vec4(colour, 1.0), 0.05) + vec4(specularHighlights, 1.0);
+	// Add colour tint
+	outColour = mix(outColour, vec4(colour, 1.0), 0.05);
+
+	//---------------
+	// APPLY LIGHTING
+	//---------------
+	// properties
+    vec3 viewDir = normalize(viewPos - FragPos);
+	// lighting set up in 3 phases directional, point lights and an optional flashlight
+    // phase 1: directional lighting
+    vec4 result = CalcDirLight(dirLight, normal, viewDir, outColour);
+    // phase 2: point lights
+    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+        result += CalcPointLight(pointLights[i], normal, FragPos, viewDir, outColour);    
+    // phase 3: spot light
+    result += CalcSpotLight(spotLight, normal, FragPos, viewDir, outColour);    
+
+	outColour = result;
+
 	// Adjust alpha value based on water depth
 	outColour.a = clamp(waterDepth/2, 0.0, 1.0);
 }

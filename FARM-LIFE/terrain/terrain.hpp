@@ -8,6 +8,7 @@
 #ifndef ASSIGNMENT_TERRAIN_HPP
 #define ASSIGNMENT_TERRAIN_HPP
 
+#include "lights/lights.hpp"
 #undef main
 
 namespace terrain
@@ -90,7 +91,7 @@ public:
 
 	// Precondition:	Terrain object has been constructed
 	// Postcondition:	Terrain is drawn
-	void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec4 &clippingPlane, glm::vec3 cameraPosition, glm::vec3 lightPosition, glm::vec3 lightColour, float time)
+	void draw(const glm::mat4 &Hvw, const glm::mat4 &Hcv, const glm::vec4 &clippingPlane, glm::vec3 cameraPosition, glm::vec3 lightPosition, glm::vec3 lightColour, float time, glm::vec3 Forward)
 	{
 		//------------------------
 		// BIND SHADER AND BUFFERS
@@ -140,6 +141,11 @@ public:
 
 		glUniform4f(glGetUniformLocation(shader, "clippingPlane"), clippingPlane[0], clippingPlane[1], clippingPlane[2], clippingPlane[3]);
 
+		//***************************************************************************************************************
+		lights::light lighting(shader);
+		shader = lighting.setup(cameraPosition, Forward);
+		//***************************************************************************************************************
+
 		glUniform3f(glGetUniformLocation(shader, "cameraPosition"), cameraPosition[0], cameraPosition[1], cameraPosition[2]);
 		glUniform3f(glGetUniformLocation(shader, "lightPosition"), lightPosition[0], lightPosition[1], lightPosition[2]);
 		glUniform3f(glGetUniformLocation(shader, "lightColour"), lightColour[0], lightColour[1], lightColour[2]);
@@ -185,6 +191,7 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(grassShader, "Hcv"), 1, GL_FALSE, &Hcv[0][0]);
 		glUniformMatrix4fv(glGetUniformLocation(grassShader, "Hwm"), 1, GL_FALSE, &Hwm[0][0]);
 
+
 		glUniform4f(glGetUniformLocation(grassShader, "clippingPlane"), clippingPlane[0], clippingPlane[1], clippingPlane[2], clippingPlane[3]);
 		glUniform1f(glGetUniformLocation(grassShader, "scale"), scale);
 		glUniform1f(glGetUniformLocation(grassShader, "resX"), resX);
@@ -193,12 +200,15 @@ public:
 		glUniform1f(glGetUniformLocation(grassShader, "grassScale"), 5.0);
 		glUniform3f(glGetUniformLocation(grassShader, "cameraPosition"), cameraPosition[0], cameraPosition[1], cameraPosition[2]);
 
+		lights::light grassLights(grassShader);
+		grassShader = grassLights.setup(cameraPosition, Forward);
+
 		glUniform1f(glGetUniformLocation(grassShader, "time"), time);
 
 		// Draw grass
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDrawArrays(GL_POINTS, 0, (resX * resZ)); // draw the points
+		glDrawArrays(GL_POINTS, 0, (resX * resZ)); // draw the points of the grass
 		glDisable(GL_BLEND);
 		// Unbind texture and vertex array
 		glBindVertexArray(0);

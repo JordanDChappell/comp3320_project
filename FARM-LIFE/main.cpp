@@ -16,7 +16,7 @@
 #include "al.h"
 #include "alc.h"
 
-// Include the standard C++ headers
+	// Include the standard C++ headers
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -26,6 +26,7 @@
 // Include project files
 #include "util/mainUtil.hpp"
 #include "util/camera.hpp"
+#include "lights/lights.hpp"
 #include "audio/audio.hpp"
 #include "terrain/terrain.hpp"
 #include "models/model.hpp"
@@ -43,11 +44,14 @@ GLuint SCREEN_HEIGHT = 800;
 static constexpr float NEAR_PLANE = 0.1f;
 static constexpr float FAR_PLANE = 1000.0f;
 
-std::vector<model::Model*> models;		// vector of all models to render
-std::vector<model::HitBox> hitBoxes;	// vector of all hitboxes in the scene for collision detections
+std::vector<model::Model*> models;	// vector of all models to render
+std::vector<model::Model*> SLmodels;
+std::vector<model::HitBox> hitBoxes; // vector of all hitboxes in the scene for collision detections
 std::vector<model::Paddock*> paddocks;  // vector of all paddocks for use with moveable gates
 static int debounceCounter = 0;		 // simple counter to debounce keyboard inputs
 
+//Lamp/lighting position
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 void checkPaddockGates(utility::camera::Camera& camera)
 {
 	for (model::Paddock* paddock : paddocks)
@@ -154,13 +158,13 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 	}
 }
 
-void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model *> models, skybox::Skybox skybox, GLuint modelShader, glm::vec4 clippingPlane)
+void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<model::Model*> models, skybox::Skybox skybox, GLuint modelShader, glm::vec4 clippingPlane, std::vector<model::Model*> SLmodels, GLuint streetLightShader)
 {
-	// get the camera transforms
+	// get the camera transforms and position
 	glm::mat4 Hvw = camera.get_view_transform();
 	glm::mat4 Hcv = camera.get_clip_transform();
 	glm::mat4 Hwm = glm::mat4(1.0f);
-
+	glm::vec3 CamPos = camera.get_position();
 	// Clear color buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -168,10 +172,16 @@ void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<
 
 	// Draw the models
 	glDepthFunc(GL_LESS);
-
+	glm::vec3 Forward = camera.get_view_direction();
 	for (int i = 0; i < models.size(); i++)
 	{
-		models[i]->Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane);
+		models[i]->Draw(modelShader, Hvw, Hcv, Hwm, clippingPlane, CamPos, Forward);
+	}
+
+	// Draw the Street Orbs
+	for (int i = 0; i < SLmodels.size(); i++)
+	{
+		SLmodels[i]->Draw(streetLightShader, Hvw, Hcv, Hwm, clippingPlane, CamPos, Forward);
 	}
 
 	// Render skybox last, disable clipping for skybox
@@ -184,7 +194,7 @@ void render(terrain::Terrain terra, utility::camera::Camera camera, std::vector<
 	// DRAW TERRAIN
 	//-------------
 	terra.draw(Hvw, Hcv, clippingPlane, camera.get_position(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0),
-			   glfwGetTime());
+		glfwGetTime(), Forward);
 }
 
 // Loads a loading screen for FARM-LIFE: GAME OF THE YEAR EDITION
@@ -211,7 +221,7 @@ void addLoadingScreen()
 	// Create and bind element buffer object
 	int elements[] = {
 		0, 1, 2,
-		2, 3, 0};
+		2, 3, 0 };
 
 	GLuint ebo1;
 	glGenBuffers(1, &ebo1);
@@ -220,6 +230,7 @@ void addLoadingScreen()
 
 	// Create shader program
 	GLuint shader1 = LoadShaders("shaders/loading.vert", "shaders/loading.frag");
+
 	glUseProgram(shader1);
 
 	// Create and bind texture
@@ -229,9 +240,9 @@ void addLoadingScreen()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);
-	unsigned char *image = SOIL_load_image("loading_screen.png", &width, &height, 0, SOIL_LOAD_RGB);
+	unsigned char* image = SOIL_load_image("loading_screen.png", &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-				 GL_UNSIGNED_BYTE, image);
+		GL_UNSIGNED_BYTE, image);
 	glUniform1i(glGetUniformLocation(shader1, "screen"), 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -242,12 +253,12 @@ void addLoadingScreen()
 	GLuint posAttrib = glGetAttribLocation(shader1, "position");
 	glEnableVertexAttribArray(posAttrib);
 	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE,
-						  4 * sizeof(float), 0);
+		4 * sizeof(float), 0);
 
 	GLuint texAttrib = glGetAttribLocation(shader1, "texcoords");
 	glEnableVertexAttribArray(texAttrib);
 	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
-						  4 * sizeof(float), (void *)(2 * sizeof(float)));
+		4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
 
 int main(void)
@@ -274,7 +285,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //modern opengl
 
 	//Declare a window object
-	GLFWwindow *window;
+	GLFWwindow* window;
 
 	// Create a window and create its OpenGL context, creates a fullscreen window using glfwGetPrimaryMonitor(), requires a monitor for fullscreen
 	//window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Farm-Life: GOTY Edition", glfwGetPrimaryMonitor(), NULL);
@@ -285,18 +296,18 @@ int main(void)
 	if (window == NULL)
 	{
 		std::cerr << "Failed to create GLFW window with dimension " << SCREEN_WIDTH << SCREEN_HEIGHT
-				  << std::endl;
+			<< std::endl;
 		glfwTerminate();
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window,
-								   CCallbackWrapper(GLFWframebuffersizefun, utility::camera::Camera)(
-									   std::bind(&utility::camera::Camera::framebuffer_size_callback,
-												 &camera,
-												 std::placeholders::_1,
-												 std::placeholders::_2,
-												 std::placeholders::_3)));
+		CCallbackWrapper(GLFWframebuffersizefun, utility::camera::Camera)(
+			std::bind(&utility::camera::Camera::framebuffer_size_callback,
+				&camera,
+				std::placeholders::_1,
+				std::placeholders::_2,
+				std::placeholders::_3)));
 
 	// get glfw to capture and hide the mouse pointer
 	// ----------------------------------------------
@@ -304,20 +315,20 @@ int main(void)
 	glfwSetCursorPosCallback(
 		window,
 		CCallbackWrapper(GLFWcursorposfun, utility::camera::Camera)(std::bind(&utility::camera::Camera::mouse_callback,
-																			  &camera,
-																			  std::placeholders::_1,
-																			  std::placeholders::_2,
-																			  std::placeholders::_3)));
+			&camera,
+			std::placeholders::_1,
+			std::placeholders::_2,
+			std::placeholders::_3)));
 
 	// get glfw to capture mouse scrolling
 	// -----------------------------------
 	glfwSetScrollCallback(
 		window,
 		CCallbackWrapper(GLFWscrollfun, utility::camera::Camera)(std::bind(&utility::camera::Camera::scroll_callback,
-																		   &camera,
-																		   std::placeholders::_1,
-																		   std::placeholders::_2,
-																		   std::placeholders::_3)));
+			&camera,
+			std::placeholders::_1,
+			std::placeholders::_2,
+			std::placeholders::_3)));
 
 	//Sets the key callback
 	glfwSetKeyCallback(window, key_callback);
@@ -334,7 +345,7 @@ int main(void)
 	}
 
 	// Initialise AL
-	ALCdevice *device = alcOpenDevice(NULL);
+	ALCdevice* device = alcOpenDevice(NULL);
 	if (device == NULL)
 	{
 		std::cout << "cannot open sound card" << std::endl;
@@ -343,7 +354,7 @@ int main(void)
 	{
 		std::cout << "not device" << std::endl;
 	}
-	ALCcontext *context = alcCreateContext(device, NULL);
+	ALCcontext* context = alcCreateContext(device, NULL);
 	if (context == NULL)
 	{
 		std::cout << "cannot open context" << std::endl;
@@ -400,6 +411,10 @@ int main(void)
 	// Set up the camera offset, terrain is from (-500,-500) to (500,500) in the world, camera range is (0,0) to (1000,1000)
 	int cameraOffsetX = tresX / 2;
 	int cameraOffsetY = tresY / 2;
+	//Enable lighting
+
+	glEnable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING); To disable the lighting for the skybox later
 
 	//--------------
 	// CREATE MODELS
@@ -407,11 +422,97 @@ int main(void)
 
 	// Load the shaders to be used in the scene
 	//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
+	GLuint lightShader = LoadShaders("shaders/light.vert", "shaders/light.frag");
 	GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
+	GLuint streetLightShader = LoadShaders("shaders/SLmodel.vert", "shaders/SLmodel.frag");
 
 	int modelXCoord, modelYCoord;
 	float modelHeightInWorld;
 	int paddockXCoord, paddockYCoord;
+
+	//**********************************************Street light Orbs********************************************************************************
+	//remember to change the position of both the post and the orb parts if moving the lights, as well as adjusting the light position in the lights.hpp
+	//Light number 1
+	model::Model* streetLightOrb1 = new model::Model("models/StreetLight/StreetLightMetallicOrb.obj");
+	modelXCoord = 1;
+	modelYCoord = 2;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb1->hitBox.size.y) - 1;
+	streetLightOrb1->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	SLmodels.push_back(streetLightOrb1);
+	hitBoxes.push_back(streetLightOrb1->hitBox);
+	//Light number 2
+	model::Model* streetLightOrb2 = new model::Model("models/StreetLight/StreetLightMetallicOrb.obj");
+	modelXCoord = 50;
+	modelYCoord = 80;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb2->hitBox.size.y) - 1;
+	streetLightOrb2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	SLmodels.push_back(streetLightOrb2);
+	hitBoxes.push_back(streetLightOrb2->hitBox);
+	//Light number 3
+	model::Model* streetLightOrb3 = new model::Model("models/StreetLight/StreetLightMetallicOrb.obj");
+	modelXCoord = 100;
+	modelYCoord = 1;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb3->hitBox.size.y) - 1;
+	streetLightOrb3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	SLmodels.push_back(streetLightOrb3);
+	hitBoxes.push_back(streetLightOrb3->hitBox);
+	//Light number 4
+	model::Model* streetLightOrb4 = new model::Model("models/StreetLight/StreetLightMetallicOrb.obj");
+	modelXCoord = 10;
+	modelYCoord = 50;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb4->hitBox.size.y) - 1;
+	streetLightOrb4->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	SLmodels.push_back(streetLightOrb4);
+	hitBoxes.push_back(streetLightOrb4->hitBox);
+	//**********************************************Street lights Orbs********************************************************************************
+
+	//**********************************************Street light Posts********************************************************************************
+	//Light number 1
+	model::Model* streetLightPost1 = new model::Model("models/StreetLight/StreetLightPost.obj");
+	modelXCoord = 1;
+	modelYCoord = 2;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightPost1->hitBox.size.y) - 3;
+	//std::cout << " " << modelHeightInWorld << " "; //1.3
+	streetLightPost1->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(streetLightPost1);
+	hitBoxes.push_back(streetLightPost1->hitBox);
+	//Light number 2
+	model::Model* streetLightPost2 = new model::Model("models/StreetLight/StreetLightPost.obj");
+	modelXCoord = 50;
+	modelYCoord = 80;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightPost2->hitBox.size.y) - 3;
+	//std::cout << " " << modelHeightInWorld << " "; //1.3
+	streetLightPost2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(streetLightPost2);
+	hitBoxes.push_back(streetLightPost2->hitBox);
+	//Light number 3
+	model::Model* streetLightPost3 = new model::Model("models/StreetLight/StreetLightPost.obj");
+	modelXCoord = 100;
+	modelYCoord = 1;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightPost3->hitBox.size.y) - 3;
+	//std::cout << " " << modelHeightInWorld << " "; //1.3
+	streetLightPost3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(streetLightPost3);
+	hitBoxes.push_back(streetLightPost3->hitBox);
+	//Light number 4
+	model::Model* streetLightPost4 = new model::Model("models/StreetLight/StreetLightPost.obj");
+	modelXCoord = 10;
+	modelYCoord = 50;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightPost4->hitBox.size.y) - 3;
+	//std::cout << " " << modelHeightInWorld << " "; //1.3
+	streetLightPost4->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(streetLightPost4);
+	hitBoxes.push_back(streetLightPost4->hitBox);
+	//**********************************************Street lights Posts********************************************************************************
+	//Pig not loading??
+
+	model::Model* pig = new model::Model("models/pig/pig.obj");
+	modelXCoord = 90;
+	modelYCoord = 90;
+	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (pig->hitBox.size.y) - 3;
+	pig->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(pig);
+	hitBoxes.push_back(pig->hitBox);
 
 	model::Model* barn = new model::Model("models/barn/barn.obj");
 	modelXCoord = 82, modelYCoord = 110;
@@ -545,7 +646,7 @@ int main(void)
 	float current_frame = 0.0f;
 	float delta_time = 0.0f;
 	//Set a background color
-	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// Sounds
 	cat->playSound("audio/cat-purring.wav", true, 0.2);
@@ -554,6 +655,7 @@ int main(void)
 	// Main Loop
 	do
 	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		audio::setListener(camera.get_position());
 		camSource.setPosition(camera.get_position());
 		/* PROCESS INPUT */
@@ -567,8 +669,9 @@ int main(void)
 		float terrainHeight = terra.getHeightAt(cameraX, cameraY) + terraYOffset + 5.0f; // using the offset down 20.0f units and adding some height for the camera
 		process_input(window, delta_time, camera, terrainHeight);
 
-		glm::mat4 Hvw = camera.get_view_transform();
-		glm::mat4 Hcv = camera.get_clip_transform();
+		glm::mat4 Hvw = camera.get_view_transform(); //view
+		glm::mat4 Hcv = camera.get_clip_transform(); //projection
+
 
 		//------------------------------------------
 		// RENDER REFLECTION AND REFRACTION TEXTURES
@@ -588,7 +691,7 @@ int main(void)
 			camera.invert_pitch();
 
 			// Render the scene
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()), SLmodels, streetLightShader);
 
 			// Move the camera back
 			camera.move_y_position(distance);
@@ -598,7 +701,7 @@ int main(void)
 			fbos.bindRefractionFrameBuffer();
 
 			// Render the scene
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()));
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, water.getHeight()), SLmodels, streetLightShader);
 		}
 		// If the camera is below the water, dont need reflection only refraction
 		else
@@ -610,12 +713,12 @@ int main(void)
 			fbos.bindReflectionFrameBuffer();
 
 			// Render the scene, don't bother changing since this is refraction
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()));
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, 1, 0, -water.getHeight()), SLmodels, streetLightShader);
 
 			// Bind the refraction frame buffer
 			fbos.bindRefractionFrameBuffer();
 			// Render the scene
-			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, -water.getHeight()));
+			render(terra, camera, models, skybox, modelShader, glm::vec4(0, -1, 0, -water.getHeight()), SLmodels, streetLightShader);
 		}
 
 		// Unbind the frame buffer before rendering the scene
@@ -625,13 +728,12 @@ int main(void)
 		// RENDER THE SCENE
 		//-----------------
 		// Render terrain, skybox and models
-		glEnable(GL_CLIP_DISTANCE0);
-		render(terra, camera, models, skybox, modelShader, glm::vec4(0, 0, 0, 0));
+		render(terra, camera, models, skybox, modelShader, glm::vec4(0, 0, 0, 0), SLmodels, streetLightShader);
 		// TODO: Send in a light when lights are done
 		// Render water
 		glEnable(GL_CLIP_DISTANCE0);
 		water.draw(camera.get_view_transform(), camera.get_clip_transform(), camera.get_position(),
-				   glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5));
+			glfwGetTime(), glm::vec3(0.0, 50, 0.0), glm::vec3(1.0, 1.0, 1.0), (camera.get_position().y > water.getHeight() - 0.5), camera.get_view_direction());
 		glDisable(GL_CLIP_DISTANCE0);
 		//Swap buffers
 		glfwSwapBuffers(window);

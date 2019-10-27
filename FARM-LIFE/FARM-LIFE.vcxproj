@@ -96,8 +96,16 @@
     <Image Include="skybox\textures\top.tga" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\lampLight.frag" />
+    <None Include="shaders\lampLight.vert" />
+    <None Include="shaders\light.frag" />
+    <None Include="shaders\light.vert" />
+    <None Include="shaders\model.frag" />
+    <None Include="shaders\model.vert" />
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
+    <None Include="shaders\SLmodel.frag" />
+    <None Include="shaders\SLmodel.vert" />
     <None Include="skybox\shaders\skybox.frag" />
     <None Include="skybox\shaders\skybox.vert" />
     <None Include="terrain\terrain.frag" />
@@ -105,6 +113,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="audio\audio.hpp" />
+    <ClInclude Include="lights\lights.hpp" />
     <ClInclude Include="models\model.hpp" />
     <ClInclude Include="models\paddock\paddock.hpp" />
     <ClInclude Include="skybox\skybox.hpp" />

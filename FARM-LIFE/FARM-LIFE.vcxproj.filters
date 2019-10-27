@@ -14,6 +14,7 @@
     <ClInclude Include="water\WaterFrameBuffers.hpp" />
     <ClInclude Include="audio\audio.hpp" />
     <ClInclude Include="models\paddock\paddock.hpp" />
+    <ClInclude Include="lights\lights.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="skybox\textures\back.tga">
@@ -46,6 +47,14 @@
     <None Include="skybox\shaders\skybox.vert">
       <Filter>skybox</Filter>
     </None>
+    <None Include="shaders\lampLight.frag" />
+    <None Include="shaders\lampLight.vert" />
+    <None Include="shaders\light.frag" />
+    <None Include="shaders\light.vert" />
+    <None Include="shaders\model.frag" />
+    <None Include="shaders\model.vert" />
+    <None Include="shaders\SLmodel.frag" />
+    <None Include="shaders\SLmodel.vert" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="skybox">

@@ -7,7 +7,8 @@ in vec3 position;				// position of the vertex
 out vec4 clipSpace;				// position of vertex in clip space
 out vec2 texCoords;				// texture coordinates for du/dv and normal map
 out vec3 toCameraVector;		// vector from vertex to camera
-out vec3 fromLightVector;		// vector from vertex to light
+out vec3 FragPos;				// Fragment Position
+//out vec3 fromLightVector;		// vector from vertex to light
 
 // Transformation matrices
 uniform mat4 Hwm;				// model to world matrix
@@ -51,6 +52,8 @@ void main()
 	// Get vertex to camera vector
 	toCameraVector = cameraPosition - worldPos.xyz;
 
+	FragPos = worldPos.xyz;
+
 	// Get vertex to light vector
-	fromLightVector = worldPos.xyz - lightPosition;
+	//fromLightVector = worldPos.xyz - lightPosition;
 }
