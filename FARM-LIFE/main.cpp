@@ -409,33 +409,16 @@ int main(void)
 	//GLuint shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 	GLuint modelShader = LoadShaders("shaders/model.vert", "shaders/model.frag");
 
-	// Load a model using model class
-	model::Model* giraffe = new model::Model("models/giraffe/giraffe-split.obj");
-	// Locate the model in the scene, simply give x and y coordinates (technically x and z in openGL)
-	int modelXCoord = 100;
-	int modelYCoord = 0;
-	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add the models height to get to ground level
-	float modelHeightInWorld = giraffe->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
-	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
-	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));	// set an animation loop on the giraffes head
-	models.push_back(giraffe);												 // push the model to the render vector
-	hitBoxes.push_back(giraffe->hitBox);										 // push the model's hitbox to the hitBox vector
+	int modelXCoord, modelYCoord;
+	float modelHeightInWorld;
+	int paddockXCoord, paddockYCoord;
 
 	model::Model* barn = new model::Model("models/barn/barn.obj");
-	modelXCoord = 100;
-	modelYCoord = 100;
-	modelHeightInWorld = barn->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) - 3;
+	modelXCoord = 82, modelYCoord = 110;
+	modelHeightInWorld = barn->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) - 4.0f;
 	barn->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(barn);
 	hitBoxes.push_back(barn->hitBox);
-
-	model::Model* cat = new model::Model("models/cat/cat.obj");
-	modelXCoord = 100;
-	modelYCoord = 10;
-	modelHeightInWorld = cat->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
-	cat->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
-	models.push_back(cat);
-	hitBoxes.push_back(cat->hitBox);
 
 	tree::Tree tree = tree::Tree("trees/placemap.bmp", terra);
 	for (int i = 0; i < 30; i++)
@@ -444,43 +427,59 @@ int main(void)
 		hitBoxes.push_back(tree.placeTree(i)->hitBox);
 	};
 
-	int paddockXCoord = 0, paddockYCoord = 70;
-	model::Paddock* paddock = new model::Paddock(2, 2);
-	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
-	paddocks.push_back(paddock);
-	paddock->PushModels(models);
-	paddock->PushHitBoxes(hitBoxes);
-
-	paddockXCoord = 0, paddockYCoord = 100;
-	model::Paddock* paddock2 = new model::Paddock(4, 3);
-	paddock2->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
-	paddocks.push_back(paddock2);
-	paddock2->PushModels(models);
-	paddock2->PushHitBoxes(hitBoxes);
-
 	model::Model* bucket = new model::Model("models/bucket/bucket.obj");
-	modelXCoord = 80;
-	modelYCoord = 80;
+	modelXCoord = 89, modelYCoord = 118;
 	modelHeightInWorld = bucket->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
 	bucket->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(bucket);
 	hitBoxes.push_back(bucket->hitBox);
 
+	/* Cat Paddock */
+	model::Paddock* paddock2 = new model::Paddock(4, 3);
+	paddockXCoord = 70, paddockYCoord = 140;
+	paddock2->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddocks.push_back(paddock2);
+	paddock2->PushModels(models);
+	paddock2->PushHitBoxes(hitBoxes);
+
+	model::Model* trough = new model::Model("models/trough/watertrough.obj");
+	modelXCoord = 101, modelYCoord = 148;
+	modelHeightInWorld = trough->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) + 0.5f;
+	trough->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(trough);
+	hitBoxes.push_back(trough->hitBox);
+
 	model::Model* bucket2 = new model::Model("models/bucket/bucket2.obj");
-	modelXCoord = 80;
-	modelYCoord = 83;
+	modelXCoord = 67, modelYCoord = 144;
 	modelHeightInWorld = bucket2->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
 	bucket2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(bucket2);
 	hitBoxes.push_back(bucket2->hitBox);
 
-	model::Model* trough = new model::Model("models/trough/watertrough.obj");
-	modelXCoord = 100;
-	modelYCoord = 120;
-	modelHeightInWorld = trough->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
-	trough->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
-	models.push_back(trough);
-	hitBoxes.push_back(trough->hitBox);
+	/* Paddock animals START */
+	model::Model* cat = new model::Model("models/cat/cat.obj");
+	modelXCoord = 85, modelYCoord = 145;
+	modelHeightInWorld = cat->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) - 1.0f;
+	cat->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(cat);
+	hitBoxes.push_back(cat->hitBox);
+
+	/* Giraffe Paddock */
+	model::Paddock* paddock = new model::Paddock(5, 7);
+	paddockXCoord = 5, paddockYCoord = 120;
+	paddock->MovePaddock(glm::vec2(paddockXCoord, paddockYCoord), terra, cameraOffsetX, cameraOffsetY, terraYOffset);
+	paddocks.push_back(paddock);
+	paddock->PushModels(models);
+	paddock->PushHitBoxes(hitBoxes);
+
+	/* Paddock animals START */
+	model::Model* giraffe = new model::Model("models/giraffe/giraffe-split.obj");
+	modelXCoord = 35, modelYCoord = 130;
+	modelHeightInWorld = giraffe->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) + 0.5f;
+	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+	models.push_back(giraffe);
+	hitBoxes.push_back(giraffe->hitBox);
 
 	//--------------
 	// CREATE SKYBOX
