@@ -8,6 +8,7 @@
 #ifndef ASSIGNMENT_TERRAIN_HPP
 #define ASSIGNMENT_TERRAIN_HPP
 
+#include "lights/lights.hpp"
 #undef main
 
 namespace terrain

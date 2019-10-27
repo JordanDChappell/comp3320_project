@@ -430,20 +430,6 @@ int main(void)
 	float modelHeightInWorld;
 	int paddockXCoord, paddockYCoord;
 
-	//******************************************************************************************************************************************
-	// Load a model using model class
-	model::Model* giraffe = new model::Model("models/giraffe/giraffe-split.obj");
-	// Locate the model in the scene, simply give x and y coordinates (technically x and z in openGL)
-	int modelXCoord = 100;
-	int modelYCoord = 0;
-	// get the terrain height at the current x,y coordinate in the scene, add the camera terrain height offset, add the models height to get to ground level
-	float modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (giraffe->hitBox.size.y);
-	giraffe->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord)); // move the model to a space in the scene
-	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));	// set an animation loop on the giraffes head
-	models.push_back(giraffe);												 // push the model to the render vector
-	hitBoxes.push_back(giraffe->hitBox);										 // push the model's hitbox to the hitBox vector
-
-
 	//**********************************************Street light Orbs********************************************************************************
 	//remember to change the position of both the post and the orb parts if moving the lights, as well as adjusting the light position in the lights.hpp
 	//Light number 1
@@ -451,7 +437,6 @@ int main(void)
 	modelXCoord = 1;
 	modelYCoord = 2;
 	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb1->hitBox.size.y) - 1;
-	std::cout << " Light Number 1: " << modelHeightInWorld + 3.0f << " "; // - Where the light Y coord should be
 	streetLightOrb1->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	SLmodels.push_back(streetLightOrb1);
 	hitBoxes.push_back(streetLightOrb1->hitBox);
@@ -460,7 +445,6 @@ int main(void)
 	modelXCoord = 50;
 	modelYCoord = 80;
 	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb2->hitBox.size.y) - 1;
-	std::cout << " Light Number 2: " << modelHeightInWorld + 3.0f << " "; // - Where the light Y coord should be
 	streetLightOrb2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	SLmodels.push_back(streetLightOrb2);
 	hitBoxes.push_back(streetLightOrb2->hitBox);
@@ -469,7 +453,6 @@ int main(void)
 	modelXCoord = 100;
 	modelYCoord = 1;
 	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb3->hitBox.size.y) - 1;
-	std::cout << " Light Number 3: " << modelHeightInWorld + 3.0f << " "; // - Where the light Y coord should be
 	streetLightOrb3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	SLmodels.push_back(streetLightOrb3);
 	hitBoxes.push_back(streetLightOrb3->hitBox);
@@ -478,7 +461,6 @@ int main(void)
 	modelXCoord = 10;
 	modelYCoord = 50;
 	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb4->hitBox.size.y) - 1;
-	std::cout << " Light Number 4: " << modelHeightInWorld + 3.0f << " "; // - Where the light Y coord should be
 	streetLightOrb4->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	SLmodels.push_back(streetLightOrb4);
 	hitBoxes.push_back(streetLightOrb4->hitBox);

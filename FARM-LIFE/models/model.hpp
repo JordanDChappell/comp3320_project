@@ -555,7 +555,7 @@ namespace model {
 					Texture texture;
 					texture.id = TextureFromFile(str.C_Str(), this->directory);
 					texture.type = typeName;
-					std::cout << typeName; //The texture maps don't seem to have a specular type, possibly
+					//std::cout << typeName; //The texture maps don't seem to have a specular type, possibly
 					texture.path = str.C_Str();
 					textures.push_back(texture);
 					loadedTextures.push_back(texture); 
