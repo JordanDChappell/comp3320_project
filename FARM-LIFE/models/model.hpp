@@ -293,6 +293,17 @@ namespace model {
 			position = position + coordinates;
 			hitBox.origin = hitBox.origin + coordinates;
 		}
+		void ShiftTo(glm::vec3 coordinates)
+		{
+			position = coordinates;
+			hitBox.origin = coordinates;
+		}
+
+		glm::vec3 getPosition()
+		{
+			return position ;
+			
+		}
 
 		///<summary>
 		/// Returns the appropriate terrain height to snap the model to
