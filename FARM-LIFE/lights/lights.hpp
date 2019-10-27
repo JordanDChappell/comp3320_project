@@ -78,7 +78,7 @@ namespace lights
 			glUniform1f(glGetUniformLocation(shader, "pointLights[1].quadratic"), 0.032);
 
 			// point light 3
-			glUniform3f(glGetUniformLocation(shader, "pointLights[2].position"), 100.0f, 6.28f, 1.0f);
+			glUniform3f(glGetUniformLocation(shader, "pointLights[2].position"), 70.0f, 1.9f, 145.0f);
 			glUniform3f(glGetUniformLocation(shader, "pointLights[2].ambient"), 0.1f, 0.1f, 0.1f);
 			glUniform3f(glGetUniformLocation(shader, "pointLights[2].diffuse"), 0.8f, 0.8f, 0.8f);
 			glUniform3f(glGetUniformLocation(shader, "pointLights[2].specular"), 1.0f, 1.0f, 1.0f);

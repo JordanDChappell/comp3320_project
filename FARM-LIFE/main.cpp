@@ -450,9 +450,10 @@ int main(void)
 	hitBoxes.push_back(streetLightOrb2->hitBox);
 	//Light number 3
 	model::Model* streetLightOrb3 = new model::Model("models/StreetLight/StreetLightMetallicOrb.obj");
-	modelXCoord = 100;
-	modelYCoord = 1;
+	modelXCoord = 70;
+	modelYCoord = 145;
 	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightOrb3->hitBox.size.y) - 1;
+	//std::cout << "Light height: " << modelHeightInWorld - 3<<" ";
 	streetLightOrb3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	SLmodels.push_back(streetLightOrb3);
 	hitBoxes.push_back(streetLightOrb3->hitBox);
@@ -487,8 +488,8 @@ int main(void)
 	hitBoxes.push_back(streetLightPost2->hitBox);
 	//Light number 3
 	model::Model* streetLightPost3 = new model::Model("models/StreetLight/StreetLightPost.obj");
-	modelXCoord = 100;
-	modelYCoord = 1;
+	modelXCoord = 70;
+	modelYCoord = 145;
 	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (streetLightPost3->hitBox.size.y) - 3;
 	//std::cout << " " << modelHeightInWorld << " "; //1.3
 	streetLightPost3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
