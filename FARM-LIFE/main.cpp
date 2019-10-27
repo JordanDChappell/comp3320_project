@@ -475,6 +475,7 @@ int main(void)
 	models.push_back(streetLightPost4);
 	hitBoxes.push_back(streetLightPost4->hitBox);
 	//**********************************************Street lights Posts********************************************************************************
+	//Pig not loading??
 
 	model::Model* pig = new model::Model("models/pig/pig.obj");
 	modelXCoord = 90;
@@ -538,7 +539,7 @@ int main(void)
 	float current_frame = 0.0f;
 	float delta_time = 0.0f;
 	//Set a background color
-	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// Sounds
 	cat->playSound("audio/cat-purring.wav", true, 0.2);
