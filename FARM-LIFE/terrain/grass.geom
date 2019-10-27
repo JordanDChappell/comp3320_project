@@ -75,7 +75,7 @@ void main()
 
     grassType = int(mod(int(rand(vec2(positions[0]))), 4));
 
-    if (clip < 0 || (pointPosition[1] < grassHeight || (abs(angle) > M_PI/6)) || int(mod(int(rand(vec2(grassType, grassType)) * 100), 50)) < 45 || farAway) {
+    if (clip < 0 || (pointPosition[1] < grassHeight || (abs(angle) > M_PI/6)) || int(mod(int(rand(vec2(positions[0] * 10)) * 100), 50)) < 40 || farAway) {
 
     }
     else {
