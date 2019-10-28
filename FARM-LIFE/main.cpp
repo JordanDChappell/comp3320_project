@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <random>
 
 // Include project files
 #include "util/mainUtil.hpp"
@@ -48,10 +49,83 @@ std::vector<model::Model*> models;	// vector of all models to render
 std::vector<model::Model*> SLmodels;
 std::vector<model::HitBox> hitBoxes; // vector of all hitboxes in the scene for collision detections
 std::vector<model::Paddock*> paddocks;  // vector of all paddocks for use with moveable gates
+std::vector<model::Model*> lostCat;
 static int debounceCounter = 0;		 // simple counter to debounce keyboard inputs
 
-//Lamp/lighting position
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+//Amount cat has been caught
+int catCaught = 0;
+
+void foundTheCat(utility::camera::Camera& camera, float terrainHeight, terrain::Terrain terra) {
+	model::Model* cat = lostCat[0];
+	float lxCoord, lyCoord, lzCoord;
+	float sxCoord, syCoord, szCoord;
+	//xCoord = cat->getPosition().x - camera.get_position().x;
+	//yCoord = cat->getPosition().y - camera.get_position().y;
+	//zCoord = cat->getPosition().z - camera.get_position().z;
+	
+	if (cat->getPosition().x> camera.get_position().x) {
+		lxCoord = cat->getPosition().x;
+		sxCoord = camera.get_position().x;
+	}
+	else {
+		lxCoord = camera.get_position().x;
+		sxCoord = cat->getPosition().x;
+	}
+	/*
+	if (cat->getPosition().y > camera.get_position().y) {
+		lyCoord = cat->getPosition().y;
+		syCoord = camera.get_position().y;
+	}
+	else {
+		lyCoord = camera.get_position().y;
+		syCoord = cat->getPosition().y;
+	}
+	*/
+	if (cat->getPosition().z > camera.get_position().z) {
+		lzCoord = cat->getPosition().z;
+		szCoord = camera.get_position().z;
+	}
+	else {
+		lzCoord = camera.get_position().z;
+		szCoord = cat->getPosition().z;
+	}
+	
+	if ((lxCoord- sxCoord)<6.0f && (lzCoord - szCoord) < 6.0f) { // (lzCoord - szCoord) < 3.0f
+		catCaught++;
+		float xCoordNew, yCoordNew, zCoordNew;
+		float modelHeightInWorld;
+		if (catCaught<6) {
+			
+			std::random_device randCoord;
+			std::mt19937 rng(randCoord());
+			std::uniform_int_distribution<std::mt19937::result_type> dist500(1, 500); // distribution in range [1, 500]
+			//For some reason putting it as yCoordNew = dist500(rng)-250; would occasionally give a numbner  like 4.0928+e09 for the Y(actaully z)
+			//End randomised values in between -250 to 250
+			float randX = dist500(rng);
+			xCoordNew = randX -250;
+			float randY = dist500(rng);
+			yCoordNew = randY -250;
+
+			std::cout << " " << randY << std::endl;
+			modelHeightInWorld = cat->GetModelTerrainHeight(terra, xCoordNew, yCoordNew, 500.0f, 500.0f, -20.0f);
+			
+			cat->ShiftTo(glm::vec3(xCoordNew, modelHeightInWorld, yCoordNew));
+		}
+		else {
+			xCoordNew = 78;
+			yCoordNew = 158;
+			modelHeightInWorld = cat->GetModelTerrainHeight(terra, xCoordNew, yCoordNew, 500.0f, 500.0f, -20.0f);
+			cat->ShiftTo(glm::vec3(xCoordNew, modelHeightInWorld, yCoordNew));
+		}
+		//This let's us know where the cat is for easier finding
+		std::cout << " New Position of Cat: " << xCoordNew << " " << modelHeightInWorld << " " <<yCoordNew << " " << std::endl;
+
+
+	}
+
+}
+
+
 void checkPaddockGates(utility::camera::Camera& camera)
 {
 	for (model::Paddock* paddock : paddocks)
@@ -90,7 +164,7 @@ void checkPaddockGates(utility::camera::Camera& camera)
 	}
 }
 
-void process_input(GLFWwindow *window, const float &delta_time, utility::camera::Camera &camera, float terrainHeight)
+void process_input(GLFWwindow *window, const float &delta_time, utility::camera::Camera &camera, float terrainHeight, terrain::Terrain terra)
 {
 	// Movement sensitivity is updated base on the delta_time and not framerate, gravity accelleration is also based on delta_time
 	camera.set_movement_sensitivity(30.0f * delta_time);
@@ -121,6 +195,12 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 	{
 		// Check if gate should be opened
 		checkPaddockGates(camera);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+	{
+		// Check if the cat was found, the cout is to make it easier to locate the cat relative to you.
+		std::cout << " Your current postion is here: " << camera.get_position().x << " " << camera.get_position().y << " " << camera.get_position().z << " ";
+		foundTheCat(camera, terrainHeight, terra);
 	}
 
 	// Process debounced inputs - this ensures we won't have 5 jump events triggering before we leave the ground etc.
@@ -505,15 +585,9 @@ int main(void)
 	models.push_back(streetLightPost4);
 	hitBoxes.push_back(streetLightPost4->hitBox);
 	//**********************************************Street lights Posts********************************************************************************
-	//Pig not loading??
+	
 
-	model::Model* pig = new model::Model("models/pig/pig.obj");
-	modelXCoord = 90;
-	modelYCoord = 90;
-	modelHeightInWorld = terra.getHeightAt(modelXCoord + cameraOffsetX, modelYCoord + cameraOffsetY) + terraYOffset + (pig->hitBox.size.y) - 3;
-	pig->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
-	models.push_back(pig);
-	hitBoxes.push_back(pig->hitBox);
+	
 
 	model::Model* barn = new model::Model("models/barn/barn.obj");
 	modelXCoord = 82, modelYCoord = 110;
@@ -568,11 +642,22 @@ int main(void)
 
 	model::Model* cat2 = new model::Model("models/cat/cat.obj");
 	modelXCoord = 75, modelYCoord = 160;
-	modelHeightInWorld = cat->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) - 1.0f;
+	modelHeightInWorld = cat2->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) - 1.0f;
 	cat2->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(cat2);
 	hitBoxes.push_back(cat2->hitBox);
 	/* Paddock animals END */
+
+	/*Lost cat START*/
+	lostCat;
+	model::Model* cat3 = new model::Model("models/cat/cat.obj");
+	modelXCoord = 200, modelYCoord = 360;
+	modelHeightInWorld = cat3->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset) - 1.0f;
+	cat3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(cat3);
+	lostCat.push_back(cat3);
+	hitBoxes.push_back(cat3->hitBox);
+	/*Lost cat END*/
 
 	/* Giraffe Paddock */
 	model::Paddock* paddock = new model::Paddock(5, 7);
@@ -588,6 +673,8 @@ int main(void)
 	bucket3->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
 	models.push_back(bucket3);
 	hitBoxes.push_back(bucket3->hitBox);
+
+
 
 	model::Model* bucket4 = new model::Model("models/bucket/bucket2.obj");
 	modelXCoord = 23, modelYCoord = 118;
@@ -611,6 +698,14 @@ int main(void)
 	giraffe->SetRotationAnimationLoop("Head_Plane.001", -0.5f, 0.5f, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
 	models.push_back(giraffe);
 	hitBoxes.push_back(giraffe->hitBox);
+
+	model::Model* pig = new model::Model("models/pig/pig.obj");
+	modelXCoord = 25;
+	modelYCoord = 160;
+	modelHeightInWorld = pig->GetModelTerrainHeight(terra, modelXCoord, modelYCoord, cameraOffsetX, cameraOffsetY, terraYOffset);
+	pig->MoveTo(glm::vec3(modelXCoord, modelHeightInWorld, modelYCoord));
+	models.push_back(pig);
+	hitBoxes.push_back(pig->hitBox);
 
 	model::Model* giraffe2 = new model::Model("models/giraffe/giraffe-split.obj");
 	modelXCoord = 15, modelYCoord = 150;
@@ -668,7 +763,7 @@ int main(void)
 		int cameraX = (int)camera.get_position().x + cameraOffsetX;
 		int cameraY = (int)camera.get_position().z + cameraOffsetY;
 		float terrainHeight = terra.getHeightAt(cameraX, cameraY) + terraYOffset + 5.0f; // using the offset down 20.0f units and adding some height for the camera
-		process_input(window, delta_time, camera, terrainHeight);
+		process_input(window, delta_time, camera, terrainHeight, terra);
 
 		glm::mat4 Hvw = camera.get_view_transform(); //view
 		glm::mat4 Hcv = camera.get_clip_transform(); //projection
