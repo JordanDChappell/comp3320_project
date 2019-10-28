@@ -202,6 +202,15 @@ void process_input(GLFWwindow *window, const float &delta_time, utility::camera:
 		std::cout << " Your current postion is here: " << camera.get_position().x << " " << camera.get_position().y << " " << camera.get_position().z << " ";
 		foundTheCat(camera, terrainHeight, terra);
 	}
+	else if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+	{
+		// Check if the cat was found, the cout is to make it easier to locate the cat relative to you.
+		double timer = 0;
+		glfwSetTime(timer);
+	}
+
+	//void glfwSetTime	(	double 	time	)	
+
 
 	// Process debounced inputs - this ensures we won't have 5 jump events triggering before we leave the ground etc.
 	if (debounceCounter == 0)

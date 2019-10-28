@@ -32,7 +32,7 @@ namespace lights
 			// directional light
 
 			glm::vec3 lightDirection(0.0f, 0.0f, 0.1f);
-			float time = glfwGetTime() / 240;
+			float time = -glfwGetTime() / 240;
 			time = (time - floor(time)) * 2 * M_PI;
 			lightDirection.x = cos(time);
 			lightDirection.y = sin(time);

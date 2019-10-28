@@ -47,7 +47,7 @@ namespace skybox {
 		void render(glm::mat4 view, glm::mat4 projection)
 		{
 			//setting up time
-			float time = glfwGetTime() / 240;
+			float time = -glfwGetTime() / 240;
 			time = (time - floor(time));
 			// view transforms
 			//glDepthFunc(GL_LESS);		// this didn't fix the skybox
