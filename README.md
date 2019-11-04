@@ -12,7 +12,11 @@ Must have at least Windows 32 bit.
 
 ## Gameplay
 
-The aim of the game is to find the cat, named William, and put him back in his pen. Do this by finding him and pressing 'g'. He will teleport around randomly five times before going into his pen.
+The aim of the game is to find the cat, named William, and put him back in his pen. Do this by finding him and pressing `g`. He will teleport around randomly five times before going into his pen.
+
+Pressing `t` will reset the day/night cycle.
+
+Pressing `SHIFT+\` ` will disable gravity and collision.
 
 ## Features
 
