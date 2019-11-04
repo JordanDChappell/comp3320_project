@@ -16,7 +16,7 @@ The aim of the game is to find the cat, named William, and put him back in his p
 
 Pressing `t` will reset the day/night cycle.
 
-Pressing `SHIFT+\` ` will disable gravity and collision.
+Pressing SHIFT+` will disable gravity and collision.
 
 ## Features
 
